@@ -162,6 +162,16 @@ class TestJaNeeProtocol(unittest.TestCase):
         self.assertIn("maak het korter", revisie_resultaat.bericht)
         self.assertIn("versie twee", revisie_resultaat.bericht.lower())
 
+    def test_nee_bij_conversatieagent_herhaalt_stem_niet(self):
+        """Gespreksagenten (zoals Navigatie) dubbelen hun oude antwoord niet."""
+        state = GespreksState()
+        route("Waar vind ik de knop voor de instellingen?", state)
+        resultaat, _ = route("nee, te veel stappen", state)
+        self.assertEqual(resultaat.agent_id, "agent_10_navigatie")
+        self.assertIn("te veel stappen", resultaat.bericht)
+        self.assertNotIn("Menu linksboven", resultaat.bericht)  # geen stem-dubbeling
+        self.assertTrue(resultaat.bericht.endswith("Is dit goed? (Ja / Nee of feedback)"))
+
     def test_privacy_gaat_voor_goedkeuring(self):
         state = GespreksState()
         route("wat kost een abonnement", state)

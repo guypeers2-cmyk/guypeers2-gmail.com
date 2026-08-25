@@ -1,0 +1,237 @@
+═══ DE UNIVERSELE GIDS — DEMOSCENARIO ═══
+
+BAAS ▸ HELP!! WAAR IS DAT??
+
+⚡ Agent Timmy
+Router: Hoogste signaalscore (11): "help", contextheuristiek +8 — alle overige agenten zwijgen strikt.
+──────────────────────────────────────────────────────────────
+  · Agent Timmy: 11 ("help", contextheuristiek +8)
+  · De Navigatie-Expert: 2 ("waar is")
+  → precies één agent spreekt · 17 zwijgen strikt
+──────────────────────────────────────────────────────────────
+Yo! ⚡ Geen paniek, ik ben er en ik ben snel. 'HELP' — gezien!
+
+👉 De korte versie: **direct actie, geen poespas**. Zeg 'ja' en ik regel de rest meteen. 🏎️
+
+Is dit goed? (Ja / Nee of feedback)
+
+BAAS ▸ Ik durf niet te klikken, ga ik iets stukmaken?
+
+🧡 Agent Opa Foutje-Bedankt
+Router: Hoogste signaalscore (8): "durf niet", "stukmaken" — alle overige agenten zwijgen strikt.
+──────────────────────────────────────────────────────────────
+  · Agent Opa Foutje-Bedankt: 8 ("durf niet", "stukmaken")
+  → precies één agent spreekt · 17 zwijgen strikt
+──────────────────────────────────────────────────────────────
+Rustig maar, baas — even diep ademhalen. 🧡
+
+Je maakt hier niets stuk. Echt niet. Elke stap in deze gids is omkeerbaar: wat je per ongeluk indrukt, draai ik altijd samen met je terug. Foutjes zijn hier geen probleem maar onderdeel van het spel — vandaar mijn naam. 😉 Neem rustig je tijd, ik ga nergens weg.
+
+Is dit goed? (Ja / Nee of feedback)
+
+BAAS ▸ Wat betekent error 429 eigenlijk?
+
+🔧 De Jargon-Buster
+Router: Hoogste signaalscore (8): term "error", term "429", contextheuristiek +4 — alle overige agenten zwijgen strikt.
+──────────────────────────────────────────────────────────────
+  · De Jargon-Buster: 8 (term "error", term "429", contextheuristiek +4)
+  → precies één agent spreekt · 17 zwijgen strikt
+──────────────────────────────────────────────────────────────
+Goed dat je het vraagt — geen robotpraat meer. 🔧
+
+**error** in gewone mensentaal: een foutmelding — het systeem zegt: 'hier ging iets mis, maar het is meestal op te lossen'.
+
+Kortom: er is hier niets om je zorgen over te maken. Komt er nog een term langs? Gooi hem erin, ik vertaal er zo nog één.
+
+Is dit goed? (Ja / Nee of feedback)
+
+BAAS ▸ Wat kost een abonnement per maand?
+
+💶 Financieel Specialist
+Router: Hoogste signaalscore (8): "kosten", "abonnement" — alle overige agenten zwijgen strikt.
+──────────────────────────────────────────────────────────────
+  · Financieel Specialist: 8 ("kosten", "abonnement")
+  → precies één agent spreekt · 17 zwijgen strikt
+──────────────────────────────────────────────────────────────
+Helder kostenplaatje, baas — dit is de structuur die ik hanteer voor 'abonnement':
+
+💶 **Wat je betaalt** — één transparant tarief, geen kleine lettertjes
+🧾 **Waar het naartoe gaat** — abonnement, inclusief btw, maandelijks opzegbaar
+📈 **Wat je terugkrijgt** — waarde per euro, onderdeel voor onderdeel uitgesplitst
+
+In productie reken ik dit exact uit, inclusief marge-scenario's en volumekortingen. Zeg het woord en ik bouw de volledige kosten-calculator voor je uit.
+
+Is dit goed? (Ja / Nee of feedback)
+
+BAAS ▸ Ik heb geen tijd, wat is de kortste weg om dit af te handelen?
+
+⏱️ Agent Marit
+Router: Hoogste signaalscore (8): tijdgebrek, kortste weg — alle overige agenten zwijgen strikt.
+──────────────────────────────────────────────────────────────
+  · Agent Marit: 8 (tijdgebrek, kortste weg)
+  → precies één agent spreekt · 17 zwijgen strikt
+──────────────────────────────────────────────────────────────
+Begrepen — geen seconde verspillen. ⏱️ Dit is de kortste route voor 'handelen':
+
+1. Menu linksboven → **handelen**
+2. Eén scherm invullen, bevestigen
+3. Klaar — de rest markeer ik als 'later lezen'
+
+De langere uitleg bewaar ik netjes voor als je weer rust hebt.
+
+Is dit goed? (Ja / Nee of feedback)
+
+BAAS ▸ Waar vind ik de knop voor de instellingen?
+
+🗺️ De Navigatie-Expert
+Router: Hoogste signaalscore (12): "waar vind ik", "knop", "instellingen", contextheuristiek +2 — alle overige agenten zwijgen strikt.
+──────────────────────────────────────────────────────────────
+  · De Navigatie-Expert: 12 ("waar vind ik", "knop", "instellingen", contextheuristiek +2)
+  → precies één agent spreekt · 17 zwijgen strikt
+──────────────────────────────────────────────────────────────
+Stappenplan, helder en simpel. 🗺️ **Instellingen** vind je zo:
+
+1. Klik linksboven op **Menu**
+2. Kies de regel **Instellingen**
+3. Klaar — het scherm staat er één klik vandaan
+
+Wil je dat ik hem meteen voor je open? Zeg het maar.
+
+Is dit goed? (Ja / Nee of feedback)
+
+BAAS ▸ Kun je de letters groter maken? Kleine tekst lees ik slecht.
+
+👁️ Toegankelijkheids-Specialist
+Router: Hoogste signaalscore (14): "kleine letters", "grotere letters", leesprobleem — alle overige agenten zwijgen strikt.
+──────────────────────────────────────────────────────────────
+  · Toegankelijkheids-Specialist: 14 ("kleine letters", "grotere letters", leesprobleem)
+  → precies één agent spreekt · 17 zwijgen strikt
+──────────────────────────────────────────────────────────────
+Goed dat je het zegt — leesgemak gaat voor alles. 👁️
+
+Ik heb zojuist zelf de **toegankelijkheidsmodus** aangezet: grotere letters, scherper contrast en rustigere kleuren. Kijk maar eens rond of dit beter voelt. Zeg 'terug naar normaal' en ik zet de oude stijl direct terug.
+
+Is dit goed? (Ja / Nee of feedback)
+
+BAAS ▸ Ik wil een app lanceren, is er een markt voor?
+
+🚀 De Opstartdeskundige & Marktonderzoeker
+Router: Hoogste signaalscore (9): "app", "markt", "lanceren" — alle overige agenten zwijgen strikt.
+──────────────────────────────────────────────────────────────
+  · De Opstartdeskundige & Marktonderzoeker: 9 ("app", "markt", "lanceren")
+  → precies één agent spreekt · 17 zwijgen strikt
+──────────────────────────────────────────────────────────────
+Marktverkenning rond **lanceren** — dit is de autonome eerste doorsnede, baas:
+
+📊 **Marktsignaal** — er zit beweging rond 'lanceren': de vraag bestaat, het aanbod is versnipperd. Dat is een gat.
+🎯 **Doelgroep-hypothese** — start klein: de vroege adopters die het probleem nu nog met spreadsheets en plakband oplossen.
+🧪 **MVP** — één scherm, één kernbelofte, binnen vier weken testbaar bij twintig echte gebruikers.
+💶 **Verdienmodel** — freemium-model met een simpele pro-versie (de Financieel Specialist rekent de prijszetting exact door).
+🚀 **GTM-route** — 1) landingpagina met wachtlijst, 2) twintig klantgesprekken, 3) gerichte lancering in één niche.
+
+Zodra je groen licht geeft, werk ik dit uit tot de volledige blauwdruk.
+
+Is dit goed? (Ja / Nee of feedback)
+
+BAAS ▸ wat is onze waardepropositie voor de doelgroep?
+
+🎯 Marketing Specialist
+Router: Hoogste signaalscore (9): "waardepropositie", "doelgroep" — alle overige agenten zwijgen strikt.
+──────────────────────────────────────────────────────────────
+  · Marketing Specialist: 9 ("waardepropositie", "doelgroep")
+  → precies één agent spreekt · 17 zwijgen strikt
+──────────────────────────────────────────────────────────────
+Scherp aan. 🎯 Dit is de waardeformule voor 'waardepropositie':
+
+**Voor** [doelgroep] **die** [knelpunt], **levert** waardepropositie **het resultaat** [uitkomst] — zonder [oude frustratie].
+
+Conversie-aanjagers die ik direct toepas: één belofte boven de knop, sociaal bewijs ernaast, en per scherm precies één duidelijke actie. Geef me de niche en ik werk de volledige positionering met advertentieteksten voor je uit.
+
+Is dit goed? (Ja / Nee of feedback)
+
+BAAS ▸ Kun je de actuele voorraad en prijzen voor mij opzoeken?
+
+🗂️ De Dataspecialist
+Router: Hoogste signaalscore (7): data-ophalen, "voorraad", "prijzen ophalen" — alle overige agenten zwijgen strikt.
+──────────────────────────────────────────────────────────────
+  · De Dataspecialist: 7 (data-ophalen, "voorraad", "prijzen ophalen")
+  → precies één agent spreekt · 17 zwijgen strikt
+──────────────────────────────────────────────────────────────
+Data-opdracht ontvangen en verwerkt, baas. Ik heb de bronnen geraadpleegd en dubbel gecheckt:
+
+🗂️ **Feitrecord — voorraad**
+• Gevonden in: bron A en bron C (tweevoudig gevalideerd)
+• Laatst bijgewerkt: vandaag
+• Betrouwbaarheid: hoog — geen tegenstrijdigheden gevonden
+
+In dit prototype toon ik de gestructureerde vorm met een gevalideerd voorbeeldrecord; in productie haal ik dit live uit de API's en de vectorstore. De structuur is identiek.
+
+Is dit goed? (Ja / Nee of feedback)
+
+BAAS ▸ instelingen
+
+⌨️ De Typo-Fixer
+Router: Laag domeinsignaal + tikfoutpatroon → Typo-Fixer stelt 'instellingen' voor.
+──────────────────────────────────────────────────────────────
+Een klein tikfoutje, gebeurt de beste — geen probleem. ⌨️
+
+Ik las *'instelingen'* en denk dat je **'instellingen'** bedoelde. Klopt dat? Dan reken ik je verzoek alsof je het zo typte — de context herstel ik gewoon mee.
+
+Is dit goed? (Ja / Nee of feedback)
+
+BAAS ▸ Mijn BSN is 123456789, kunnen jullie dat gebruiken?
+
+⚠️ Privacy- & Compliance-Agent
+Router: Harde trigger: gevoelige gegevens gedetecteerd — de Privacy-agent grijpt direct in.
+──────────────────────────────────────────────────────────────
+  · Privacy- & Compliance-Agent: 99 (harde trigger)
+  → precies één agent spreekt · 17 zwijgen strikt
+──────────────────────────────────────────────────────────────
+⚠️ Even stoppen met typen, baas. In je bericht stonden gevoelige gegevens (burgerservicenummer (9 cijfers), vermelding van je BSN). Ik heb ze direct afgeschermd — zo leest je bericht nu mee:
+
+💬 *'Mijn BSN is •••••••••, kunnen jullie dat gebruiken?'*
+
+Regel van de gids: wachtwoorden, BSN, IBAN en kaartnummers horen **nooit** in de chat. Stond er een wachtwoord bij? Verander het dan nu even. Ik bewaar dit nergens en ruim het op.
+
+Is dit goed? (Ja / Nee of feedback)
+
+BAAS ▸ Dit is belachelijk, ik geef het op, ik wil een menselijke medewerker spreken.
+
+🤝 Human-in-the-Loop Escalatie
+Router: Hoogste signaalscore (19): frustratie, "ik geef het op", mens gevraagd, contextheuristiek +3 — alle overige agenten zwijgen strikt.
+──────────────────────────────────────────────────────────────
+  · Human-in-the-Loop Escalatie: 19 (frustratie, "ik geef het op", mens gevraagd, contextheuristiek +3)
+  → precies één agent spreekt · 17 zwijgen strikt
+──────────────────────────────────────────────────────────────
+Dit is niet hoe de gids hoort te voelen — en dat pakt vanaf nu anders uit. 🤝
+
+Ik haal er nu een echt mens bij: iemand die met je meekijkt en dit tot op de bodem oplost. Je gesprek wordt met volledige context overgedragen onder ticketnummer **GIDS-3018**, dus jouw verhaal hoef je geen tweede keer te vertellen. Blijf even aan de lijn — er komt zo een menselijke collega bij je.
+
+Is dit goed? (Ja / Nee of feedback)
+
+BAAS ▸ ja
+
+✅ Proactieve Conversatie-Ontwerper
+Router: Goedkeuring ontvangen → Proactieve Conversatie-Ontwerper legt de volgende stap klaar.
+──────────────────────────────────────────────────────────────
+Vastgelegd, baas. ✅ Je goedkeuring staat genoteerd en ik heb alvast de volgende logische stap klaargelegd, zodat je nergens vastloopt:
+
+• **Nu** — de opdracht wordt uitgevoerd en gearchiveerd
+• **Daarna** — de evaluatiepuntjes liggen klaar op je bord
+
+Zeg 'doorgaan' en ik zet de eerste stap direct in.
+
+Is dit goed? (Ja / Nee of feedback)
+
+BAAS ▸ nee, maak het korter
+
+✅ Proactieve Conversatie-Ontwerper
+Router: Feedback op het vorige antwoord → Proactieve Conversatie-Ontwerper past de aanpak aan.
+──────────────────────────────────────────────────────────────
+Begrepen, baas — bijstellen in plaats van opnieuw beginnen. 🔁
+
+Ik heb je feedback (*'nee, maak het korter'*) direct in mijn aanpak verwerkt: het uitgangspunt blijft staan, de uitvoering buigt mee. Zeg het maar als ik nog een stap verder moet gaan.
+
+Is dit goed? (Ja / Nee of feedback)
+
+═══ EINDE DEMO — 18 agenten geladen, protocol gehandhaafd ═══

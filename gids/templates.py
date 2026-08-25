@@ -205,9 +205,18 @@ def marketing(ctx: dict) -> str:
 # ---------------------------------------------------------------
 
 def revisie(ctx: dict) -> str:
-    """De specialist herziet zijn eerdere voorstel op basis van feedback van de Baas."""
+    """De specialist herziet zijn eerdere output op basis van feedback van de Baas."""
     feedback = ctx.get("feedback", "").strip()
     feedback = feedback if len(feedback) <= 120 else feedback[:117] + "..."
+    if ctx.get("mode") == "revisie_kort":
+        # Conversatie-agenten (Timmy, Opa, Navigatie, …) herhalen hun stem
+        # niet — die leest als een dubbeling. Kort en gericht bijstellen.
+        return (
+            f"Begrepen, baas — bijstellen in plaats van opnieuw beginnen. 🔁\n\n"
+            f"Ik heb je feedback (*'{feedback}'*) direct in mijn aanpak verwerkt: "
+            f"het uitgangspunt blijft staan, de uitvoering buigt mee. "
+            f"Zeg het maar als ik nog een stap verder moet gaan."
+        )
     return (
         f"Begrepen, baas — bijstellen in plaats van opnieuw beginnen. 🔁\n\n"
         f"Ik heb je feedback (*'{feedback}'*) verwerkt: het kernidee blijft overeind, "

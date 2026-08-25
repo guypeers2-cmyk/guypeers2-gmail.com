@@ -27,6 +27,13 @@ from gids.templates import STEMMEN, revisie
 
 GOEDKEURING_SLUITING = "\n\nIs dit goed? (Ja / Nee of feedback)"
 
+# Alleen deze specialisten leveren voorstellen die bij 'nee, ...' als
+# "versie twee" opnieuw mogen verschijnen; de overige agenten krijgen
+# een korte bijstelreactie (hun stem herhalen zou verwarrend lezen).
+PROPOSITIE_AGENTEN = {
+    "agent_2_opstart", "agent_4_data", "agent_17_financieel", "agent_18_marketing",
+}
+
 _PUUR_JA = re.compile(r"^\s*(ja|jazeker|yes|akkoord|prima|top|ok|oke|oké|goed gekeurd)\s*[.!]?\s*$", re.IGNORECASE)
 _NEE_PREFIX = re.compile(r"^\s*(nee|neej|no|niet goed|anders)\b", re.IGNORECASE)
 _HERSTEL_TOEGANKELIJKHEID = re.compile(r"\b(terug naar normaal|oude stijl|normale stijl|uit zetten|uitzetten|terug)\b", re.IGNORECASE)
@@ -191,17 +198,21 @@ def verwerk(tekst: str, state: GespreksState = None) -> Resultaat:
         )
     if _NEE_PREFIX.match(tekst) and state.laatste_agent and state.laatste_agent in STEMMEN:
         herzien_agent = state.laatste_agent
-        ctx.update({"mode": "revisie", "feedback": tekst})
-        # De stem van de herziene specialist + revisie-aankondiging in één bericht.
         meta = agent_metadata(herzien_agent)
-        originele_stem = STEMMEN[herzien_agent]
-        bericht = revisie(ctx) + "\n\n" + originele_stem(ctx) + GOEDKEURING_SLUITING
+        if herzien_agent in PROPOSITIE_AGENTEN:
+            ctx.update({"mode": "revisie", "feedback": tekst})
+            bericht = revisie(ctx) + "\n\n" + STEMMEN[herzien_agent](ctx) + GOEDKEURING_SLUITING
+            reden = f"Feedback op het vorige voorstel → {meta['name']} herziet naar versie twee."
+        else:
+            ctx.update({"mode": "revisie_kort", "feedback": tekst})
+            bericht = revisie(ctx) + GOEDKEURING_SLUITING
+            reden = f"Feedback op het vorige antwoord → {meta['name']} past de aanpak aan."
         state.noteer(tekst, herzien_agent)
         return Resultaat(
             agent_id=herzien_agent,
             agent_naam=meta["name"],
             bericht=bericht,
-            reden=f"Feedback op het vorige voorstel → {meta['name']} herziet naar versie twee.",
+            reden=reden,
         )
 
     # --- 3. Signaalscoring over alle sprekende agenten ---
