@@ -119,11 +119,13 @@ gids/
 ├── analyse.py      # onderwerp-extractie + jargonwoordenboek
 ├── privacy.py      # harde trigger + maskering
 ├── typo.py         # Levenshtein-herstel
+├── kwaliteit.py    # Agent 16: privacyveilige leerlog + statistieken
 └── state.py        # Ja/Nee-goedkeuringsstatus (serialiseerbaar)
 web/                # console: index.html + styles.css + app.js
-serve.py            # stdlib webserver (statisch + JSON-API)
+serve.py            # stdlib webserver (statisch + JSON-API + /api/statistieken)
 cli.py              # interactieve terminal + --demo
-tests/test_router.py # 30 tests: zwijg-protocol, routing, Ja/Nee
+tests/              # 37 tests: zwijg-protocol, routing, Ja/Nee, leerlog
+data/               # runtime: kwaliteitslog (niet in git)
 ```
 
 ---
@@ -156,11 +158,12 @@ persona's zijn inwisselbaar.**
 - [x] Hoofdrouter met zwijg-protocol en transparant router-log
 - [x] Ja/Nee-goedkeuringsprotocol met revisie-cyclus
 - [x] Privacy-harde-trigger met maskering
-- [x] Webconsole + CLI + 30 tests (alle groen)
+- [x] Webconsole + CLI + 37 tests (alle groen)
+- [x] Kwaliteits- & Feedback-Agent: privacyveilige leerlog + statistiekdashboard + `/api/statistieken` (v1.1)
+- [x] Sessiepersistentie: gesprek overleeft een pagina-verversing (localStorage + sessie-id)
 - [ ] LLM-laag voor persona's (plug-in-punt klaar)
-- [ ] Sessiepersistentie (database/git-opslag van gesprekken)
-- [ ] Kwaliteitsagent: automatische optimalisatie van signaalgewichten
+- [ ] Automatische optimalisatie van signaalgewichten op basis van de leerlog
 
 ---
 
-*De Universele Gids — v1.0.0 · "Eén agent spreekt, zeventien zwijgen, de Baas beslist."*
+*De Universele Gids — v1.1.0 · "Eén agent spreekt, zeventien zwijgen, de Baas beslist."*

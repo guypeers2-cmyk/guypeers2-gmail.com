@@ -8,6 +8,27 @@ const $ = (sel) => document.querySelector(sel);
 const state = { laatsteAgent: null, inAfwachting: false, tellers: {}, beslissingen: 0 };
 let agenten = [];
 
+/* ---------------- Sessie & lokaal geheugen ---------------- */
+const OPGESLAGEN_GESPREK = "gids-gesprek-v1";
+const SESSIE_SLEUTEL = "gids-sessie";
+
+let sessieId = localStorage.getItem(SESSIE_SLEUTEL);
+if (!sessieId) {
+  sessieId = (crypto.randomUUID ? crypto.randomUUID() : "s-" + Date.now() + "-" + Math.random().toString(16).slice(2));
+  localStorage.setItem(SESSIE_SLEUTEL, sessieId);
+}
+
+let transcript = [];
+try { transcript = JSON.parse(localStorage.getItem(OPGESLAGEN_GESPREK) || "[]"); } catch (_) { transcript = []; }
+function bewaarTranscript() {
+  localStorage.setItem(OPGESLAGEN_GESPREK, JSON.stringify(transcript));
+}
+function wisSessie() {
+  localStorage.removeItem(OPGESLAGEN_GESPREK);
+  localStorage.removeItem(SESSIE_SLEUTEL);
+  location.reload();
+}
+
 const CATEGORIE_NAMEN = {
   bestuur: "Bestuur & routering",
   frontlijn: "Frontlijn-support",
@@ -30,21 +51,69 @@ const CHIPS = [
   { label: "⚠️ Privacy", tekst: "Mijn BSN is 123456789, kunnen jullie die gebruiken?" },
   { label: "🤝 Escalatie", tekst: "Dit is belachelijk, ik geef het op, ik wil een menselijke medewerker spreken." },
   { label: "✅ Ja (goedkeuren)", tekst: "ja" },
+  { label: "🗑 Nieuwe sessie", actie: "reset" },
 ];
 
 /* ---------------- Opstart ---------------- */
 
 async function start() {
   laadChips();
-  voegSysteemberichtToe(
-    "🏛️ Ecosysteem geactiveerd. 18 agenten geladen — 15 klaar om te spreken, " +
-    "3 toezichthouders op de achtergrond. Per invoer spreekt er exact één; de rest zwijgt strikt. " +
-    "Tik op een scenario of typ zelf."
-  );
+
+  // Sessieherstel: het gesprek overleeft een verversing van de pagina.
+  if (transcript.length) {
+    for (const item of transcript) {
+      if (item.type === "baas") voegBaasBerichtToe(item.tekst);
+      else if (item.type === "agent") voegAgentBerichtToe(item.resultaat);
+    }
+    voegSysteemberichtToe(
+      `🔁 Sessie hersteld (${transcript.length} berichten) — de Kwaliteitsagent bleef ondertussen gewoon doorleren. ` +
+      "Tik op '🗑 Nieuwe sessie' voor een verse start."
+    );
+  } else {
+    voegSysteemberichtToe(
+      "🏛️ Ecosysteem geactiveerd. 18 agenten geladen — 15 klaar om te spreken, " +
+      "3 toezichthouders op de achtergrond. Per invoer spreekt er exact één; de rest zwijgt strikt. " +
+      "Tik op een scenario of typ zelf."
+    );
+  }
+
   const res = await fetch("/api/agenten");
   const data = await res.json();
   agenten = data.agenten;
   tekenAgentenlijst();
+  haalStatistieken();
+}
+
+/* ---------------- Kwaliteitsdashboard (Agent 16) ---------------- */
+
+async function haalStatistieken() {
+  try {
+    const res = await fetch("/api/statistieken");
+    const stats = await res.json();
+    tekenKwaliteit(stats);
+  } catch (_) {
+    // De Kwaliteitsagent werkt door, ook als het dashboard even niet laadt.
+  }
+}
+
+function tekenKwaliteit(stats) {
+  const blok = $("#kwaliteit");
+  if (!blok) return;
+  if (!stats.totaal) {
+    blok.innerHTML = `
+      <div class="kop">Kwaliteitsagent (16) — continu leren</div>
+      <div class="rij"><span>nog geen beslissingen gelogd</span></div>`;
+    return;
+  }
+  const rijen = stats.per_agent.slice(0, 6).map(([id, n]) => {
+    const a = agenten.find((x) => x.id === id);
+    return `<div class="rij"><span>${a ? a.emoji + " " + a.naam : id}</span><b>${n}×</b></div>`;
+  }).join("");
+  blok.innerHTML = `
+    <div class="kop">Kwaliteitsagent (16) — continu leren</div>
+    ${rijen}
+    <div class="rij"><span><strong>totaal beslissingen</strong></span><b>${stats.totaal}</b></div>
+    <div class="vrijwaard">✅ Zwijg-protocol: ${stats.protocol_schendingen} schendingen<br>🔒 Alle invoer privacyveilig gemaskeerd in de log</div>`;
 }
 
 /* ---------------- Agentenlijst ---------------- */
@@ -190,6 +259,7 @@ async function zend(tekst) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         tekst,
+        sessie: sessieId,
         state: {
           laatste_agent: state.laatsteAgent,
           in_afwachting_goedkeuring: state.inAfwachting,
@@ -225,6 +295,12 @@ async function zend(tekst) {
     $("#invoer").placeholder = state.inAfwachting
       ? "Antwoord met Ja / Nee, of stel een nieuwe vraag…"
       : "Typ tegen de gids… (bijv. 'HELP!! WAAR IS DAT??')";
+
+    // Sessiegeheugen bijwerken en de Kwaliteitsagent verversen.
+    transcript.push({ type: "baas", tekst });
+    transcript.push({ type: "agent", resultaat });
+    bewaarTranscript();
+    haalStatistieken();
   } catch (fout) {
     voegSysteemberichtToe(
       "🛡️ De Systeem-Guard ving een verbindingshik op — je bericht is niet verloren. Probeer het nog eens."
@@ -241,7 +317,10 @@ function laadChips() {
     knop.type = "button";
     knop.className = "chip";
     knop.textContent = chip.label;
-    knop.addEventListener("click", () => zend(chip.tekst));
+    knop.addEventListener("click", () => {
+      if (chip.actie === "reset") { wisSessie(); return; }
+      zend(chip.tekst);
+    });
     houder.appendChild(knop);
   }
 }

@@ -8,7 +8,8 @@ Starten:   python3 serve.py          (poort 8080, bereikbaar op 0.0.0.0)
 Endpoints:
     GET  /                 → de console (web/index.html)
     GET  /api/agenten      → volledig agentenregister (18 agenten)
-    POST /api/bericht      → {"tekst": "...", "state": {...}} → routering + antwoord
+    GET  /api/statistieken → kwaliteitslog: beslissingen per agent (Agent 16)
+    POST /api/bericht      → {"tekst": "...", "state": {...}, "sessie": "..."} → routering + antwoord
 
 De volledige routeringslogica draait server-side in de gids-package;
 de browser is puur presentatielaag.
@@ -20,9 +21,13 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 from gids import GespreksState, alle_agenten, verwerk
+from gids.kwaliteit import KwaliteitsAgent
 
 WEBMAP = Path(__file__).resolve().parent / "web"
 POORT = int(os.environ.get("PORT", "8080"))
+
+# Agent 16: de Kwaliteits- & Feedback-Agent draait mee op de achtergrond.
+KWALITEIT = KwaliteitsAgent()
 
 MIME = {
     ".html": "text/html; charset=utf-8",
@@ -58,6 +63,8 @@ class GidsHandler(BaseHTTPRequestHandler):
                     for a in alle_agenten()
                 ]
             })
+        elif self.path == "/api/statistieken":
+            self._json(KWALITEIT.statistieken())
         elif self.path.startswith("/"):
             doel = (WEBMAP / self.path.lstrip("/")).resolve()
             if WEBMAP in doel.parents and doel.is_file():
@@ -81,6 +88,8 @@ class GidsHandler(BaseHTTPRequestHandler):
                 return
             state = GespreksState.van_dict(data.get("state"))
             resultaat = verwerk(tekst, state)
+            # Agent 16 logt elke afloop — privacyveilig (invoer wordt gemaskeerd).
+            KWALITEIT.noteer(tekst, resultaat, data.get("sessie") or "anoniem")
             self._json({
                 "resultaat": resultaat.naar_dict(),
                 "state": state.naar_dict(),
