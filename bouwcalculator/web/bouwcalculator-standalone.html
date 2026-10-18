@@ -1035,6 +1035,12 @@ table.offerte-tabel tr.ruimte-kop:hover td { background: var(--oppervlak-3); }
   h2, h3, h4 { break-after: avoid; page-break-after: avoid; }
 }
 
+/* Horizontaal scrollbare openingsmaten op compacte schermen. */
+.openings { overflow-x: auto; }
+.openings table { min-width: 640px; }
+.openings td input[data-opening-veld="positie"],
+.openings td input[data-opening-veld="borstwering"] { width: 80px; }
+
 </style>
 </head>
 <body>
@@ -1599,6 +1605,8 @@ function openingVanDict(d = {}) {
     breedte: getal(d.breedte, 0.9),
     hoogte: getal(d.hoogte, 2.1),
     aantal,
+    positie: d.positie == null || d.positie === "" ? null : Math.max(0, getal(d.positie)),
+    borstwering: Math.max(0, getal(d.borstwering)),
   };
 }
 
@@ -2134,6 +2142,7 @@ function berekenOfferte(projectData = {}) {
         id: r.id, naam: r.naam, lengte: r.lengte, breedte: r.breedte, hoogte: r.hoogte,
         openingen: r.openingen.map((o) => ({
           naam: o.naam, muur: o.muur, breedte: o.breedte, hoogte: o.hoogte, aantal: o.aantal,
+          positie: o.positie, borstwering: o.borstwering,
         })),
       })),
       regels: project.regels.map((r) => ({
@@ -2223,6 +2232,17 @@ if (typeof window !== "undefined") {
     return per;
   }
 
+  /* Eén geometrie voor beide aanzichten. Begrens alleen de tekening;
+     de opgegeven maten blijven ongewijzigd voor de calculatie. */
+  function openingLayout(open, lengte) {
+    return open.map((o, i) => {
+      const breedte = Math.min(lengte, Math.max(0, parseFloat(o.breedte) || 0));
+      const auto = lengte * ((i + 0.5) / open.length) - breedte / 2;
+      const start = o.positie == null || o.positie === "" ? auto : parseFloat(o.positie);
+      return { ...o, start: Math.max(0, Math.min(lengte - breedte, Number.isFinite(start) ? start : auto)), tekenBreedte: breedte };
+    }).sort((a, b) => a.start - b.start);
+  }
+
   /* Oppervlakte per vlak-sleutel. */
   function vlakMap(vlakken) {
     const map = {};
@@ -2275,19 +2295,18 @@ if (typeof window !== "undefined") {
     /* Wanden met openingen */
     ZIJDEN.forEach((zijde) => {
       const m = muren[zijde];
-      const open = openingen[zijde] || [];
+      const open = openingLayout(openingen[zijde] || [], m.len / schaal);
       /* posities van de openingen (gelijk verdeeld, want de positie
          langs de muur is niet vastgelegd) */
       const stukken = [];
       let vorig = 0;
       open.forEach((o, i) => {
-        const bw = Math.min(parseFloat(o.breedte) || 0.9, m.len * 0.6) * schaal;
-        const mid = m.len * ((i + 0.5) / open.length);
+        const bw = o.tekenBreedte * schaal;
+        const mid = (o.start + o.tekenBreedte / 2) * schaal;
         const s0 = Math.max(0, mid - bw / 2);
         const s1 = Math.min(m.len, mid + bw / 2);
         if (s0 > vorig) stukken.push([vorig, s0]);
-        stukken.push([s0, s1]);
-        vorig = s1;
+        vorig = Math.max(vorig, s1);
       });
       if (vorig < m.len) stukken.push([vorig, m.len]);
 
@@ -2305,8 +2324,8 @@ if (typeof window !== "undefined") {
       /* Openingen: deur (kraan + slag) of raam (kozijn) */
       open.forEach((o, i) => {
         const isDeur = String(o.naam || "").toLowerCase().indexOf("deur") === 0;
-        const bw = Math.min(parseFloat(o.breedte) || 0.9, m.len * 0.6) * schaal;
-        const mid = m.len * ((i + 0.5) / open.length);
+        const bw = o.tekenBreedte * schaal;
+        const mid = (o.start + o.tekenBreedte / 2) * schaal;
         const s0 = mid - bw / 2, s1 = mid + bw / 2;
         const a = [m.p0[0] + m.d[0] * s0, m.p0[1] + m.d[1] * s0];
         const b = [m.p0[0] + m.d[0] * s1, m.p0[1] + m.d[1] * s1];
@@ -2426,9 +2445,6 @@ if (typeof window !== "undefined") {
     const vA = P(0, 0, 0), vB = P(L, 0, 0), vC = P(L, B, 0), vD = P(0, B, 0);
     svg += `<polygon class="iso-vloer" style="fill:url(#${gid}-vloer)" points="${punten([vA, vB, vC, vD])}"/>`;
 
-    /* Plafond vervangen door een nette bovenrand (koffer uitsnede) */
-    const pA = P(0, 0, H), pB = P(L, 0, H), pC = P(L, B, H), pD = P(0, B, H);
-    void pA; void pB; void pC; void pD;
 
     /* Muur noord (y = 0) en muur west (x = 0) */
     const muren = [
@@ -2437,7 +2453,7 @@ if (typeof window !== "undefined") {
     ];
 
     muren.forEach((m) => {
-      const open = openingen[m.zijde] || [];
+      const open = openingLayout(openingen[m.zijde] || [], m.as === "x" ? L : B);
       const a0 = P(m.a[0], m.a[1], 0), b0 = P(m.b[0], m.b[1], 0);
       const a1 = P(m.a[0], m.a[1], H), b1 = P(m.b[0], m.b[1], H);
       svg += `<polygon class="iso-muur" data-zijde="${m.zijde}" style="fill:url(#${gid}-muur)" points="${punten([a0, b0, b1, a1])}"/>`;
@@ -2447,13 +2463,14 @@ if (typeof window !== "undefined") {
       /* Openingen als 'gat' in de muur */
       const muurLengte = m.as === "x" ? L : B;
       open.forEach((o, i) => {
-        const bw = Math.min(parseFloat(o.breedte) || 0.9, muurLengte * 0.6);
-        const mid = muurLengte * ((i + 0.5) / open.length);
+        const bw = o.tekenBreedte;
+        const mid = o.start + bw / 2;
         const s0 = mid - bw / 2, s1 = mid + bw / 2;
-        const oh = Math.min(parseFloat(o.hoogte) || 2.1, H);
+        const onder = Math.min(H, Math.max(0, parseFloat(o.borstwering) || 0));
+        const oh = Math.min(onder + Math.max(0, parseFloat(o.hoogte) || 0), H);
         const isDeur = String(o.naam || "").toLowerCase().indexOf("deur") === 0;
         const punt = (t, z) => (m.as === "x" ? P(t, 0, z) : P(0, t, z));
-        const gat = [punt(s0, 0), punt(s1, 0), punt(s1, oh), punt(s0, oh)];
+        const gat = [punt(s0, onder), punt(s1, onder), punt(s1, oh), punt(s0, oh)];
         svg += `<polygon class="iso-opening" points="${punten(gat)}"/>`;
         if (isDeur) {
           const deurTip = punt(s0, 0);
@@ -2742,6 +2759,10 @@ function renderRuimtekaart(ruimte) {
                  data-opening-veld="breedte" data-fokus="o_${ruimte.id}_${i}_b" style="width:74px"></td>
       <td><input type="number" step="0.05" min="0" value="${esc(o.hoogte)}" data-opening="${i}"
                  data-opening-veld="hoogte" data-fokus="o_${ruimte.id}_${i}_h" style="width:74px"></td>
+      <td><input type="number" step="0.05" min="0" value="${esc(o.positie ?? "")}" placeholder="Auto"
+          aria-label="Afstand vanaf begin wand in meter" data-opening="${i}" data-opening-veld="positie" data-fokus="o_${ruimte.id}_${i}_positie"></td>
+      <td><input type="number" step="0.05" min="0" value="${esc(o.borstwering ?? 0)}"
+          aria-label="Onderkant boven vloer in meter" data-opening="${i}" data-opening-veld="borstwering" data-fokus="o_${ruimte.id}_${i}_borstwering"></td>
       <td><button type="button" class="verwijder" data-actie="opening-verwijderen" data-index="${i}"
                   title="Verwijderen" aria-label="Verwijderen">${ICO.kruis}</button></td>
     </tr>`).join("");
@@ -2768,9 +2789,10 @@ function renderRuimtekaart(ruimte) {
     <div class="openings">
       <h3 style="font-size:.9rem;margin-bottom:6px">Openingen (deuren &amp; ramen)</h3>
       ${openingen ? `<table>
-        <thead><tr><th>Naam</th><th>Muur</th><th>Breedte</th><th>Hoogte</th><th></th></tr></thead>
+        <thead><tr><th>Naam</th><th>Muur</th><th>Breedte</th><th>Hoogte</th><th>Vanaf start</th><th>Boven vloer</th><th></th></tr></thead>
         <tbody>${openingen}</tbody></table>`
         : '<p class="klein-muted">Geen openingen. Klik hieronder om een deur of raam toe te voegen.</p>'}
+      <p class="hint">Maten in meter. Vanaf start: noord/zuid vanaf west, oost/west vanaf noord. Leeg = automatisch. Openingen worden binnen de wand getekend.</p>
       <div class="openings-acties">
         <button type="button" class="knop klein" data-actie="opening-toevoegen" data-soort="Deur">${ICO.deur} Deur</button>
         <button type="button" class="knop klein" data-actie="opening-toevoegen" data-soort="Raam">${ICO.raam} Raam</button>
@@ -3385,7 +3407,7 @@ document.addEventListener("input", (e) => {
     const opening = ruimte?.openingen[Number(el.dataset.opening)];
     if (!opening) return;
     const veld = el.dataset.openingVeld;
-    opening[veld] = el.value;
+    opening[veld] = veld === "positie" && el.value === "" ? null : el.value;
     bewaarLokaal();
     renderOppervlakken();
     renderOfferte();
@@ -3452,7 +3474,8 @@ document.addEventListener("change", (e) => {
     const opening = ruimte?.openingen[Number(el.dataset.opening)];
     const veld = el.dataset.openingVeld;
     if (opening) {
-      opening[veld] = (veld === "naam" || veld === "muur") ? el.value : getal(el.value, opening[veld]);
+      opening[veld] = (veld === "naam" || veld === "muur") ? el.value
+        : veld === "positie" && el.value === "" ? null : getal(el.value, opening[veld]);
     }
     bewaarLokaal();
     render();

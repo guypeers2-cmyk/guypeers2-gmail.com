@@ -44,6 +44,17 @@
     return per;
   }
 
+  /* Eén geometrie voor beide aanzichten. Begrens alleen de tekening;
+     de opgegeven maten blijven ongewijzigd voor de calculatie. */
+  function openingLayout(open, lengte) {
+    return open.map((o, i) => {
+      const breedte = Math.min(lengte, Math.max(0, parseFloat(o.breedte) || 0));
+      const auto = lengte * ((i + 0.5) / open.length) - breedte / 2;
+      const start = o.positie == null || o.positie === "" ? auto : parseFloat(o.positie);
+      return { ...o, start: Math.max(0, Math.min(lengte - breedte, Number.isFinite(start) ? start : auto)), tekenBreedte: breedte };
+    }).sort((a, b) => a.start - b.start);
+  }
+
   /* Oppervlakte per vlak-sleutel. */
   function vlakMap(vlakken) {
     const map = {};
@@ -96,19 +107,18 @@
     /* Wanden met openingen */
     ZIJDEN.forEach((zijde) => {
       const m = muren[zijde];
-      const open = openingen[zijde] || [];
+      const open = openingLayout(openingen[zijde] || [], m.len / schaal);
       /* posities van de openingen (gelijk verdeeld, want de positie
          langs de muur is niet vastgelegd) */
       const stukken = [];
       let vorig = 0;
       open.forEach((o, i) => {
-        const bw = Math.min(parseFloat(o.breedte) || 0.9, m.len * 0.6) * schaal;
-        const mid = m.len * ((i + 0.5) / open.length);
+        const bw = o.tekenBreedte * schaal;
+        const mid = (o.start + o.tekenBreedte / 2) * schaal;
         const s0 = Math.max(0, mid - bw / 2);
         const s1 = Math.min(m.len, mid + bw / 2);
         if (s0 > vorig) stukken.push([vorig, s0]);
-        stukken.push([s0, s1]);
-        vorig = s1;
+        vorig = Math.max(vorig, s1);
       });
       if (vorig < m.len) stukken.push([vorig, m.len]);
 
@@ -126,8 +136,8 @@
       /* Openingen: deur (kraan + slag) of raam (kozijn) */
       open.forEach((o, i) => {
         const isDeur = String(o.naam || "").toLowerCase().indexOf("deur") === 0;
-        const bw = Math.min(parseFloat(o.breedte) || 0.9, m.len * 0.6) * schaal;
-        const mid = m.len * ((i + 0.5) / open.length);
+        const bw = o.tekenBreedte * schaal;
+        const mid = (o.start + o.tekenBreedte / 2) * schaal;
         const s0 = mid - bw / 2, s1 = mid + bw / 2;
         const a = [m.p0[0] + m.d[0] * s0, m.p0[1] + m.d[1] * s0];
         const b = [m.p0[0] + m.d[0] * s1, m.p0[1] + m.d[1] * s1];
@@ -247,9 +257,6 @@
     const vA = P(0, 0, 0), vB = P(L, 0, 0), vC = P(L, B, 0), vD = P(0, B, 0);
     svg += `<polygon class="iso-vloer" style="fill:url(#${gid}-vloer)" points="${punten([vA, vB, vC, vD])}"/>`;
 
-    /* Plafond vervangen door een nette bovenrand (koffer uitsnede) */
-    const pA = P(0, 0, H), pB = P(L, 0, H), pC = P(L, B, H), pD = P(0, B, H);
-    void pA; void pB; void pC; void pD;
 
     /* Muur noord (y = 0) en muur west (x = 0) */
     const muren = [
@@ -258,7 +265,7 @@
     ];
 
     muren.forEach((m) => {
-      const open = openingen[m.zijde] || [];
+      const open = openingLayout(openingen[m.zijde] || [], m.as === "x" ? L : B);
       const a0 = P(m.a[0], m.a[1], 0), b0 = P(m.b[0], m.b[1], 0);
       const a1 = P(m.a[0], m.a[1], H), b1 = P(m.b[0], m.b[1], H);
       svg += `<polygon class="iso-muur" data-zijde="${m.zijde}" style="fill:url(#${gid}-muur)" points="${punten([a0, b0, b1, a1])}"/>`;
@@ -268,13 +275,14 @@
       /* Openingen als 'gat' in de muur */
       const muurLengte = m.as === "x" ? L : B;
       open.forEach((o, i) => {
-        const bw = Math.min(parseFloat(o.breedte) || 0.9, muurLengte * 0.6);
-        const mid = muurLengte * ((i + 0.5) / open.length);
+        const bw = o.tekenBreedte;
+        const mid = o.start + bw / 2;
         const s0 = mid - bw / 2, s1 = mid + bw / 2;
-        const oh = Math.min(parseFloat(o.hoogte) || 2.1, H);
+        const onder = Math.min(H, Math.max(0, parseFloat(o.borstwering) || 0));
+        const oh = Math.min(onder + Math.max(0, parseFloat(o.hoogte) || 0), H);
         const isDeur = String(o.naam || "").toLowerCase().indexOf("deur") === 0;
         const punt = (t, z) => (m.as === "x" ? P(t, 0, z) : P(0, t, z));
-        const gat = [punt(s0, 0), punt(s1, 0), punt(s1, oh), punt(s0, oh)];
+        const gat = [punt(s0, onder), punt(s1, onder), punt(s1, oh), punt(s0, oh)];
         svg += `<polygon class="iso-opening" points="${punten(gat)}"/>`;
         if (isDeur) {
           const deurTip = punt(s0, 0);

@@ -68,6 +68,8 @@ function openingVanDict(d = {}) {
     breedte: getal(d.breedte, 0.9),
     hoogte: getal(d.hoogte, 2.1),
     aantal,
+    positie: d.positie == null || d.positie === "" ? null : Math.max(0, getal(d.positie)),
+    borstwering: Math.max(0, getal(d.borstwering)),
   };
 }
 
@@ -606,6 +608,7 @@ export function berekenOfferte(projectData = {}) {
         id: r.id, naam: r.naam, lengte: r.lengte, breedte: r.breedte, hoogte: r.hoogte,
         openingen: r.openingen.map((o) => ({
           naam: o.naam, muur: o.muur, breedte: o.breedte, hoogte: o.hoogte, aantal: o.aantal,
+          positie: o.positie, borstwering: o.borstwering,
         })),
       })),
       regels: project.regels.map((r) => ({

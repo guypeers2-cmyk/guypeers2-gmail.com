@@ -1018,3 +1018,9 @@ table.offerte-tabel tr.ruimte-kop:hover td { background: var(--oppervlak-3); }
   thead { display: table-header-group; }
   h2, h3, h4 { break-after: avoid; page-break-after: avoid; }
 }
+
+/* Horizontaal scrollbare openingsmaten op compacte schermen. */
+.openings { overflow-x: auto; }
+.openings table { min-width: 640px; }
+.openings td input[data-opening-veld="positie"],
+.openings td input[data-opening-veld="borstwering"] { width: 80px; }

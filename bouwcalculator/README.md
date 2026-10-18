@@ -197,6 +197,17 @@ Klik op een wand (of op een deur daarin) en de werkregel voor dat vlak wordt
 toegevoegd. De plattegrond staat ook in het **gedrukte offerte-document**,
 zodat de klant ziet over welke ruimte het gaat.
 
+### Deuren en ramen plaatsen
+
+Bij elke opening stel je **Vanaf start** en **Boven vloer** in (meter).
+Noord/zuid meten vanaf de westhoek, oost/west vanaf de noordhoek.
+Laat **Vanaf start** leeg voor automatische verdeling. **Boven vloer** is
+bijvoorbeeld 0,90 m voor een raam met een vensterbank op die hoogte.
+De positie en borstwering worden opgeslagen en mee geëxporteerd naar JSON.
+De tekening begrenst openingen tot de wand; de calculatie gebruikt steeds
+de ingevoerde breedte en hoogte. Dit is een schematische visualisatie,
+geen uitvoeringsplan. De 3D-uitsnede toont de noord- en westwand.
+
 De tekening wordt opnieuw opgebouwd zodra er iets verandert: maten, deuren,
 ramen of werkregels. De module `web/plattegrond.js` staat helemaal los van
 de rekenkern en gebruikt geen browser-API's die niet in een testomgeving

@@ -54,6 +54,8 @@ class Opening:
     breedte: float = 0.90        # m
     hoogte: float = 2.10         # m
     aantal: int = 1
+    positie: Optional[float] = None  # afstand vanaf begin wand (m); None = automatisch
+    borstwering: float = 0.0         # onderkant opening boven vloer (m)
 
     def oppervlakte(self) -> float:
         return self.breedte * self.hoogte * max(1, self.aantal)
@@ -70,12 +72,15 @@ class Opening:
             breedte=_getal(d.get("breedte"), 0.9),
             hoogte=_getal(d.get("hoogte"), 2.1),
             aantal=int(_getal(d.get("aantal"), 1)) or 1,
+            positie=None if d.get("positie") in (None, "") else max(0, _getal(d["positie"])),
+            borstwering=max(0, _getal(d.get("borstwering"))),
         )
 
     def naar_dict(self) -> Dict[str, Any]:
         return {
             "naam": self.naam, "muur": self.muur, "breedte": self.breedte,
             "hoogte": self.hoogte, "aantal": self.aantal,
+            "positie": self.positie, "borstwering": self.borstwering,
         }
 
 

@@ -252,6 +252,10 @@ function renderRuimtekaart(ruimte) {
                  data-opening-veld="breedte" data-fokus="o_${ruimte.id}_${i}_b" style="width:74px"></td>
       <td><input type="number" step="0.05" min="0" value="${esc(o.hoogte)}" data-opening="${i}"
                  data-opening-veld="hoogte" data-fokus="o_${ruimte.id}_${i}_h" style="width:74px"></td>
+      <td><input type="number" step="0.05" min="0" value="${esc(o.positie ?? "")}" placeholder="Auto"
+          aria-label="Afstand vanaf begin wand in meter" data-opening="${i}" data-opening-veld="positie" data-fokus="o_${ruimte.id}_${i}_positie"></td>
+      <td><input type="number" step="0.05" min="0" value="${esc(o.borstwering ?? 0)}"
+          aria-label="Onderkant boven vloer in meter" data-opening="${i}" data-opening-veld="borstwering" data-fokus="o_${ruimte.id}_${i}_borstwering"></td>
       <td><button type="button" class="verwijder" data-actie="opening-verwijderen" data-index="${i}"
                   title="Verwijderen" aria-label="Verwijderen">${ICO.kruis}</button></td>
     </tr>`).join("");
@@ -278,9 +282,10 @@ function renderRuimtekaart(ruimte) {
     <div class="openings">
       <h3 style="font-size:.9rem;margin-bottom:6px">Openingen (deuren &amp; ramen)</h3>
       ${openingen ? `<table>
-        <thead><tr><th>Naam</th><th>Muur</th><th>Breedte</th><th>Hoogte</th><th></th></tr></thead>
+        <thead><tr><th>Naam</th><th>Muur</th><th>Breedte</th><th>Hoogte</th><th>Vanaf start</th><th>Boven vloer</th><th></th></tr></thead>
         <tbody>${openingen}</tbody></table>`
         : '<p class="klein-muted">Geen openingen. Klik hieronder om een deur of raam toe te voegen.</p>'}
+      <p class="hint">Maten in meter. Vanaf start: noord/zuid vanaf west, oost/west vanaf noord. Leeg = automatisch. Openingen worden binnen de wand getekend.</p>
       <div class="openings-acties">
         <button type="button" class="knop klein" data-actie="opening-toevoegen" data-soort="Deur">${ICO.deur} Deur</button>
         <button type="button" class="knop klein" data-actie="opening-toevoegen" data-soort="Raam">${ICO.raam} Raam</button>
@@ -895,7 +900,7 @@ document.addEventListener("input", (e) => {
     const opening = ruimte?.openingen[Number(el.dataset.opening)];
     if (!opening) return;
     const veld = el.dataset.openingVeld;
-    opening[veld] = el.value;
+    opening[veld] = veld === "positie" && el.value === "" ? null : el.value;
     bewaarLokaal();
     renderOppervlakken();
     renderOfferte();
@@ -962,7 +967,8 @@ document.addEventListener("change", (e) => {
     const opening = ruimte?.openingen[Number(el.dataset.opening)];
     const veld = el.dataset.openingVeld;
     if (opening) {
-      opening[veld] = (veld === "naam" || veld === "muur") ? el.value : getal(el.value, opening[veld]);
+      opening[veld] = (veld === "naam" || veld === "muur") ? el.value
+        : veld === "positie" && el.value === "" ? null : getal(el.value, opening[veld]);
     }
     bewaarLokaal();
     render();
