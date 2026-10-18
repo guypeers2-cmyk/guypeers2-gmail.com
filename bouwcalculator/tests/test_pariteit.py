@@ -102,6 +102,9 @@ PROJECTS.append(project("Badkamer gemengd", regels=[
     tarieven={"san_koudwater": 5.5, "uur_san_koudwater": .2},
     uurtarief=60, marge_pct=20, korting_pct=5, btw_pct=6))
 
+PROJECTS.append(project("Plaatsingen behouden", regels=[regel(
+    pakket="san_koudwater", hoeveelheid=5, visualisatie={"x":"1,25", "y":0, "z":.3,"x2":4,"y2":0,"z2":.3})]))
+
 
 class TestPariteit(unittest.TestCase):
     """De JS-port en de Python-kern leveren identieke offertes."""
@@ -125,6 +128,7 @@ class TestPariteit(unittest.TestCase):
         self.assertEqual(len(python_uitvoer), len(js_uitvoer))
         for index, (py, js) in enumerate(zip(python_uitvoer, js_uitvoer)):
             with self.subTest(project=PROJECTS[index]["naam"]):
+                self.assertEqual(py["project"], js["project"])
                 self.assertEqual(py["totalen"], js["totalen"])
                 self.assertEqual(py["regels"], js["regels"])
                 self.assertEqual(py["ruimtes"], js["ruimtes"])

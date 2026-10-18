@@ -10,6 +10,7 @@ delen exact hetzelfde formaat, zodat er niets dubbel bijgehouden wordt.
       └── tarieven{}  prijsboek-overrides (sleutel → prijs)
 """
 
+import math
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 from uuid import uuid4
@@ -124,6 +125,7 @@ class Werkregel:
     opties: Dict[str, str] = field(default_factory=dict)
     hoeveelheid: Optional[float] = None   # m², stuks of meters; None = oppervlak bij m², anders 0
     notitie: str = ""
+    visualisatie: Dict[str, float] = field(default_factory=dict)
 
     @staticmethod
     def van_dict(d: Dict[str, Any]) -> "Werkregel":
@@ -141,6 +143,10 @@ class Werkregel:
             opties={str(k): str(v) for k, v in (d.get("opties") or {}).items()},
             hoeveelheid=hoeveelheid,
             notitie=_tekst(d.get("notitie")),
+            visualisatie={k: max(0.0, _getal(v)) for k, v in
+                          (d.get("visualisatie") if isinstance(d.get("visualisatie"), dict) else {}).items()
+                          if k in ("x", "y", "z", "x2", "y2", "z2") and v not in (None, "")
+                          and math.isfinite(_getal(v, float("nan")))},
         )
 
     def naar_dict(self) -> Dict[str, Any]:
@@ -148,6 +154,7 @@ class Werkregel:
             "id": self.id, "ruimte_id": self.ruimte_id, "oppervlak": self.oppervlak,
             "pakket_id": self.pakket_id, "opties": dict(self.opties),
             "hoeveelheid": self.hoeveelheid, "notitie": self.notitie,
+            "visualisatie": dict(self.visualisatie),
         }
 
 

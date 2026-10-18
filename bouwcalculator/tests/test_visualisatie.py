@@ -61,3 +61,54 @@ console.log('OK');
         result = subprocess.run(["node", "-e", code, str(script)],
                                 capture_output=True, text=True, check=True)
         self.assertEqual(result.stdout.strip(), "OK")
+
+
+class WerkPlaatsingTest(unittest.TestCase):
+    def test_roundtrip_en_berekening_ongewijzigd(self):
+        from bouw.model import Werkregel
+        from bouw.offerte import bereken_offerte
+        regel = Werkregel.van_dict({"id": "e", "ruimte_id": "r", "pakket_id": "elek_stopcontact",
+                                   "hoeveelheid": 2, "visualisatie": {"x": "1,25", "y": 0, "z": .3}})
+        self.assertEqual(regel.visualisatie, {"x": 1.25, "y": 0, "z": .3})
+        self.assertEqual(Werkregel.van_dict(regel.naar_dict()), regel)
+        project = {"ruimtes": [{"id": "r"}], "regels": [regel.naar_dict()]}
+        voor = bereken_offerte(project)
+        project["regels"][0]["visualisatie"] = {"x": 99, "y": 99, "z": 99}
+        na = bereken_offerte(project)
+        self.assertEqual(voor["totalen"], na["totalen"])
+        self.assertEqual(na["project"]["regels"][0]["visualisatie"], {"x": 99, "y": 99, "z": 99})
+
+    def test_oude_en_ongeldige_plaatsingen(self):
+        from bouw.model import Werkregel
+        for v in (None, [], "bad", 42):
+            self.assertEqual(Werkregel.van_dict({"visualisatie": v}).visualisatie, {})
+        self.assertEqual(Werkregel.van_dict({"visualisatie": {"x": -1, "y": "bad", "z": float("inf"), "onbekend": 2}}).visualisatie, {"x": 0})
+
+    @unittest.skipUnless(shutil.which("node"), "Node nodig voor SVG-test")
+    def test_alle_pakketten_in_beide_aanzichten(self):
+        from bouw.tarieven import PAKKETTEN
+        script = Path(__file__).resolve().parents[1] / "web" / "plattegrond.js"
+        code = r'''
+const assert = require('node:assert/strict');
+global.window = {}; require(process.argv[1]);
+const pakketten = JSON.parse(process.argv[2]);
+const room = {naam:'<img>', lengte:6,breedte:4,hoogte:2.7,openingen:[]};
+const regels = pakketten.map((p,i)=>({id:'r'+i,pakket_id:p.id,pakket:p,nummer:i+1,
+  oppervlak:'noord', aantal:2,visualisatie:{x:1,y:.1,z:.3}}));
+for (const draw of [window.BouwPlan.plattegrond,window.BouwPlan.isometrie]) {
+  const svg = draw(room,[],{},{regels});
+  for (const r of regels) assert(svg.includes('data-plan-regel="'+r.id+'"'));
+  assert(!svg.includes('NaN'));
+  assert(!svg.includes('<img>'));
+  const verborgen = draw(room,[],{},{regels,lagen:{afwerking:false,elektriciteit:false,sanitair:false}});
+  assert(!verborgen.includes('data-plan-regel='));
+  const nul = draw(room,[],{},{regels:regels.map(r=>({...r,aantal:0}))});
+  assert(!nul.includes('data-plan-regel='));
+}
+const g = window.BouwPlan.werkGeometrie({...regels[0],visualisatie:{x:999,y:-4,z:999}},room);
+assert.deepEqual(g.a,[6,0,2.7]);
+console.log('OK');
+'''
+        result = subprocess.run(["node", "-e", code, str(script), json.dumps(PAKKETTEN)],
+                                capture_output=True, text=True, check=True)
+        self.assertEqual(result.stdout.strip(), "OK")

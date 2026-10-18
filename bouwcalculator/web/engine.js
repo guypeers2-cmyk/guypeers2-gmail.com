@@ -102,6 +102,9 @@ function regelVanDict(d = {}) {
     opties,
     hoeveelheid,
     notitie: tekst(d.notitie),
+    visualisatie: Object.fromEntries(Object.entries(d.visualisatie && typeof d.visualisatie === "object" ? d.visualisatie : {})
+      .filter(([k,v]) => ["x","y","z","x2","y2","z2"].includes(k) && v != null && v !== "" && Number.isFinite(parseFloat(String(v).replace(",", "."))))
+      .map(([k,v]) => [k, Math.max(0, parseFloat(String(v).replace(",", ".")))])),
   };
 }
 
@@ -637,7 +640,7 @@ export function berekenOfferte(projectData = {}) {
       })),
       regels: project.regels.map((r) => ({
         id: r.id, ruimte_id: r.ruimte_id, oppervlak: r.oppervlak, pakket_id: r.pakket_id,
-        opties: { ...r.opties }, hoeveelheid: r.hoeveelheid, notitie: r.notitie,
+        opties: { ...r.opties }, hoeveelheid: r.hoeveelheid, notitie: r.notitie, visualisatie: {...r.visualisatie},
       })),
       uurtarief: project.uurtarief, marge_pct: project.marge_pct,
       korting_pct: project.korting_pct, btw_pct: project.btw_pct,

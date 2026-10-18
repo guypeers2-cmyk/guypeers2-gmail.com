@@ -263,8 +263,8 @@ marge, korting en btw gelden ook voor deze posten. Bedragen tonen twee decimalen
 **Zonder verdeelkast, keuring, schema’s of AREI-conformiteitscontrole.** Dit is
 geen installatieontwerp; laat ontwerp en uitvoering door een vakbekwaam
 elektricien beoordelen. Op de offerte staat hiervoor een waarschuwing.
-Er worden geen fictieve stopcontactposities in 3D geplaatst: de locatie is
-voorlopig een gekozen wand/vloer/plafond, niet een exact installatiepunt.
+Alle posten zijn nu ook schematisch zichtbaar in 2D/3D. Automatische voorbeeldposities
+zijn nadrukkelijk geen installatieontwerp: vul de plaatsing in bij de werkregel.
 
 ---
 
@@ -319,7 +319,38 @@ waarschuwing over de beperkingen.
 Dit is een offertecalculator, geen installatieontwerp of controle op
 leidingdimensionering, drinkwaterveiligheid, terugstroombeveiliging of
 conformiteit. Laat ontwerp en uitvoering door een vakbekwaam installateur
-beoordelen. Er worden geen fictieve exacte toestelposities in 3D getekend.
+beoordelen. Toestellen en leidingen worden schematisch getekend; automatische voorbeeldposities
+zijn geen exacte montagepunten. Vul daarvoor de plaatsing bij de werkregel in.
+
+## Alle werken visualiseren in 2D & 3D
+
+De plattegrond toont nu alle actieve werkregels van de gekozen ruimte:
+- Gyproc, voegafwerking en schilderwerk als genummerde vlakmarkering.
+- Stopcontacten, schakelaars en lichtpunten als herkenbare symbolen.
+- Wc, lavabo, collector en wasmachinepunt met symbolen en indicatieve 3D-volumes.
+- Overige kranen, koppelingen en drukproef als schematische symbolen.
+- Water warm/koud, afvoer, bekabeling, isolatie en sleuven als gekleurde tracés.
+
+Gebruik de lagen **Gyproc & afwerking**, **Elektriciteit** en **Sanitair & water**
+om een druk plan leesbaar te houden. Elk nummer verwijst naar de legenda;
+klik het symbool of de legendaregel aan om de bijbehorende werkregel te bewerken.
+Eén symbool vertegenwoordigt één werkregel, met een ×-aantal bij meerdere stuks.
+Splits een regel als je losse punten op verschillende posities wilt plaatsen.
+
+Bij elke installatiepost vind je **Plaatsing in 2D & 3D**:
+**X** vanaf west, **Y** vanaf noord en **Z** boven vloer, in meter.
+Meterposten hebben bovendien eindcoördinaten **X2/Y2/Z2**. Lege velden krijgen
+een duidelijk aangeduide automatische voorbeeldpositie. De tekening begrenst
+coördinaten tot de ruimte; de ingevoerde waarden blijven bewaard.
+
+**De plaatsing verandert geen prijzen of gemeten hoeveelheden.** Een rechte
+tracélijn is geen automatische leidinglengteberekening. Vlakmarkeringen zijn
+geen exacte gedeeltelijke oppervlakbedekking; sanitaire volumes zijn geen
+productmaten of BIM-objecten. De tekening vervangt geen uitvoeringsplan.
+
+De geprinte offerte bevat de 2D-tekening met alle werken en een genummerde legenda,
+onafhankelijk van tijdelijk verborgen schermlagen. Posities blijven behouden in
+opgeslagen projecten en JSON export/import. Zie [de visualisatie-uitleg](docs/visualisatie.md).
 
 ## Apparaatcompatibiliteit
 

@@ -62,10 +62,117 @@
     return map;
   }
 
+  /* Werkregels zijn schematische objecten; plaatsing verandert nooit de calculatie. */
+  function laag(regel) {
+    return regel.pakket_id.startsWith('elek_') ? 'elektriciteit'
+      : regel.pakket_id.startsWith('san_') ? 'sanitair' : 'afwerking';
+  }
+  const get = (v, fallback = 0) => {
+    const n = parseFloat(String(v ?? '').replace(',', '.'));
+    return Number.isFinite(n) ? n : fallback;
+  };
+  const begrens = (v, max) => Math.max(0, Math.min(max, v));
+  function werkGeometrie(r, ruimte) {
+    const L = Math.max(.2, get(ruimte.lengte, .2)), B = Math.max(.2, get(ruimte.breedte, .2)), H = Math.max(.2, get(ruimte.hoogte, .2));
+    const fractie = .18 + ((r.nummer || 1) * .173 % .64);
+    const zijde = r.oppervlak;
+    let x = L * fractie, y = B * fractie;
+    if (zijde === 'noord') y = .12;
+    if (zijde === 'zuid') y = Math.max(0, B - .12);
+    if (zijde === 'west') x = .12;
+    if (zijde === 'oost') x = Math.max(0, L - .12);
+    const standaardZ = zijde === 'plafond' ? H : zijde === 'vloer' ? 0
+      : /schakelaar/.test(r.pakket_id) ? 1.1 : /stopcontact/.test(r.pakket_id) ? .3 : .6;
+    const v = r.visualisatie || {};
+    const a = [begrens(get(v.x,x),L), begrens(get(v.y,y),B), begrens(get(v.z,standaardZ),H)];
+    const b = [begrens(get(v.x2, zijde === 'west' || zijde === 'oost' ? a[0] : L * .82), L),
+      begrens(get(v.y2, zijde === 'west' || zijde === 'oost' ? B * .82 : a[1]), B),
+      begrens(get(v.z2,a[2]),H)];
+    return {a,b,L,B,H};
+  }
+  function icon(r) {
+    const id = r.pakket_id;
+    if (/stopcontact/.test(id)) return '<circle r="8"/><circle cx="-3" r="1"/><circle cx="3" r="1"/><path d="M-3 -7v2M3 -7v2"/>';
+    if (/schakelaar/.test(id)) return '<rect x="-8" y="-8" width="16" height="16" rx="2"/><path d="M-4 4L4 -4"/>';
+    if (/lichtpunt/.test(id)) return '<circle r="8"/><path d="M-6 -6L6 6M-6 6L6 -6"/>';
+    if (/san_wc/.test(id)) return '<rect x="-7" y="-11" width="14" height="7" rx="1"/><ellipse cy="3" rx="7" ry="9"/><ellipse cy="3" rx="4" ry="6"/>';
+    if (/lavabo/.test(id)) return '<rect x="-11" y="-8" width="22" height="16" rx="3"/><ellipse cy="1" rx="7" ry="4"/><path d="M0 -8v6"/>';
+    if (/collector/.test(id)) return '<path d="M-11 0H11M-7 0v7M-2 0v7M3 0v7M8 0v7"/>';
+    if (/kraan|koppeling|afvoerstuk/.test(id)) return '<path d="M-9 6V-2H7V4M-4 -7H4M0 -7V-2"/><circle cx="7" cy="7" r="1"/>';
+    if (/wasmachine/.test(id)) return '<rect x="-9" y="-10" width="18" height="20" rx="2"/><circle cy="2" r="6"/><path d="M-6 -6H5"/>';
+    if (/druktest/.test(id)) return '<circle r="9"/><path d="M0 0L5 -5M-3 5H3"/>';
+    return '<path d="M-8 0H8M0 -8V8"/><circle r="5"/>';
+  }
+  function tint(r) {
+    return /warmwater/.test(r.pakket_id) ? 'warmwater' : /koudwater/.test(r.pakket_id) ? 'koudwater'
+      : /afvoer/.test(r.pakket_id) ? 'afvoer' : /sleuf/.test(r.pakket_id) ? 'sleuf' : laag(r);
+  }
+  function werkOverlay(ruimte, opties, projecteer, iso = false) {
+    const regels = (opties.regels || []).filter(r => r.pakket && r.aantal > 0 && opties.lagen?.[laag(r)] !== false);
+    let svg = '';
+    // Objecten eerst op diepte sorteren voor een consistente 3D-tekening.
+    const objecten = regels.filter(r => r.pakket.eenheid !== 'm2').map(r => ({r,g:werkGeometrie(r,ruimte)}));
+    if (iso) objecten.sort((a,b) => projecteer(...a.g.a)[1] - projecteer(...b.g.a)[1]);
+    for (const {r,g} of objecten) {
+      const a = projecteer(...g.a), b = projecteer(...g.b);
+      const naam = `${r.nummer}. ${r.pakket.naam} · ${F(r.aantal)} ${r.pakket.eenheid}`;
+      svg += `<g class="werk-object tint-${tint(r)}" data-plan-regel="${esc(r.id)}" role="button" tabindex="0" aria-label="${esc(naam)} — werkregel bewerken"><title>${esc(naam)}; schematisch, niet op schaal</title>`;
+      if (r.pakket.eenheid === 'm') {
+        svg += `<line class="werk-trace-hit" x1="${R(a[0])}" y1="${R(a[1])}" x2="${R(b[0])}" y2="${R(b[1])}"/>`;
+        svg += `<line class="werk-trace" x1="${R(a[0])}" y1="${R(a[1])}" x2="${R(b[0])}" y2="${R(b[1])}"/>`;
+        for (const p of [a,b]) svg += `<circle class="werk-eind" cx="${R(p[0])}" cy="${R(p[1])}" r="3"/>`;
+        const fractie = .18 + .65 * (((r.nummer || 1) * .31) % 1);
+        svg += `<text class="werk-route-label" x="${R(a[0]+(b[0]-a[0])*fractie)}" y="${R(a[1]+(b[1]-a[1])*fractie-9)}" text-anchor="middle">${r.nummer} · ${F(r.aantal)} m</text>`;
+      } else {
+        // Indicatieve sanitaire volumes, geen productmaten of BIM-geometrie.
+        if (iso && /san_(wc|lavabo|wasmachine|collector)$/.test(r.pakket_id)) {
+          const [x,y,z] = g.a;
+          const w = Math.min(.45, g.L), d = Math.min(.48, g.B), h = Math.min(.55,g.H-z);
+          const x0 = Math.min(x,g.L-w), y0 = Math.min(y,g.B-d);
+          const P = (dx,dy,dz) => projecteer(x0+dx,y0+dy,z+dz);
+          svg += `<polygon class="werk-volume zij" points="${punten([P(0,d,0),P(w,d,0),P(w,d,h),P(0,d,h)])}"/>`;
+          svg += `<polygon class="werk-volume voor" points="${punten([P(w,0,0),P(w,d,0),P(w,d,h),P(w,0,h)])}"/>`;
+          svg += `<polygon class="werk-volume boven" points="${punten([P(0,0,h),P(w,0,h),P(w,d,h),P(0,d,h)])}"/>`;
+        }
+        svg += `<g class="werk-symbool" transform="translate(${R(a[0])} ${R(a[1])})"><circle class="werk-achtergrond" r="17"/>${icon(r)}<text class="werk-nummer" x="17" y="-13">${r.nummer}</text>`;
+        if (r.aantal !== 1) svg += `<text class="werk-aantal" x="0" y="29" text-anchor="middle">× ${F(r.aantal)}</text>`;
+        svg += '</g>';
+      }
+      svg += '</g>';
+    }
+    return svg;
+  }
+
+  function vlakMarkeringen(ruimte, opties, projecteer, zichtbaar = null) {
+    let svg = '';
+    const L = Math.max(.2,get(ruimte.lengte,.2)), B = Math.max(.2,get(ruimte.breedte,.2)), H = Math.max(.2,get(ruimte.hoogte,.2));
+    const vlakken = {
+      noord:[[0,0,0],[L,0,0],[L,0,H],[0,0,H]], zuid:[[0,B,0],[L,B,0],[L,B,H],[0,B,H]],
+      west:[[0,0,0],[0,B,0],[0,B,H],[0,0,H]], oost:[[L,0,0],[L,B,0],[L,B,H],[L,0,H]],
+      vloer:[[0,0,0],[L,0,0],[L,B,0],[0,B,0]], plafond:[[0,0,H],[L,0,H],[L,B,H],[0,B,H]],
+    };
+    const nummers = {};
+    for (const r of opties.regels || []) {
+      if (r.pakket?.eenheid !== 'm2' || r.aantal <= 0 || opties.lagen?.afwerking === false) continue;
+      if (zichtbaar && !zichtbaar.includes(r.oppervlak) && !['vloer','plafond'].includes(r.oppervlak)) continue;
+      const vlak = vlakken[r.oppervlak];
+      if (!vlak) continue;
+      const punten2d = vlak.map(p => projecteer(...p));
+      const index = nummers[r.oppervlak] || 0; nummers[r.oppervlak] = index+1;
+      const centrum = zichtbaar ? [punten2d[0][0]*.65+punten2d[2][0]*.35,punten2d[0][1]*.65+punten2d[2][1]*.35]
+        : [(punten2d[0][0]+punten2d[2][0])/2,(punten2d[0][1]+punten2d[2][1])/2];
+      const x = centrum[0]+index*26, y = centrum[1]+(zichtbaar ? 0 : r.oppervlak === 'plafond' ? -18 : 16);
+      svg += `<g class="werk-vlak" data-plan-regel="${esc(r.id)}" tabindex="0" role="button" aria-label="${esc(r.pakket.naam)} — werkregel bewerken"><title>${esc(r.pakket.naam)} · ${F(r.aantal)} m²; vlakmarkering, geen exacte dekking</title>`;
+      svg += `<polygon class="werk-vlak-markering" points="${punten(punten2d)}"/>`;
+      svg += `<circle class="werk-vlak-badge" cx="${R(x)}" cy="${R(y)}" r="11"/><text class="werk-vlak-nummer" x="${R(x)}" y="${R(y+4)}" text-anchor="middle">${r.nummer}</text></g>`;
+    }
+    return svg;
+  }
+
   /* ==================================================================
      2D — bovenaanzicht
      ================================================================== */
-  function plattegrond(ruimte, vlakken, werk) {
+  function plattegrond(ruimte, vlakken, werk, opties = {}) {
     const L = Math.max(0.2, parseFloat(ruimte.lengte) || 0.2);
     const B = Math.max(0.2, parseFloat(ruimte.breedte) || 0.2);
     const H = Math.max(0.2, parseFloat(ruimte.hoogte) || 0.2);
@@ -159,12 +266,14 @@
       });
 
       /* naam + oppervlakte binnen de ruimte */
-      const cx = m.p0[0] + m.d[0] * m.len / 2 + m.n[0] * 26;
-      const cy = m.p0[1] + m.d[1] * m.len / 2 + m.n[1] * 26;
+      const buitenLabel = (opties.regels || []).length > 0;
+      const labelAfstand = buitenLabel ? -28 : 26;
+      const cx = m.p0[0] + m.d[0] * m.len / 2 + m.n[0] * labelAfstand;
+      const cy = m.p0[1] + m.d[1] * m.len / 2 + m.n[1] * labelAfstand;
       const draai = (zijde === "west" || zijde === "oost");
       const labelTekst = m.label;
       const opp = label ? `${F(label.netto)} m²` : "";
-      const werkInfo = (werk || {})[zijde];
+      const werkInfo = buitenLabel ? "" : (werk || {})[zijde];
       /* bij gedraaide labels verschuift de tweede regel in de gedraaide richting */
       const x2 = draai ? cx + 14 : cx;
       const y2 = draai ? cy : cy + 15;
@@ -190,7 +299,7 @@
     });
 
     /* Maatvoering: lengte onder, breedte links */
-    const dy = ry + h + 46;
+    const dy = ry + h + ((opties.regels || []).length ? 70 : 46);
     svg += `<g class="plan-maat">
       <line x1="${R(rx)}" y1="${R(dy)}" x2="${R(rx + w)}" y2="${R(dy)}"/>
       <line x1="${R(rx)}" y1="${R(dy - 6)}" x2="${R(rx)}" y2="${R(dy + 6)}"/>
@@ -206,9 +315,12 @@
     </g>`;
 
     /* Hoogte in de hoek */
-    svg += `<text class="plan-hoogte" x="${R(rx + w)}" y="${R(ry + h + 70)}" text-anchor="end">hoogte ${F(H)} m</text>`;
+    svg += `<text class="plan-hoogte" x="${R(rx + w)}" y="${R(ry + h + ((opties.regels || []).length ? 83 : 70))}" text-anchor="end">hoogte ${F(H)} m</text>`;
 
-    return `<svg class="plan" viewBox="0 0 ${W} ${HP}" role="img" aria-label="Plattegrond van ${esc(ruimte.naam || "ruimte")}">${svg}</svg>`;
+    const projecteer = (x,y,z) => [rx+x*schaal, ry+y*schaal];
+    svg += vlakMarkeringen(ruimte, opties, projecteer);
+    svg += werkOverlay(ruimte, opties, projecteer);
+    return `<svg class="plan" viewBox="0 0 ${W} ${HP}" role="group" aria-label="Plattegrond van ${esc(ruimte.naam || "ruimte")}">${svg}</svg>`;
   }
 
   /* ==================================================================
@@ -291,9 +403,11 @@
       svg += tekst([(c[0]+d[0])/2,(c[1]+d[1])/2+23], `${F(B)} m`, 'iso-maat');
       svg += tekst([W/2, HP-17], `Hoogte ${F(H)} m · Vloer ${F(L*B)} m² · Volume ${F(L*B*H)} m³`, 'iso-samenvatting');
     }
+    svg += vlakMarkeringen(ruimte, opties, P, zichtbaar);
+    svg += werkOverlay(ruimte, opties, P, true);
     const vw = W/zoom, vh = HP/zoom;
     return `<svg class="plan iso" viewBox="${R((W-vw)/2)} ${R((HP-vh)/2)} ${R(vw)} ${R(vh)}" role="group" aria-label="3D-ruimte ${esc(ruimte.naam || '')}. Klik op een wand om werk toe te voegen.">${svg}</svg>`;
   }
 
-  window.BouwPlan = { plattegrond, isometrie };
+  window.BouwPlan = { plattegrond, isometrie, laag, werkGeometrie, tint };
 })();

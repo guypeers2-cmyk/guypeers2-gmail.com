@@ -428,6 +428,11 @@ function renderRegelkaart(regel, vlakken) {
              : oppervlaktePakket ? '<button type="button" class="knop klein" data-actie="hoeveelheid-auto">opnieuw automatisch</button>' : '<span class="klein-muted">Handmatig gemeten · niet afgeleid van m²</span>'}
     </div>
     ${!oppervlaktePakket ? `<p class="hint elek-regel-uitleg">${esc(pakket.beschrijving)}</p>` : ""}
+    ${!oppervlaktePakket ? `<details class="plaatsing"><summary>Plaatsing in 2D &amp; 3D</summary>
+      <p class="hint">Meters vanaf west (X), noord (Y) en vloer (Z). Leeg = automatisch. Eén symbool per werkregel; splits de regel voor afzonderlijke posities. Posities worden in de tekening begrensd tot de ruimte.</p>
+      <div class="plaatsing-velden">${(pakket.eenheid === "m" ? ["x","y","z","x2","y2","z2"] : ["x","y","z"]).map(k => `<label>${({x:"Start X",y:"Start Y",z:"Hoogte Z",x2:"Eind X",y2:"Eind Y",z2:"Eind Z"})[k]} (m)<input type="number" min="0" step="0.05" placeholder="Auto" value="${esc(regel.visualisatie?.[k] ?? "")}" data-plaatsing="${k}" data-fokus="r_${regel.id}_plaats_${k}"></label>`).join("")}</div>
+      ${pakket.eenheid === "m" ? '<p class="hint">De lijn is een schematisch recht tracé. Gebruik de handmatig gemeten lengte voor de offerte; bochten en leidinglengte worden hier niet automatisch berekend.</p>' : ""}
+    </details>` : ""}
     <div class="regelprijs" data-prijzen="${esc(regel.id)}"></div>
     <details class="details">
       <summary>Materialen &amp; uren</summary>
@@ -511,7 +516,8 @@ function offertePlannen(offerte) {
     if (!ruimte) return "";
     return `<div class="offerte-plan">
       <h4>${esc(r.naam)} · ${NRL.format(r.lengte)} × ${NRL.format(r.breedte)} × ${NRL.format(r.hoogte)} m</h4>
-      ${window.BouwPlan.plattegrond(ruimte, r.vlakken || [], {})}
+      ${window.BouwPlan.plattegrond(ruimte, r.vlakken || [], {}, {regels: planRegels(ruimte)})}
+      <div class="plan-legenda print-plan-legenda">${planLegenda(planRegels(ruimte), true)}</div>
     </div>`;
   }).join("");
   if (!plannen) return "";
@@ -622,6 +628,27 @@ function renderOfferte() {
 /* ---------------- plattegrond ---------------- */
 let planWeergave = "plattegrond";
 const planCamera = { hoek: 0, zoom: 1, maten: true };
+const planLagen = {afwerking: true, elektriciteit: true, sanitair: true};
+
+function planRegels(ruimte) {
+  const vlakken = vlakkenVoor(ruimte);
+  return state.project.regels.filter(r => r.ruimte_id === ruimte.id).map((r, i) => {
+    const pakket = state.prijsboek?.pakketten.find(p => p.id === r.pakket_id);
+    const berekend = state.offerte?.regels.find(o => o.regel_id === r.id);
+    return {...r, pakket, nummer: i + 1,
+      aantal: berekend?.aantal ?? (r.hoeveelheid ?? (pakket?.eenheid === "m2" ? vlakken.find(v => v.sleutel === r.oppervlak)?.netto : 0))};
+  }).filter(r => r.pakket);
+}
+
+function planLegenda(regels, print = false) {
+  return regels.filter(r => r.aantal > 0).map(r => {
+    const laag = window.BouwPlan.laag(r);
+    if (!print && !planLagen[laag]) return "";
+    const inhoud = `<b>${r.nummer}</b><span>${esc(r.pakket.naam)} · ${NRL.format(r.aantal)} ${esc(r.pakket.eenheid)}<small>${esc(r.oppervlak)} · ${Object.keys(r.visualisatie || {}).length ? "Plaatsing geheel/deels ingesteld" : "Automatische schemapositie"}</small></span>`;
+    return print ? `<div class="plan-legenda-item laag-${laag} tint-${window.BouwPlan.tint(r)}">${inhoud}</div>`
+      : `<button type="button" class="plan-legenda-item laag-${laag} tint-${window.BouwPlan.tint(r)}" data-plan-regel="${esc(r.id)}">${inhoud}</button>`;
+  }).join("");
+}
 
 function werkPerVlak(ruimte) {
   const uit = {};
@@ -656,7 +683,10 @@ function renderPlan() {
 
   const vlakken = vlakkenVoor(ruimte);
   const tekenaar = planWeergave === "isometrie" ? window.BouwPlan.isometrie : window.BouwPlan.plattegrond;
-  houder.innerHTML = tekenaar(ruimte, vlakken, werk, planCamera);
+    const regels = planRegels(ruimte);
+  houder.innerHTML = tekenaar(ruimte, vlakken, werk, {...planCamera, regels, lagen: planLagen});
+  const legenda = $("#plan-legenda");
+  if (legenda) legenda.innerHTML = planLegenda(regels);
   const bediening = $("#iso-bediening");
   if (bediening) bediening.hidden = planWeergave !== "isometrie";
   const richting = $("#iso-richting");
@@ -812,7 +842,21 @@ function importeerJson(tekst) {
 }
 
 /* ---------------- events ---------------- */
+function selecteerPlanRegel(id) {
+  const regel = state.project.regels.find(r => r.id === id);
+  if (!regel) return;
+  const veld = $$("[data-hoeveelheid]").find(el => el.closest("[data-regel]")?.dataset.regel === regel.id);
+  const kaart = veld?.closest(".regelkaart");
+  if (kaart) {
+    kaart.scrollIntoView({block: "center", behavior: window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ? "auto" : "smooth"});
+    veld.focus({preventScroll:true});
+  }
+}
+
 document.addEventListener("click", (e) => {
+  const planRegel = e.target.closest("[data-plan-regel]");
+  if (planRegel) { selecteerPlanRegel(planRegel.dataset.planRegel); return; }
+
   const discipline = e.target.closest("[data-installatie]");
   if (discipline) {
     installatieKeuze = discipline.dataset.installatie;
@@ -985,6 +1029,10 @@ document.addEventListener("click", (e) => {
 /* Toetsenbord: Enter of spatie op een wand voegt werk toe. */
 document.addEventListener("keydown", (e) => {
   if (e.key !== "Enter" && e.key !== " ") return;
+  const symbool = e.target.closest?.("[data-plan-regel]");
+  if (symbool && symbool.tagName.toLowerCase() === "g") {
+    e.preventDefault(); selecteerPlanRegel(symbool.dataset.planRegel); return;
+  }
   const wand = e.target.closest && e.target.closest(".plan-wand, .plan-open");
   if (!wand) return;
   e.preventDefault();
@@ -994,6 +1042,15 @@ document.addEventListener("keydown", (e) => {
 /* Tijdens het typen: het model bijwerken, maar het veld zelf niet opnieuw bouwen. */
 document.addEventListener("input", (e) => {
   const el = e.target;
+  if (el.dataset.plaatsing) {
+    const regel = state.project.regels.find(r => r.id === el.closest("[data-regel]")?.dataset.regel);
+    if (!regel) return;
+    regel.visualisatie ||= {};
+    if (el.value === "") delete regel.visualisatie[el.dataset.plaatsing];
+    else regel.visualisatie[el.dataset.plaatsing] = Math.max(0, getal(el.value));
+    bewaarLokaal(); renderPlan(); renderOfferte(); return;
+  }
+
   if (el.id === "tarief-zoeken") { filterTarieven(); return; }
 
   if (el.dataset.project) {
@@ -1057,6 +1114,9 @@ document.addEventListener("input", (e) => {
 /* Bij het verlaten van een veld: normaliseren en de kaart opnieuw opbouwen. */
 document.addEventListener("change", (e) => {
   const el = e.target;
+  if (el.dataset.planLaag) { planLagen[el.dataset.planLaag] = el.checked; renderPlan(); return; }
+  if (el.dataset.plaatsing) { el.dispatchEvent(new Event("input", {bubbles:true})); return; }
+
   if (["tarief-categorie", "tarief-eigen", "tarief-zoeken"].includes(el.id)) {
     filterTarieven(); return;
   }

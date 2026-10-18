@@ -150,7 +150,14 @@
         <button type="button" class="knop klein" data-camera="reset">Herstel</button>
         <button type="button" class="knop klein" data-camera="maten" aria-pressed="true">Maten</button>
       </div>
+      <div class="plan-lagen" role="group" aria-label="Zichtbare werken">
+        <label><input type="checkbox" data-plan-laag="afwerking" checked> Gyproc &amp; afwerking</label>
+        <label><input type="checkbox" data-plan-laag="elektriciteit" checked> Elektriciteit</label>
+        <label><input type="checkbox" data-plan-laag="sanitair" checked> Sanitair &amp; water</label>
+      </div>
       <div class="planhouder" id="plan"></div>
+      <div id="plan-legenda" class="plan-legenda" aria-label="Werken in de tekening"></div>
+      <p class="hint plan-voorbehoud">Schematische weergave, geen uitvoeringsplan. Eén symbool staat voor één werkregel (× aantal). Automatische posities zijn voorbeelden; stel de plaatsing in bij de werkregel. Tracés wijzigen geen offertehoeveelheden. Vlakmarkeringen tonen het gekozen werk, geen exacte gedeeltelijke dekking.</p>
       <p class="hint plantip">Klik op een wand om werk toe te voegen. In 3D kun je draaien om alle wanden te bekijken.</p>
     </div>
 

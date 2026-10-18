@@ -1140,3 +1140,56 @@ input[type="search"] { width: 100%; min-height: 38px; font: inherit; color: var(
   .tarief-eigen { min-height: 44px; }
   .knop, .hoofdtab, .tab, .planknop, .ruimtechip { touch-action: manipulation; }
 }
+
+/* Eén gekoppelde meetstaat in 2D en 3D; symbolen zijn schema's, geen BIM-producten. */
+.plan-lagen { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: .8rem; margin: 12px 0; }
+.plan-lagen label { display: flex; align-items: center; gap: 6px; min-height: 44px; cursor: pointer; }
+.plan-legenda { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 6px; margin-top: 14px; }
+.plan-legenda-item { display: flex; align-items: flex-start; gap: 8px; font: inherit; font-size: .75rem; text-align: left; border: 1px solid var(--rand); border-radius: 7px; padding: 8px; background: var(--oppervlak-2); color: var(--tekst); min-width: 0; cursor: pointer; }
+.plan-legenda-item b { border-radius: 50%; min-width: 22px; height: 22px; display: grid; place-content: center; background: var(--accent-zacht); color: var(--accent); }
+.plan-legenda-item small { display: block; color: var(--tekst-3); margin-top: 4px; }
+.plan-legenda-item span { overflow-wrap: anywhere; }
+.laag-elektriciteit b { color: var(--goud); background: var(--goud-zacht); }
+.laag-sanitair b { color: var(--groen); background: var(--groen-zacht); }
+.plan-voorbehoud { margin-top: 12px; }
+.plaatsing { margin: 0 12px 12px; border: 1px solid var(--rand); border-radius: 8px; padding: 10px; }
+.plaatsing summary { cursor: pointer; font-weight: 600; min-height: 30px; }
+.plaatsing-velden { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 10px 0; }
+.plaatsing-velden label { color: var(--tekst-2); font-size: .75rem; }
+.plaatsing-velden input { margin-top: 4px; }
+.werk-object { --werk-kleur: var(--groen); cursor: pointer; }
+.tint-elektriciteit { --werk-kleur: var(--goud); }
+.tint-koudwater { --werk-kleur: #1670ce; }
+.tint-warmwater { --werk-kleur: #d34545; }
+.tint-afvoer { --werk-kleur: #0d8a72; }
+.tint-sleuf { --werk-kleur: #9660bb; }
+.werk-object:focus-visible, .werk-vlak:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+.werk-symbool { fill: none; stroke: var(--werk-kleur); stroke-width: 1.8; }
+.werk-achtergrond { fill: var(--oppervlak); stroke: var(--werk-kleur); stroke-width: 1.2; }
+.werk-object:hover .werk-achtergrond { stroke-width: 3; }
+.werk-nummer, .werk-aantal, .werk-route-label { font-size: 12px; font-weight: 700; fill: var(--werk-kleur); stroke: var(--oppervlak); stroke-width: 3px; paint-order: stroke; }
+.werk-trace { stroke: var(--werk-kleur); stroke-width: 4; fill: none; stroke-linecap: round; }
+.tint-sleuf .werk-trace { stroke-dasharray: 7 5; }
+.werk-trace-hit { stroke: transparent; stroke-width: 22; pointer-events: stroke; }
+.werk-eind { fill: var(--oppervlak); stroke: var(--werk-kleur); stroke-width: 2; }
+.werk-volume { fill: var(--oppervlak-2); stroke: var(--werk-kleur); stroke-width: 1; }
+.werk-volume.boven { fill: var(--groen-zacht); }
+.werk-volume.zij { fill: var(--oppervlak-3); }
+.werk-vlak { cursor: pointer; }
+.werk-vlak-markering { fill: var(--accent); fill-opacity: .035; stroke: var(--accent); stroke-opacity: .45; stroke-width: 5; stroke-dasharray: 8 5; pointer-events: none; }
+.werk-vlak-badge { fill: var(--accent); stroke: var(--oppervlak); stroke-width: 2; }
+.werk-vlak-nummer { font-size: 12px; font-weight: 700; fill: white; }
+@media (max-width: 600px) {
+  .plan-legenda { grid-template-columns: 1fr; }
+  .plan-legenda-item { min-height: 44px; }
+  .plaatsing-velden { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media print {
+  .print-plan-legenda { grid-template-columns: 1fr 1fr; gap: 3pt; }
+  .print-plan-legenda .plan-legenda-item { font-size: 7pt; padding: 3pt; }
+  .print-plan-legenda .plan-legenda-item small { display: none; }
+  .werk-object, .werk-vlak { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+}
+.plan-legenda-item[class*="tint-"] b { color: var(--werk-kleur, var(--accent)); }
+.tint-sanitair { --werk-kleur: var(--groen); }
+.tint-afwerking { --werk-kleur: var(--accent); }
