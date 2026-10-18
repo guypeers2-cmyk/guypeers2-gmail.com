@@ -21,6 +21,15 @@ python3 bouwcalculator/server.py          # → http://localhost:8090
 PORT=9000 python3 bouwcalculator/server.py
 ```
 
+Of: open **`bouwcalculator/web/bouwcalculator-standalone.html`** — de app in één
+bestand (CSS, prijsboek, rekenkern en app allemaal erin). Geen server, geen
+internet, geen installatie: ideaal om mee naar de werf te nemen of op een
+telefoon te openen. Opnieuw genereren:
+
+```bash
+python3 bouwcalculator/tools/maak_standalone.py
+```
+
 Tests:
 
 ```bash
