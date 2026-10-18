@@ -1321,3 +1321,55 @@ async function init() {
 }
 
 init();
+
+/* One accessible catalog for the current room, available without scrolling
+   through the separate installation sections. Native dialog traps focus. */
+(function objectCatalogus() {
+  const menu = document.querySelector('#object-menu');
+  let categorie = 'alle';
+  const normalize = s => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+  const groep = p => p.id.startsWith('elek_') ? 'elektriciteit' : p.id.startsWith('san_') ? 'sanitair' : 'afwerking';
+  function catalogus() {
+    return [...(state.prijsboek?.pakketten || []).map(p=>({...p,groep:groep(p)})),
+      {id:'opening-deur',naam:'Deur',beschrijving:'Deuropening in een wand',eenheid:'opening',groep:'openingen'},
+      {id:'opening-raam',naam:'Raam',beschrijving:'Raamopening met instelbare borstwering',eenheid:'opening',groep:'openingen'}];
+  }
+  function resultaten() {
+    const zoek=normalize($('#object-zoek').value).trim();
+    const lijst=catalogus().filter(p=>(categorie==='alle' || p.groep===categorie)
+      && normalize(`${p.naam} ${p.beschrijving} ${p.groep}`).includes(zoek));
+    $('#object-resultaten').innerHTML=lijst.map(p=>`<button type="button" class="object-item" data-object-toevoegen="${esc(p.id)}"><span class="object-item-plus" aria-hidden="true">+</span><span><strong>${esc(p.naam)}</strong><small>${esc(p.groep)} · ${p.eenheid==='m2' ? 'Automatisch gemeten m²' : p.eenheid==='m' ? 'Per lopende meter' : p.eenheid==='st' ? 'Per stuk' : 'Wandopening'}</small></span></button>`).join('') || '<p class="object-geen">Geen objecten gevonden. Probeer een andere zoekterm of categorie.</p>';
+  }
+  document.addEventListener('click',e=>{
+    if(e.target.closest('[data-object-menu]')) {
+      const room=actieveRuimte();
+      if(!room || !state.prijsboek) {toast('Voeg eerst een ruimte toe.');return;}
+      $('#object-menu-ruimte').textContent=`Voor ${room.naam} · selecteer het vlak en voeg direct toe`;
+      $('#object-vlak').value=planWeergave==='aanzicht' ? planVlak : 'noord';
+      $('#object-menu-status').textContent='Kies een object. Het menu blijft open om meerdere toe te voegen.';
+      resultaten();menu.showModal();$('#object-zoek').focus();return;
+    }
+    const cat=e.target.closest('[data-object-categorie]');
+    if(cat){categorie=cat.dataset.objectCategorie;$$('[data-object-categorie]').forEach(b=>b.setAttribute('aria-pressed',String(b===cat)));resultaten();return;}
+    const add=e.target.closest('[data-object-toevoegen]');
+    if(!add)return;
+    const room=actieveRuimte(),item=catalogus().find(p=>p.id===add.dataset.objectToevoegen);
+    if(!room || !item)return;
+    const vlak=$('#object-vlak').value;
+    const opening=item.groep==='openingen';
+    if(opening && ['vloer','plafond'].includes(vlak)){$('#object-menu-status').textContent='Kies een wand voor deze deur of dit raam.';$('#object-vlak').focus();return;}
+    if(!opening && item.eenheid!=='m2' && !$('#object-aantal').reportValidity())return;
+    const aantal=Number($('#object-aantal').value),id=uid();
+    wijzig(()=>{
+      if(opening)room.openingen.push({naam:item.naam,muur:vlak,breedte:item.naam==='Raam'?1.2:.9,hoogte:item.naam==='Raam'?1.2:2.1,aantal:1,positie:null,borstwering:item.naam==='Raam'?.9:0});
+      else state.project.regels.push({id,ruimte_id:room.id,oppervlak:vlak,pakket_id:item.id,opties:{},hoeveelheid:item.eenheid==='m2'?null:aantal,notitie:''});
+    });
+    $('#object-menu-status').textContent=`${item.naam} toegevoegd op ${$('#object-vlak').selectedOptions[0].textContent.toLowerCase()}. Je kunt nog een object kiezen of het menu sluiten.`;
+  });
+  $('#object-zoek').addEventListener('input',resultaten);
+  $('#object-menu-sluit').addEventListener('click',()=>menu.close());
+  menu.addEventListener('click',e=>{
+    const b=menu.getBoundingClientRect();
+    if(e.target===menu && (e.clientX<b.left || e.clientX>b.right || e.clientY<b.top || e.clientY>b.bottom))menu.close();
+  });
+})();

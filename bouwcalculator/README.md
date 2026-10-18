@@ -322,6 +322,24 @@ conformiteit. Laat ontwerp en uitvoering door een vakbekwaam installateur
 beoordelen. Toestellen en leidingen worden schematisch getekend; automatische voorbeeldposities
 zijn geen exacte montagepunten. Vul daarvoor de plaatsing bij de werkregel in.
 
+## Objecten toevoegen via één menu
+
+Klik bij Ruimteontwerp op **+ Object toevoegen**, of gebruik de vaste knop
+rechtsonder (zichtbaar in Calculator & offerte). Het dialoogmenu bundelt alle
+28 werkpakketten en deuren/ramen. Zoek op naam of kies Afwerking, Elektriciteit,
+Sanitair of Deuren & ramen. Kies het vlak en geef het aantal of de lengte op.
+Bij m²-posten wordt automatisch de gemeten oppervlakte gebruikt.
+
+In Vlakaanzicht wordt het geselecteerde vlak overgenomen. Deuren en ramen
+kunnen alleen op een wand worden toegevoegd; hun maten zijn achteraf instelbaar.
+Het menu blijft open voor herhaald toevoegen. Sluit met Sluiten, Escape of
+buiten het menu klikken. Native dialog zorgt voor modale toetsenbordfocus.
+Op mobiel verschijnt het als een onderpaneel met een scrollbare objectlijst.
+De bestaande knoppen voor werken en installaties blijven beschikbaar.
+
+Browsercontrole: `tools/object_menu_review.mjs`, met dezelfde optionele tooling
+als de andere browserreviews; werkt tegen Python, Worker en standalone HTML.
+
 ## Alle werken visualiseren in 2D, 3D & vlakaanzicht
 
 De plattegrond toont nu alle actieve werkregels van de gekozen ruimte:

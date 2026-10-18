@@ -39,6 +39,7 @@
   <button type="button" class="hoofdtab tab" data-hoofdtab="tarieven" data-tab="tarieven" id="tab-tarieven" role="tab" aria-selected="false" aria-controls="paneel-tarieven" tabindex="-1">Tarieven</button>
 </nav>
 <main class="layout" id="calculator-paneel" role="tabpanel" aria-labelledby="tab-calculator">
+  <button type="button" class="knop primair object-snelknop" data-object-menu aria-haspopup="dialog" aria-controls="object-menu">+ Object toevoegen</button>
 
   <!-- ================= LINKERZIJDE: project, instellingen, tarieven ================= -->
   <aside class="paneel zijde" id="zijde">
@@ -142,6 +143,7 @@
           <button type="button" class="planknop" data-plan="isometrie" aria-pressed="false">3D</button>
         </div>
       </header>
+      <button type="button" class="knop primair object-menu-start" data-object-menu aria-haspopup="dialog" aria-controls="object-menu">+ Object toevoegen</button>
       <div id="vlak-bediening" class="vlak-bediening" hidden>
         <div class="vlak-intro"><strong>Elk vlak, recht in beeld</strong><span>Kies een vlak en positioneer de werken op het raster.</span></div>
         <div class="vlak-keuze" role="group" aria-label="Vlak voor vooraanzicht">
@@ -221,6 +223,20 @@
 </div>
 
 <div class="toast" id="toast" hidden role="status" aria-live="polite"></div>
+
+<dialog id="object-menu" class="object-menu" aria-labelledby="object-menu-titel">
+  <header class="object-menu-kop"><div><h2 id="object-menu-titel">Object toevoegen</h2><p id="object-menu-ruimte"></p></div><button type="button" class="knop" id="object-menu-sluit" aria-label="Objectmenu sluiten">Sluiten ×</button></header>
+  <div class="object-menu-invoer">
+    <label>Zoek een object<input type="search" id="object-zoek" placeholder="Bijv. stopcontact, raam of lavabo" autocomplete="off"></label>
+    <div class="object-menu-plaats"><label>Toevoegen op<select id="object-vlak"><option value="noord">Wand noord</option><option value="oost">Wand oost</option><option value="zuid">Wand zuid</option><option value="west">Wand west</option><option value="vloer">Vloer</option><option value="plafond">Plafond</option></select></label><label>Aantal / lengte (m)<input id="object-aantal" type="number" min="0.01" step="any" value="1" required></label></div>
+    <div class="object-categorieen" role="group" aria-label="Objectcategorie">
+      <button type="button" data-object-categorie="alle" aria-pressed="true">Alles</button><button type="button" data-object-categorie="afwerking" aria-pressed="false">Afwerking</button><button type="button" data-object-categorie="elektriciteit" aria-pressed="false">Elektriciteit</button><button type="button" data-object-categorie="sanitair" aria-pressed="false">Sanitair</button><button type="button" data-object-categorie="openingen" aria-pressed="false">Deuren &amp; ramen</button>
+    </div>
+    <p class="object-menu-hint">Klik op + om toe te voegen. Bij m²-posten gebruiken we het gemeten vlak; deuren en ramen horen op een wand.</p>
+  </div>
+  <div id="object-resultaten" class="object-resultaten" aria-label="Beschikbare objecten"></div>
+  <footer class="object-menu-voet"><span id="object-menu-status" role="status" aria-live="polite">Kies een object. Het menu blijft open om meerdere toe te voegen.</span></footer>
+</dialog>
 
 <script type="module" src="engine.js"></script>
 <script src="plattegrond.js"></script>
