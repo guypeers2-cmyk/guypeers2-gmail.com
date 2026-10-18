@@ -118,6 +118,13 @@ def bereken_offerte(project_data: Dict[str, Any]) -> Dict[str, Any]:
         else:
             regels.append(bereken_regel(regel, vlak, project, tarieven))
 
+    if any(r.contour or r.dak for r in project.ruimtes):
+        waarschuwingen.append('Ruimtevorm: binnenmaten; oppervlakken volgen de contour en plafondhelling. Profielen en snijverlies blijven ramingsnormen, geen zaag- of uitvoeringsplan. Controleer objectplaatsing en openingen.')
+    for ruimte in project.ruimtes:
+        sleutels = {v['sleutel'] for v in vlakken_per_ruimte[ruimte.id]}
+        for opening in ruimte.openingen:
+            if opening.muur not in sleutels:
+                waarschuwingen.append(f"Opening '{opening.naam}' hoort bij een onbekende wand en is niet afgetrokken.")
     if any(r["pakket"]["categorie"] == "Elektriciteit" for r in regels):
         waarschuwingen.append("Elektriciteit: indicatieve raming. Kabel, sleuf en aansluitpunten apart tellen. Zonder verdeelkast, keuring, schema’s of conformiteitscontrole; laat ontwerp en uitvoering door een vakbekwaam elektricien beoordelen.")
     if any(r["pakket"]["categorie"] == "Sanitair & water" for r in regels):

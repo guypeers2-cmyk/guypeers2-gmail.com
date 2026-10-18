@@ -79,6 +79,8 @@ await page.click('#plan-eigenschappen');await page.click('#plan-volledige-regel'
 assert.equal(await page.$eval('#teken-focus',e=>e.open),false);
 assert.equal(await page.$eval('#werk-invoer',e=>e.open),true);
 await page.setViewport({width:390,height:844,isMobile:true,hasTouch:true});
+await page.reload({waitUntil:'networkidle2'});
+await page.waitForSelector('#plan [data-plan-regel="pan"]');
 await page.click('#plan-focus');await page.click('[data-plan-gereedschap="hand"]');
 const b=await (await page.$('#plan svg')).boundingBox();const x=b.x+b.width/2,y=b.y+b.height/2;
 const client=await page.createCDPSession();

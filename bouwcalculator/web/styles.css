@@ -1427,3 +1427,64 @@ body.teken-focus-actief { overflow: hidden; }
 @media print { .plan-acties { display: none !important; } }
 
 #plan-trace-info { flex-basis: 100%; margin: 2px 0 0; }
+/* Inside contours and planar ceilings: common geometry in 2D and 3D. */
+.vorm-vloer { fill: var(--oppervlak-2); stroke: var(--tekst); stroke-width: 2; }
+.vorm-wand { fill: var(--accent-zacht); fill-opacity: .7; stroke: var(--rand-sterk, #94a3b8); stroke-width: 2; }
+.vorm-rand { stroke: var(--tekst); stroke-width: 3; pointer-events: none; }
+.vorm-wand-hit { stroke: transparent; stroke-width: 24; }
+.vorm-dak { fill: var(--accent); fill-opacity: .06; stroke: var(--accent); stroke-width: 1.5; stroke-dasharray: 6 5; pointer-events: none; }
+.vorm-opening { fill: var(--oppervlak); stroke: var(--accent); stroke-width: 2; }
+.vorm-opening-lijn { stroke: var(--accent); stroke-width: 10; }
+.vorm-maat { fill: var(--tekst-2); font-size: 12px; paint-order: stroke; stroke: var(--oppervlak); stroke-width: 3px; stroke-linejoin: round; pointer-events: none; }
+.vorm-titel { fill: var(--tekst); font-size: 16px; font-weight: 700; }
+.ruimte-vorm { width: min(1180px, calc(100vw - 32px)); max-height: 94dvh; margin: auto; padding: 0; border: 1px solid var(--rand); border-radius: 18px; background: var(--oppervlak); color: var(--tekst); box-shadow: var(--schaduw-2); overflow: auto; }
+.ruimte-vorm::backdrop { background: rgba(15,23,42,.55); }
+.vorm-kop { display:flex; justify-content:space-between; gap:16px; padding:20px 24px; border-bottom:1px solid var(--rand); }
+.vorm-kop h2 { margin:0; }
+.vorm-kop .hint { margin-bottom:0; }
+.vorm-kop > button { align-self:flex-start; min-width:44px; }
+.vorm-layout { display:grid; grid-template-columns:minmax(0,1fr) 300px; gap:24px; padding:20px 24px; }
+.vorm-presets,.vorm-knoppen { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px; }
+.vorm-bereik { display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-bottom:12px; }
+.vorm-bereik label { flex:1; min-width:120px; font-size:.8rem; }
+.vorm-bereik input[type=number] { width:100%; }
+#vorm-canvas { display:block; width:100%; background:var(--oppervlak-2); border:1px solid var(--rand); border-radius:12px; touch-action:none; }
+.vorm-grid { stroke:var(--rand); stroke-width:1; }
+.vorm-schets { fill:var(--accent-zacht); fill-opacity:.7; stroke:var(--accent); stroke-width:3; }
+polyline.vorm-schets { fill:none; stroke-dasharray:7 5; }
+.vorm-schets.ongeldig { stroke:#b91c1c; }
+.vorm-hoek-hit { fill:transparent; cursor:grab; }
+.vorm-hoek { fill:var(--oppervlak); stroke:var(--accent); stroke-width:3; pointer-events:none; }
+.vorm-hoek-label { fill:var(--tekst); font-size:13px; font-weight:600; pointer-events:none; paint-order:stroke; stroke:var(--oppervlak); stroke-width:3px; }
+#vorm-canvas g:focus .vorm-hoek { stroke:#d97706; stroke-width:5; }
+.vorm-instellingen > label,.vorm-instellingen #vorm-helling label { display:block; margin:12px 0; font-size:.85rem; }
+.vorm-instellingen input,.vorm-instellingen select { width:100%; }
+.vorm-coordinaten summary { cursor:pointer; padding:12px 0; font-weight:600; }
+.vorm-punt-rij { display:grid; grid-template-columns:20px minmax(0,1fr) minmax(0,1fr) 36px 36px; align-items:end; gap:6px; margin:10px 0; }
+.vorm-punt-rij label { font-size:.75rem; }
+.vorm-punt-rij strong { align-self:center; }
+.vorm-punt-rij input { padding:8px 4px; }
+.vorm-punt-rij button { min-height:44px; padding:5px; }
+#vorm-samenvatting { display:block; padding:12px; border-radius:8px; background:var(--accent-zacht); font-size:.85rem; font-weight:600; }
+#vorm-samenvatting:empty { display:none; }
+#vorm-fout { color:#b91c1c; font-size:.85rem; }
+.vorm-footer { display:flex; align-items:center; justify-content:flex-end; flex-wrap:wrap; gap:10px; padding:16px 24px; border-top:1px solid var(--rand); background:var(--oppervlak); }
+.vorm-footer span { margin-right:auto; font-size:.8rem; color:var(--tekst-2); }
+@media (max-width:850px) { .vorm-layout { grid-template-columns:minmax(0,1fr); gap:12px; } .vorm-instellingen { border-top:1px solid var(--rand); padding-top:12px; } }
+@media (max-width:600px) { .ruimte-vorm { width:100%; max-height:100dvh; border-radius:0; } .vorm-kop,.vorm-layout,.vorm-footer { padding:16px; } .ruimte-vorm input,.ruimte-vorm select { font-size:16px; } .vorm-footer > span { flex-basis:100%; } .vorm-presets .knop { min-height:44px; } }
+@media print { .ruimte-vorm { display:none !important; } }
+
+#plan-vorm-melding { flex-basis:100%; margin:0; color:var(--rood); }
+.ruimte-vorm [hidden] { display:none !important; }
+.ruimte-vorm { overflow:hidden; }
+.ruimte-vorm > form { display:flex; flex-direction:column; max-height:94dvh; }
+.vorm-kop,.vorm-footer { flex-shrink:0; }
+.vorm-layout { overflow:auto; min-height:0; overscroll-behavior:contain; }
+.ruimte-vorm h2 { font-size:1.35rem; letter-spacing:-.025em; text-transform:none; }
+#vorm-canvas:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+.ruimte-vorm .vorm-maat { font-size:var(--vorm-font,12px); }
+.vorm-hoek-label { font-size:var(--vorm-font,13px); }
+@media (max-width:600px) { .ruimte-vorm > form { max-height:100dvh; } .ruimte-vorm { max-width:100vw; } }
+.vorm-wand-invoer summary { cursor:pointer; padding:12px 0; font-weight:600; }
+.vorm-wand-invoer label,#vorm-koppeling-velden label { display:block; margin:10px 0; font-size:.85rem; }
+#vorm-koppelingen { margin:14px 0; padding:12px; background:var(--goud-zacht); border:1px solid var(--goud-rand); border-radius:10px; }

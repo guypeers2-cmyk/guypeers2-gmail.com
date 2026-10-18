@@ -106,6 +106,19 @@ PROJECTS.append(project("Plaatsingen behouden", regels=[regel(
     pakket="san_koudwater", hoeveelheid=5, visualisatie={"x":"1,25", "y":0, "z":.3,"x2":4,"y2":0,"z2":.3})]))
 
 
+# Free contours, angled walls and true sloped ceiling areas in both price modes.
+for coords in [((0,0),(4,0),(4,1.5),(2,1.5),(2,3),(0,3)),
+               ((0,0),(4,0),(3,3),(1,3)), ((0,0),(4,0),(2,3)),
+               ((0,0),(4,0),(4,3),(3,3),(3,1),(1,1),(1,3),(0,3))]:
+    for dak in (None, {'as':'x','start':1,'eind':3}, {'as':'y','start':3.2,'eind':.8}):
+        for modus in ('detail','m2'):
+            p=project('Vrije contour', regels=[regel(vlak='plafond',pakket='gyproc_plafond'),regel(vlak='noord',id='wand')], prijsmodus=modus)
+            p['ruimtes'][0].update(contour=[{'x':x,'y':y} for x,y in coords],dak=dak)
+            PROJECTS.append(p)
+PROJECTS.append({**project('Extra wand',openingen=[dict(RAAM,muur='wand_5')],regels=[regel(vlak='wand_5')]),
+    'ruimtes':[{'id':'r1','contour':[{'x':x,'y':y} for x,y in [(0,0),(4,0),(4,1.5),(2,1.5),(2,3),(0,3)]],
+                'openingen':[dict(RAAM,muur='wand_5')]}]})
+
 class TestPariteit(unittest.TestCase):
     """De JS-port en de Python-kern leveren identieke offertes."""
 

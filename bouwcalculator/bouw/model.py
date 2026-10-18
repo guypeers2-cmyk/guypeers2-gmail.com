@@ -14,6 +14,7 @@ import math
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 from uuid import uuid4
+from . import vorm
 
 MUURZIJDEN = ("noord", "zuid", "oost", "west")
 PLAFOND = "plafond"
@@ -65,7 +66,7 @@ class Opening:
     def van_dict(d: Dict[str, Any]) -> "Opening":
         d = d or {}
         muur = _tekst(d.get("muur"), "noord").lower()
-        if muur not in MUURZIJDEN:
+        if not vorm.id_ok(muur):
             muur = "noord"
         return Opening(
             naam=_tekst(d.get("naam"), "Deur") or "Deur",
@@ -87,23 +88,40 @@ class Opening:
 
 @dataclass
 class Ruimte:
-    """Een rechthoekige ruimte met eventuele openingen."""
+    """Binnencontour (of klassieke rechthoek), optioneel met één plafondhelling."""
     id: str = field(default_factory=nieuw_id)
     naam: str = "Ruimte"
     lengte: float = 4.0          # m
     breedte: float = 3.0         # m
     hoogte: float = 2.50         # m
     openingen: List[Opening] = field(default_factory=list)
+    contour: List[Dict[str, Any]] = field(default_factory=list)
+    dak: Optional[Dict[str, Any]] = None
 
     @staticmethod
     def van_dict(d: Dict[str, Any]) -> "Ruimte":
         d = d or {}
+        contour = vorm.contour(d.get("contour"))
+        dak = vorm.roof(d.get("dak"))
+        if dak:
+            hoogte = max(dak['start'], dak['eind'])
+        elif contour:
+            hoogte = vorm.number(2.5 if d.get('hoogte') is None else d['hoogte'])
+        else:
+            hoogte = _getal(d.get('hoogte'), 2.5)
+        if (contour or dak) and (not math.isfinite(hoogte) or not .1 <= hoogte <= 100):
+            raise ValueError('Plafondhoogten moeten tussen 0,10 en 100 meter liggen.')
+        if dak and not contour and any(
+                not .05 <= vorm.number(v if d.get(k) is None else d[k]) <= 1000
+                for k, v in [('lengte', 4), ('breedte', 3)]):
+            raise ValueError('Gebruik een lengte en breedte tussen 0,05 en 1000 meter.')
         return Ruimte(
+            contour=contour, dak=dak,
             id=_tekst(d.get("id")) or nieuw_id(),
             naam=_tekst(d.get("naam"), "Ruimte") or "Ruimte",
-            lengte=_getal(d.get("lengte"), 4.0),
-            breedte=_getal(d.get("breedte"), 3.0),
-            hoogte=_getal(d.get("hoogte"), 2.5),
+            lengte=max(p["x"] for p in contour) if contour else _getal(d.get("lengte"), 4.0),
+            breedte=max(p["y"] for p in contour) if contour else _getal(d.get("breedte"), 3.0),
+            hoogte=hoogte,
             openingen=[Opening.van_dict(o) for o in (d.get("openingen") or [])],
         )
 
@@ -112,6 +130,7 @@ class Ruimte:
             "id": self.id, "naam": self.naam, "lengte": self.lengte,
             "breedte": self.breedte, "hoogte": self.hoogte,
             "openingen": [o.naar_dict() for o in self.openingen],
+            "contour": [dict(p) for p in self.contour], "dak": dict(self.dak) if self.dak else None,
         }
 
 

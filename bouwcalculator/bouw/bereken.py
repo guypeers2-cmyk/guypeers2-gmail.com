@@ -49,6 +49,9 @@ ISOLATIE_KEYS = {
 
 def ruimte_oppervlakken(ruimte: Ruimte) -> List[Dict[str, Any]]:
     """Bruto, opening en netto oppervlak per vlak van de ruimte."""
+    if ruimte.contour or ruimte.dak:
+        from .vorm import surfaces
+        return surfaces(ruimte)
     lengte, breedte, hoogte = ruimte.lengte, ruimte.breedte, ruimte.hoogte
 
     per_muur: Dict[str, Dict[str, float]] = {

@@ -4,21 +4,20 @@
 
 ![De Bouwprijscalculator](docs/screenshot.png)
 
-> 🌐 **Direct openen (geverifieerd werkend):**
-> <https://htmlpreview.github.io/?https://github.com/guypeers2-cmyk/guypeers2-gmail.com/blob/v2.1.0/bouwcalculator/bouwcalculator.html>
+> 🌐 **Online app:** <https://patient-sun-c959.guypeers2.workers.dev>
 >
-> 🏗️ **Zelf hosten (de beste optie):**
-> **https://patient-sun-c959.guypeers2.workers.dev** — Cloudflare Worker · één commando:
-> `bash bouwcalculator/deploy/nu-publiceren.sh` (vanuit de repo-map!)
-> of GitHub Pages (één klik): <https://guypeers2-cmyk.github.io/guypeers2-gmail.com/>
+> ⬇️ **Offline:** open `bouwcalculator.html` of
+> `web/bouwcalculator-standalone.html` uit deze map.
 >
-> ⬇️ Release: <https://github.com/guypeers2-cmyk/guypeers2-gmail.com/releases/tag/v2.1.0>
+> De bronbestanden in deze map en de gegenereerde HTML zijn de actuele versie;
+> oudere releases/HTML-previewlinks bevatten niet noodzakelijk de nieuwste functies.
 
 Een zelfstandige webapp (zonder dependencies, pure Python-stdlib) waarmee een
 bouwer of werknemer vanuit de maten van een ruimte een offerte opstelt:
 oppervlakken → materiaalname (take-off) → gewerkte uren → prijs → BTW.
 
-De app draait volledig offline. Er gaat niets naar een externe dienst.
+Het standalone HTML-bestand rekent volledig offline, zonder externe dienst.
+De online app gebruikt de eigen Cloudflare Worker voor de offerteberekening.
 
 ---
 
@@ -41,7 +40,7 @@ python3 bouwcalculator/tools/maak_standalone.py
 Tests:
 
 ```bash
-python3 -m unittest discover -s bouwcalculator/tests -v   # 19 tests
+python3 -m unittest discover -s bouwcalculator/tests -v   # 49 tests
 ```
 
 ---
@@ -349,6 +348,46 @@ open/gesloten panelen behouden; een herladen pagina start weer rustig ingeklapt.
   schermtoestand achteraf. De geprinte offerte blijft volledig, met 2D-overzicht.
 
 Optionele browsercontrole: `tools/studio_review.mjs` (Worker of offline bestand).
+
+## Ruimtes zelf tekenen, extra hoeken en schuine plafonds
+
+Klik **Ruimte tekenen** boven het plan, of bij Ruimtematen & openingen.
+
+- Kies rechthoek, L-, T- of U-vorm, trapezium, afgeschuinde hoek, achthoek of
+  driehoek. Gebruik **Vrij tekenen** om zelf de hoekpunten aan te tikken.
+- Sluit de contour via het eerste punt of **Contour sluiten**. Sleep punten om
+  te corrigeren. Lengtes en binnenhoeken staan in beeld; inspringende hoeken
+  kunnen groter zijn dan 180°.
+- Onder **Hoeken precies invoeren** staan X/Y-coördinaten, een + om een wand te
+  splitsen en een − om een hoek te verwijderen. Toetsenbord op een hoek: pijltjes
+  5 cm, Shift 25 cm, Alt 1 cm; Enter opent de coördinaten.
+- Bij vrij tekenen kun je ook een volgende wand via **lengte & richting**
+  invoeren: 0° rechts, 90° omlaag, 180° links, 270° omhoog. Kies een voldoende
+  groot tekenbereik. De eindwand kan sluiten op het eerste punt.
+- **Stap terug** werkt op het concept. **Annuleren** of Escape sluit zonder
+  projectwijziging; Escape tijdens slepen herstelt eerst de gesleepte hoek.
+- Kies een vlak plafond of één **helling langs X/Y**, met hoogte bij het begin
+  en aan de overkant. De wanden volgen die helling. De werkelijke schuine
+  plafondoppervlakte wordt berekend, niet alleen de bovenprojectie.
+- Pas de vorm expliciet toe. Elke rand is nu een afzonderlijke wand in de
+  meetstaat, het objectmenu en de vlakaanzichten. Bestaande gebruikte wanden
+  die verdwijnen, moeten bewust aan een nieuwe wand worden gekoppeld.
+  Werkposten/openingen worden niet stil verwijderd; de actie is terug te draaien.
+
+**Rekenmodel:** binnencontour zonder wanddikte, 3–64 hoeken, minimaal 5 cm per
+wand, maximaal 1000 m tekenbereik en minimaal 0,01 m² vloer. Ongeldige/kruisende
+contouren worden afgewezen. Lengte/breedte zijn bij vrije vormen het omhullende
+bereik; hoogte is bij een helling de maximale hoogte. Wijzigen gebeurt via de
+editor, niet door deze afgeleide waarden afzonderlijk te veranderen.
+
+**Beperkingen:** geen ronde wanden, gaten, schuine vloeren, uit het lood hellende
+wanden of meerdere dakvlakken/nokken. Plaatsingen zijn schematisch: controleer
+openingen, tracés en objecten na een vormwijziging. De geselecteerde plaatsing
+waarschuwt bij overschrijding van contour/plafond. Profielen en snijverlies
+blijven ramingsnormen, geen gecertificeerd uitvoerings- of zaagplan.
+
+Zie [de vergelijking van zes ruimteplanners en verbeterprioriteiten](docs/onderzoek-ruimteplanners.md)
+en [het geometrie-/visualisatiemodel](docs/visualisatie.md).
 
 ## Getekende tracélengte naar de offerte
 
@@ -692,7 +731,7 @@ Daarom zijn er twee varianten:
 
 - **meerbestanden** (`bouwcalculator/web/`) — voor onze eigen Worker, Pages en
   de lokale server. De rekenkern is een ES-module.
-- **één bestand** (`bouwcalculator/bouwcalculator.html`, circa 266 KiB) — alles inline,
+- **één bestand** (`bouwcalculator/bouwcalculator.html`, circa 312 KiB) — alles inline,
   dus het werkt ook op hosts die HTML als `text/plain` teruggeven of op een
   stickie/schijf. De app rekent dan in de browser.
 

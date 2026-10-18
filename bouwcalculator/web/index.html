@@ -146,7 +146,7 @@
 
     <div class="plankaart" id="tekening" tabindex="-1">
       <header class="plankop">
-        <h3>Ruimteontwerp</h3>
+        <h3>Ruimteontwerp</h3><button type="button" class="knop klein" id="ruimte-tekenen" data-ruimte-tekenen aria-haspopup="dialog" aria-controls="ruimte-vorm">✎ Ruimte tekenen</button>
         <button type="button" class="knop klein" id="plan-focus" aria-haspopup="dialog" aria-controls="teken-focus">Vergroten</button>
         <div class="plankeuze" role="group" aria-label="Weergave kiezen">
           <button type="button" class="planknop actief" data-plan="plattegrond" aria-pressed="true">Bovenaanzicht</button>
@@ -188,7 +188,7 @@
         <details><summary>Meetpunten precies invoeren</summary><form id="meet-form"><div id="meet-velden" class="meet-velden"></div><button type="submit" class="knop klein">Afstand tonen</button></form></details>
       </section>
       <div class="planhouder" id="plan" tabindex="0" aria-label="Interactieve tekening"></div>
-      <div id="plan-selectie" class="plan-selectie" hidden><span id="plan-selectie-naam"></span><div><button type="button" class="knop klein" id="plan-eigenschappen">Eigenschappen</button><details id="plan-acties" class="plan-acties"><summary class="knop klein">Acties ▾</summary><div><button type="button" class="knop klein" id="plan-dupliceer">Dupliceren…</button><button type="button" class="knop klein" id="plan-centreer">Centreren op vlak</button><button type="button" class="knop klein" id="plan-tracelengte" hidden>Tracélengte overnemen…</button></div></details><button type="button" class="plan-vuilbak" id="plan-selectie-verwijder" aria-label="Geselecteerd object verwijderen"></button><button type="button" class="knop klein" id="plan-deselecteer" aria-label="Selectie opheffen">×</button></div><p id="plan-trace-info" class="hint" hidden></p></div>
+      <div id="plan-selectie" class="plan-selectie" hidden><span id="plan-selectie-naam"></span><div><button type="button" class="knop klein" id="plan-eigenschappen">Eigenschappen</button><details id="plan-acties" class="plan-acties"><summary class="knop klein">Acties ▾</summary><div><button type="button" class="knop klein" id="plan-dupliceer">Dupliceren…</button><button type="button" class="knop klein" id="plan-centreer">Centreren op vlak</button><button type="button" class="knop klein" id="plan-tracelengte" hidden>Tracélengte overnemen…</button></div></details><button type="button" class="plan-vuilbak" id="plan-selectie-verwijder" aria-label="Geselecteerd object verwijderen"></button><button type="button" class="knop klein" id="plan-deselecteer" aria-label="Selectie opheffen">×</button></div><p id="plan-trace-info" class="hint" hidden></p><p id="plan-vorm-melding" class="hint" role="status" hidden></p></div>
       <section id="plan-inspector" class="plan-inspector" aria-label="Eigenschappen van geselecteerd object" hidden></section>
       <details class="studio-vouw studio-opties" id="tekenopties"><summary>Tekenopties <span>Lagen, raster en sleepvlak</span></summary><div class="studio-vouw-inhoud">
       <div class="plan-lagen" role="group" aria-label="Zichtbare werken">
@@ -276,6 +276,31 @@
 
 <dialog id="teken-focus" class="teken-focus" aria-label="Tekening in focusmodus"></dialog>
 
+<dialog id="ruimte-vorm" class="ruimte-vorm" aria-labelledby="vorm-titel">
+  <form id="vorm-form">
+    <header class="vorm-kop"><div><p class="tarieven-label">BINNENMATEN IN METERS</p><h2 id="vorm-titel">Teken je ruimte</h2><p class="hint">Kies een startvorm of plaats zelf de hoeken. Je offerte verandert pas bij Toepassen.</p></div><button type="button" class="knop" id="vorm-annuleer" aria-label="Ruimte tekenen sluiten">×</button></header>
+    <div class="vorm-layout"><section class="vorm-werkblad" aria-label="Ruimtecontour tekenen">
+      <div class="vorm-presets" role="group" aria-label="Startvorm">
+        <button type="button" class="knop klein" data-vorm="rechthoek">▭ Rechthoek</button><button type="button" class="knop klein" data-vorm="l">L-vorm</button><button type="button" class="knop klein" data-vorm="t">T-vorm</button><button type="button" class="knop klein" data-vorm="u">U-vorm</button><button type="button" class="knop klein" data-vorm="trapezium">Trapezium</button><button type="button" class="knop klein" data-vorm="afgeschuind">Afgeschuinde hoek</button><button type="button" class="knop klein" data-vorm="achthoek">Achthoek</button><button type="button" class="knop klein" data-vorm="driehoek">Driehoek</button><button type="button" class="knop primair klein" data-vorm="vrij">✎ Vrij tekenen</button>
+      </div>
+      <div class="vorm-bereik"><label>Tekenbereik X (m)<input id="vorm-bereik-x" type="number" min="0.2" max="1000" step="any" required></label><label>Tekenbereik Y (m)<input id="vorm-bereik-y" type="number" min="0.2" max="1000" step="any" required></label><label><input id="vorm-snap" type="checkbox" checked> Raster 5 cm</label></div>
+      <svg id="vorm-canvas" viewBox="0 0 800 500" role="group" aria-label="Plaats hoeken met tikken. Sleep bestaande hoeken, of bewerk de coördinaten hieronder." tabindex="0"></svg>
+      <p id="vorm-instructie" class="hint"></p>
+      <div class="vorm-knoppen"><button type="button" class="knop klein" id="vorm-terug">Stap terug</button><button type="button" class="knop klein" id="vorm-sluit">Contour sluiten</button><button type="button" class="knop klein" id="vorm-punt">Hoek toevoegen</button></div>
+      <output id="vorm-samenvatting" aria-live="polite"></output><p id="vorm-fout" role="alert"></p>
+    </section><aside class="vorm-instellingen">
+      <h3>Plafond &amp; hoogte</h3><label>Plafondvorm<select id="vorm-dak"><option value="vlak">Vlak</option><option value="x">Helling langs X</option><option value="y">Helling langs Y</option></select></label>
+      <label id="vorm-hoogte-label">Ruimtehoogte (m)<input id="vorm-hoogte" type="number" min="0.1" max="100" step="any" required></label>
+      <div id="vorm-helling" hidden><label>Hoogte bij X/Y = 0 (m)<input id="vorm-start" type="number" min="0.1" max="100" step="any" required></label><label>Hoogte aan overkant (m)<input id="vorm-eind" type="number" min="0.1" max="100" step="any" required></label><p class="hint">Eén recht hellend plafondvlak over de volledige contour. De wanden volgen de twee hoogten.</p></div>
+      <details class="vorm-wand-invoer"><summary>Wand op lengte &amp; richting tekenen</summary><p class="hint">Bij Vrij tekenen: vanaf de laatste hoek. Zonder startpunt begin je op (0, 0). Richting 0° = rechts, 90° = omlaag, 180° = links, 270° = omhoog.</p><label>Wandlengte (m)<input id="vorm-wand-lengte" type="number" min="0.05" max="1000" step="any" value="1"></label><label>Richting (°)<input id="vorm-wand-richting" type="number" min="0" max="360" step="any" value="0"></label><button type="button" class="knop klein" id="vorm-wand-add">Wand toevoegen</button></details>
+      <section id="vorm-koppelingen" hidden><h3>Bestaande wanden koppelen</h3><p class="hint">Deze oude wanden ontbreken in je nieuwe vorm. Kies bewust waar hun werkposten en openingen naartoe moeten. Meerdere oude wanden op één nieuwe wand kan dubbele werkposten geven.</p><div id="vorm-koppeling-velden"></div></section>
+      <details class="vorm-coordinaten"><summary>Hoeken precies invoeren</summary><p class="hint">X naar rechts, Y naar beneden. Iedere hoek begint een wand. + splitst die wand; − verwijdert de hoek.</p><div id="vorm-punten"></div></details>
+      <p class="hint">Binnencontour zonder wanddikte. Geen ronde wanden, gaten, dakknikken of meerdere dakvlakken. Controleer plaatsing van bestaande objecten en openingen na een vormwijziging.</p>
+    </aside></div>
+    <footer class="vorm-footer"><span>Wijzigt oppervlakken en mogelijk offerteprijzen.</span><button type="button" class="knop" id="vorm-cancel">Annuleren</button><button type="submit" class="knop primair" id="vorm-toepassen">Ruimtevorm toepassen</button></footer>
+  </form>
+</dialog>
+
 <script type="module" src="engine.js"></script>
 <script src="plattegrond.js"></script>
 <script src="geschiedenis.js"></script>
@@ -283,5 +308,6 @@
 <script src="slepen.js"></script>
 <script src="navigatie.js"></script>
 <script src="meten.js"></script>
+<script src="ruimte-vorm.js"></script>
 </body>
 </html>

@@ -14,14 +14,20 @@
     const limieten=[room.lengte,room.breedte,room.hoogte].map(n=>Math.max(.2,Number(n)||.2));
     const projectie=planWeergave==='isometrie'?BouwPlan.projectie(room,planCamera.hoek)
       :planWeergave==='aanzicht'?BouwPlan.aanzichtProjectie(room,planVlak):BouwPlan.planProjectie(room);
-    const plane=planWeergave==='aanzicht'?projectie.plane:planWeergave==='isometrie'?$('#meet-vlak').value:'xy';
+    let P=projectie.P;
+    let plane=planWeergave==='aanzicht'?projectie.plane:planWeergave==='isometrie'?$('#meet-vlak').value:'xy';
     const vast=[0,0,0];
-    if(planWeergave==='aanzicht'){
+    if(planWeergave==='aanzicht' && !projectie.wand){
       if(planVlak==='plafond')vast[2]=limieten[2];
       if(planVlak==='zuid')vast[1]=limieten[1];
       if(planVlak==='oost')vast[0]=limieten[0];
     }
-    return {P:projectie.P,plane,vast,limieten,key:JSON.stringify([room.id,planWeergave,planWeergave==='aanzicht'?planVlak:'',plane,...limieten])};
+    if(projectie.wand){
+      const e=projectie.wand;P=(s,y,z=0)=>projectie.P(e.a.x+e.u[0]*s,e.a.y+e.u[1]*s,z);
+      plane='xz';limieten[0]=e.lengte;limieten[2]=projectie.hoogte;
+    }
+    const world=planWeergave==='aanzicht' && planVlak==='plafond' && room.dak?p=>[p[0],p[1],BouwVorm.height(room,p[0],p[1])]:p=>p;
+    return {P,plane,vast,limieten,world,wand:!!projectie.wand,key:JSON.stringify([room.id,room.contour,room.dak,planWeergave,planWeergave==='aanzicht'?planVlak:'',plane,...limieten])};
   }
   function punt(e,c) {
     const svg=host.querySelector('svg'),m=svg?.getScreenCTM();if(!m)return null;
@@ -37,11 +43,11 @@
     panel.hidden=planGereedschap!=='meet' && !maat;
     host.classList.toggle('meet-actief',planGereedschap==='meet');
     $('#meet-vlak-label').hidden=planWeergave!=='isometrie';
-    $('#meet-afstand').textContent=maat?`${new Intl.NumberFormat('nl-BE',{minimumFractionDigits:2,maximumFractionDigits:2}).format(afstand(maat.a,maat.b))} m`:'—';
+    $('#meet-afstand').textContent=maat?`${new Intl.NumberFormat('nl-BE',{minimumFractionDigits:2,maximumFractionDigits:2}).format(afstand(c.world(maat.a),c.world(maat.b)))} m`:'—';
     $('#meet-instructie').textContent='Tik twee punten of sleep een meetlijn. Controlemaat; geen offertehoeveelheid.';
     if(!$('#meet-form').contains(document.activeElement)){
       const a=maat?.a || c.vast,b=maat?.b || c.vast.map((n,i)=>i===assen[c.plane][0]?Math.min(1,c.limieten[i]):n);
-      $('#meet-velden').innerHTML=[a,b].map((p,j)=>assen[c.plane].map(i=>`<label>${j?'Eind':'Start'} ${'XYZ'[i]} (m)<input type="number" name="${j}_${i}" min="0" max="${c.limieten[i]}" step="any" value="${Math.round(p[i]*1000)/1000}" required></label>`).join('')).join('');
+      $('#meet-velden').innerHTML=[a,b].map((p,j)=>assen[c.plane].map(i=>`<label>${j?'Eind':'Start'} ${c.wand && i===0?'Langs wand':'XYZ'[i]} (m)<input type="number" name="${j}_${i}" min="0" max="${c.limieten[i]}" step="any" value="${Math.round(p[i]*1000)/1000}" required></label>`).join('')).join('');
     }
     const svg=host.querySelector('svg');if(!svg)return;
     svg.querySelector('.meet-overlay')?.remove();

@@ -6,19 +6,18 @@
   'use strict';
   function projectDelta(P, plane, dx, dy) {
     const axes = {xy:[0,1],xz:[0,2],yz:[1,2]}[plane];
+    const basis=plane==='wand'?P.basis:axes.map(axis=>{const v=[0,0,0];v[axis]=1;return v;});
     const origin = P(0,0,0);
-    const vectors = axes.map(axis => {
-      const v = [0,0,0]; v[axis] = 1;
+    const vectors = basis.map(v => {
       const q = P(...v); return [q[0]-origin[0],q[1]-origin[1]];
     });
     const [a,b] = vectors;
     const determinant = a[0]*b[1]-b[0]*a[1];
     if (Math.abs(determinant) < 1e-8) return [0,0,0];
-    const out = [0,0,0];
-    out[axes[0]] = (dx*b[1]-dy*b[0])/determinant;
-    out[axes[1]] = (dy*a[0]-dx*a[1])/determinant;
-    return out;
+    const u=(dx*b[1]-dy*b[0])/determinant,v=(dy*a[0]-dx*a[1])/determinant;
+    return [0,1,2].map(i=>basis[0][i]*u+basis[1][i]*v);
   }
+
   function boundedDelta(a,b,delta,limits,step=0) {
     return delta.map((d,i) => {
       if (step && Math.abs(d)>1e-9) d = Math.round((a[i]+d)/step)*step-a[i];
@@ -50,6 +49,7 @@
     if (planWeergave !== 'isometrie') return 'xy';
     const requested = document.querySelector('#plan-sleepvlak')?.value;
     if (!isOpening && ['xy','xz','yz'].includes(requested)) return requested;
+    if((actieveRuimte()?.contour?.length || actieveRuimte()?.dak) && BouwVorm.edges(actieveRuimte()).some(e=>e.id===surface))return 'wand';
     return ['noord','zuid'].includes(surface) ? 'xz' : ['west','oost'].includes(surface) ? 'yz' : 'xy';
   }
   function svgPoint(e) {
@@ -71,16 +71,19 @@
     const model = isOpening ? room.openingen[index] : state.project.regels.find(v=>v.id===r.id);
     const endpoint = target.closest?.('[data-plan-end]')?.dataset.planEnd || null;
     const route = r?.pakket.eenheid === 'm';
+    const P=(planWeergave==='aanzicht' ? window.BouwPlan.aanzichtProjectie(room,planVlak) : planWeergave==='isometrie' ? window.BouwPlan.projectie(room,planCamera.hoek) : window.BouwPlan.planProjectie(room)).P;
+    const edge=(room.contour?.length || room.dak) && BouwVorm.edges(room).find(e=>e.id===(isOpening?geom.zijde:r.oppervlak));
+    if(edge)P.basis=[edge.u,[0,0,1]];
     return {room,model,r,index,isOpening,geom,endpoint,route,
       original:copy(model), plane:planeFor(isOpening ? geom.zijde : r.oppervlak,isOpening),
-      P:(planWeergave==='aanzicht' ? window.BouwPlan.aanzichtProjectie(room,planVlak) : planWeergave==='isometrie' ? window.BouwPlan.projectie(room,planCamera.hoek) : window.BouwPlan.planProjectie(room)).P};
+      P};
   }
   function apply(d,delta,step) {
     const {geom:g,model:m} = d, limits=[g.L,g.B,g.H];
     if (d.isOpening) {
       const axis = ['noord','zuid'].includes(g.zijde) ? 0 : 1;
       const value = (n,change,max) => coord(Math.max(0,Math.min(max,step && Math.abs(change)>1e-9 ? Math.round((n+change)/step)*step : n+change)));
-      m.positie=value(g.a[axis],delta[axis],Math.max(0,g.lengte-g.breedte));
+      m.positie=value(g.start ?? g.a[axis],g.u?delta[0]*g.u[0]+delta[1]*g.u[1]:delta[axis],Math.max(0,g.lengte-g.breedte));
       if (planWeergave!=='plattegrond' && !/^deur/i.test(m.naam || '')) {
         m.borstwering=value(g.a[2],delta[2],Math.max(0,g.H-g.hoogte));
       }
@@ -150,7 +153,7 @@
     e.preventDefault(); drag.moved=true;host.classList.add('is-slepen');
     const dx=point.x-drag.point.x,dy=point.y-drag.point.y;
     let delta=projectDelta(drag.P,drag.plane,dx,dy);
-    if(drag.isOpening && planWeergave==='plattegrond') {
+    if(drag.isOpening && !drag.geom.u && planWeergave==='plattegrond') {
       // Only the distance along the chosen wall changes in a top view.
       if(['noord','zuid'].includes(drag.geom.zijde)) delta[1]=0;else delta[0]=0;
     }
@@ -171,13 +174,14 @@
     const d=prepare(e.target);if(!d)return;
     e.preventDefault();e.stopImmediatePropagation();
     const step=e.altKey ? .01 : e.shiftKey ? .25 : .05;
-    const axes={xy:[0,1],xz:[0,2],yz:[1,2]}[d.plane],delta=[0,0,0];
+    const axes={xy:[0,1],xz:[0,2],yz:[1,2],wand:[0,2]}[d.plane],delta=[0,0,0];
     if(e.key==='ArrowRight')delta[axes[0]]=step;
     if(e.key==='ArrowLeft')delta[axes[0]]=-step;
     if(e.key==='ArrowUp')delta[axes[1]]=axes[1]===2 ? step : -step;
     if(e.key==='ArrowDown')delta[axes[1]]=axes[1]===2 ? -step : step;
+    if(d.plane==='wand'){const along=delta[0];delta[0]=along*d.P.basis[0][0];delta[1]=along*d.P.basis[0][1];}
     if(planWeergave==='aanzicht')delta[axes[0]]*=window.BouwPlan.aanzichtProjectie(d.room,planVlak).teken;
-    if(d.isOpening && planWeergave==='plattegrond') {
+    if(d.isOpening && !d.geom.u && planWeergave==='plattegrond') {
       if(['noord','zuid'].includes(d.geom.zijde))delta[1]=0;else delta[0]=0;
     }
     apply(d,delta,0);commit(d);

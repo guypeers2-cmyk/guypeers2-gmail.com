@@ -7,7 +7,9 @@ een nummer; nulhoeveelheden worden niet als geplaatst werk getekend. Ruimteknopp
 wisselen tussen de plannen van kamers. Er is nog geen samengevoegde woningplattegrond.
 
 - Afwerking/Gyproc: genummerde vlakmarkeringen, inclusief vloer en plafond.
-  In 3D zijn de twee achterwanden zichtbaar; draai de camera voor de andere wanden.
+  Bij klassieke rechthoeken zijn in 3D twee achterwanden zichtbaar. Vrije contouren
+  en hellende plafonds gebruiken alle wanden als transparante schil; draai de camera
+  of kies een afzonderlijk vlakaanzicht.
 - Elektriciteit: symbolen voor stopcontacten, schakelaars en lichtpunten;
   lijnen voor kabels en sleuven. Een dubbel stopcontact is één dubbel punt.
 - Sanitair: symbolen voor alle toestellen/hulpstukken en de drukproef.
@@ -244,3 +246,49 @@ werkelijk benodigde materiaal. Bochten, reservemarge, bijkomende tracés en ande
 installatievereisten blijven voor de gebruiker. Nog niet toegepaste invoervelden
 tellen niet mee. Een afstand die naar nul afrondt, kan niet worden overgenomen.
 Gewoon slepen of een meetlijn plaatsen wijzigt de offertehoeveelheden niet.
+
+## Vrije binnencontour en enkelvoudige plafondhelling
+
+`Ruimte.contour` is een lijst `{id, x, y}` met 3–64 opeenvolgende hoekpunten.
+De laatste wand sluit naar het eerste punt. De ID van het beginpunt identificeert
+de wand; het volgnummer is slechts het zichtbare label. Invoegen/verwijderen
+verandert dus niet zomaar de identiteit van andere wanden. Een lege contour blijft
+de klassieke rechthoek met noord/oost/zuid/west, met de bestaande openingrichtingen.
+Coördinaten worden naar een oorsprong met minimale X/Y = 0 genormaliseerd;
+`lengte` en `breedte` zijn daarna de maximale X/Y. De editor vereist minimaal
+5 cm wandlengte en 0,01 m² vloer; kruisende/rakende contouren zijn ongeldig.
+
+`Ruimte.dak` is `null` of `{as: "x" | "y", start, eind}`. De vlakke vloer ligt
+op Z = 0. De plafondhoogte is `start + (eind-start) * positie / overspanning`.
+Alle wand-eindhoogten komen uit diezelfde functie. De echte wandoppervlakte is
+`wandlengte * (beginhoogte + eindhoogte) / 2`. De vloer gebruikt de absolute
+schoenveteroppervlakte van de contour. Het plafond vermenigvuldigt dat met
+`sqrt(1 + helling²)`. Dit geldt ook voor concave contouren omdat het plafond één
+vlak blijft. Python en JavaScript ronden nieuwe geometriewaarden op negen decimalen
+voor identieke downstream-ramingen, niet op twee m²-decimalen voor de berekening.
+
+De browser heeft een tijdelijke contour-editor; alleen Toepassen schrijft naar
+het project. Ontbrekende gebruikte wanden moeten expliciet worden gekoppeld.
+Werkposten, openingreferenties en geometrie worden samen in historie vastgelegd.
+Concepten worden niet afgedrukt of geëxporteerd voordat ze zijn toegepast.
+
+Vlakaanzicht van een wand gebruikt zijn eigen lengte-/hoogte-assen, ook als de wand
+diagonaal loopt. Slepen, toetsenbord, openingpositie en controlemaat gebruiken
+dezelfde projectie. De numerieke controlemaat heet daarom **Langs wand**, niet
+wereld-X. Vloer/plafond-aanzicht is een bovenprojectie; een plafondcontrolemaat
+neemt wel de werkelijke Z-hoogten van het hellende vlak mee. 3D-meetvlakken blijven
+vrij gekozen XY/XZ/YZ-controleplannen, geen automatische oppervlakdetectie.
+
+De contour en plafondhelling tellen mee bij offerteberekening, JSON, lokale/server-
+opslag en offerteplattegronden. Andere objectplaatsing blijft schematisch en vrij;
+er is geen volledige collision engine. De selectie waarschuwt bij een punt/tracé
+buiten de contour of boven het plafond. Ook een recht tracé met beide eindpunten
+binnen een U-/L-vorm kan door de uitsparing lopen; dat wordt mee gecontroleerd.
+Ramen/deuren die niet binnen hun wand/plafond passen kunnen in de tekening worden
+begrensd, maar de calculatie blijft de ingevoerde openingmaten aftrekken.
+Overlappende openingaftrekken worden niet geometrisch verenigd.
+
+Materialen/uren gebruiken bestaande pakketnormen. Profielen voor trapeziumwanden
+gebruiken de maximale wandhoogte als ramingsbasis; plafondprofielen gebruiken een
+omhullende maat met de hellingscorrectie. Dit is geen exacte plaatindeling of
+snijoptimalisatie, wat expliciet als offertewaarschuwing wordt vermeld.

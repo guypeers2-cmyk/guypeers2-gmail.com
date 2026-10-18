@@ -10,6 +10,7 @@
 // daarna bij — de prijsboek wordt gegenereerd (prijsboek.js).
 // ==========================================================
 
+import { Vorm } from "./vorm.js";
 import { TARIEVEN, PAKKETTEN, PAKKET_OP_ID } from "./prijsboek.js";
 
 /* ---------------- normen uit de praktijk ---------------- */
@@ -60,7 +61,7 @@ function tekst(waarde, standaard = "") {
 /* ---------------- model (spiegel van bouw/model.py) ---------------- */
 function openingVanDict(d = {}) {
   let muur = tekst(d.muur, "noord").toLowerCase();
-  if (!MUURZIJDEN.includes(muur)) muur = "noord";
+  if (!Vorm.idOK(muur)) muur = "noord";
   const aantal = Math.trunc(getal(d.aantal, 1)) || 1;
   return {
     naam: tekst(d.naam, "Deur") || "Deur",
@@ -74,12 +75,17 @@ function openingVanDict(d = {}) {
 }
 
 function ruimteVanDict(d = {}) {
+  const contour=Vorm.contour(d.contour),dak=Vorm.roof(d.dak);
+  const hoogte=dak?Math.max(dak.start,dak.eind):contour.length?Vorm.number(d.hoogte ?? 2.5):getal(d.hoogte,2.5);
+  if(dak && !contour.length && [Vorm.number(d.lengte ?? 4),Vorm.number(d.breedte ?? 3)].some(n=>!Number.isFinite(n)||n<.05||n>1000))throw Error('Gebruik een lengte en breedte tussen 0,05 en 1000 meter.');
+  if((contour.length||dak) && (!Number.isFinite(hoogte)||hoogte<.1||hoogte>100))throw Error('Plafondhoogten moeten tussen 0,10 en 100 meter liggen.');
   return {
+    contour,dak,
     id: tekst(d.id) || Math.random().toString(36).slice(2, 10),
     naam: tekst(d.naam, "Ruimte") || "Ruimte",
-    lengte: getal(d.lengte, 4.0),
-    breedte: getal(d.breedte, 3.0),
-    hoogte: getal(d.hoogte, 2.5),
+    lengte: contour.length?Math.max(...contour.map(p=>p.x)):getal(d.lengte,4.0),
+    breedte: contour.length?Math.max(...contour.map(p=>p.y)):getal(d.breedte,3.0),
+    hoogte,
     openingen: (d.openingen || []).map(openingVanDict),
   };
 }
@@ -165,6 +171,7 @@ class Tarieven {
 
 /* ---------------- oppervlakken ---------------- */
 export function ruimteOppervlakken(ruimte) {
+  if(ruimte.contour?.length || ruimte.dak)return Vorm.surfaces(ruimte);
   const { lengte, breedte, hoogte } = ruimte;
   const perMuur = { noord: { opening: 0, aantal: 0 }, zuid: { opening: 0, aantal: 0 },
                     oost: { opening: 0, aantal: 0 }, west: { opening: 0, aantal: 0 } };
@@ -596,6 +603,8 @@ export function berekenOfferte(projectData = {}) {
       : berekenRegel(regel, vlak, project, tarieven));
   }
 
+  if(project.ruimtes.some(r=>r.contour.length||r.dak))waarschuwingen.push('Ruimtevorm: binnenmaten; oppervlakken volgen de contour en plafondhelling. Profielen en snijverlies blijven ramingsnormen, geen zaag- of uitvoeringsplan. Controleer objectplaatsing en openingen.');
+  for(const ruimte of project.ruimtes)for(const opening of ruimte.openingen){if(!vlakkenPerRuimte[ruimte.id].some(v=>v.sleutel===opening.muur))waarschuwingen.push(`Opening '${opening.naam}' hoort bij een onbekende wand en is niet afgetrokken.`);}
   if (regels.some(r => r.pakket.categorie === "Elektriciteit")) {
     waarschuwingen.push("Elektriciteit: indicatieve raming. Kabel, sleuf en aansluitpunten apart tellen. Zonder verdeelkast, keuring, schema’s of conformiteitscontrole; laat ontwerp en uitvoering door een vakbekwaam elektricien beoordelen.");
   }
@@ -633,6 +642,7 @@ export function berekenOfferte(projectData = {}) {
       datum: project.datum, offerte_nummer: project.offerte_nummer,
       ruimtes: project.ruimtes.map((r) => ({
         id: r.id, naam: r.naam, lengte: r.lengte, breedte: r.breedte, hoogte: r.hoogte,
+        contour:r.contour.map(p=>({...p})),dak:r.dak?{...r.dak}:null,
         openingen: r.openingen.map((o) => ({
           naam: o.naam, muur: o.muur, breedte: o.breedte, hoogte: o.hoogte, aantal: o.aantal,
           positie: o.positie, borstwering: o.borstwering,
