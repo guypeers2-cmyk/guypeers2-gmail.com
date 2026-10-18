@@ -317,7 +317,11 @@
     const o = openingLayout(openingenPerMuur(ruimte)[bron.muur],lengte).find(o=>o._index===index);
     const onder = begrens(get(bron.borstwering), Math.max(0,H-Math.max(0,get(bron.hoogte))));
     const a = {noord:[o.start,0,onder],zuid:[o.start,B,onder],west:[0,o.start,onder],oost:[L,o.start,onder]}[bron.muur];
-    return {a,zijde:bron.muur,lengte,breedte:o.tekenBreedte,hoogte:Math.max(0,get(bron.hoogte)),L,B,H};
+    // A complete quad also serves the house renderer for rectangular rooms.
+    const b=[...a],hoogte=Math.max(0,get(bron.hoogte));
+    b[['noord','zuid'].includes(bron.muur)?0:1]+=o.tekenBreedte;
+    const c=[b[0],b[1],b[2]+hoogte],d=[a[0],a[1],a[2]+hoogte];
+    return {a,b,c,d,zijde:bron.muur,lengte,breedte:o.tekenBreedte,hoogte,L,B,H};
   }
 
   /* ==================================================================

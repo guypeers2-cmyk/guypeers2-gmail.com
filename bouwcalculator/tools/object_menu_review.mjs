@@ -47,6 +47,8 @@ await page.click('[data-object-toevoegen="opening-raam"]');
 assert.equal(await page.evaluate(()=>actieveRuimte().openingen.length),openings);
 await page.select('#object-vlak','zuid');
 await page.click('[data-object-toevoegen="opening-raam"]');
+assert.equal(await page.$eval('#opening-menu',e=>e.open),true);
+await page.click('#opening-form button[type="submit"]');
 assert.equal(await page.evaluate(()=>actieveRuimte().openingen.at(-1).muur),'zuid');
 await page.keyboard.press('Escape');
 assert.equal(await page.$eval('#object-menu',e=>e.open),false);

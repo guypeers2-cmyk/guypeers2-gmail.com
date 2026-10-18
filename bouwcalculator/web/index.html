@@ -170,10 +170,12 @@
       <ol id="huis-stappen" class="huis-stappen" aria-label="Werkvolgorde huisplan"><li data-huis-stap="1"><span aria-hidden="true">1</span> Contour</li><li data-huis-stap="2"><span aria-hidden="true">2</span> Indelen</li><li data-huis-stap="3"><span aria-hidden="true">3</span> Openen</li></ol>
       <div id="huis-statistiek" class="huis-statistiek" aria-live="polite"></div>
       <div id="huis-plan" tabindex="0" aria-label="Huisplan; selecteer een ruimte met klikken of Enter"></div>
+      <details id="huis-splits-invoer"><summary>Kamer indelen</summary><form id="huis-splits-form"><div class="indeling-snel" role="group" aria-label="Snel indelen"><button type="button" class="knop" data-indeling-as="x" aria-pressed="true" aria-controls="huis-plan">↔ Links / rechts</button><button type="button" class="knop" data-indeling-as="y" aria-pressed="false" aria-controls="huis-plan">↕ Boven / onder</button></div><label id="huis-split-schuif-label">Verdeling verschuiven<input type="range" id="huis-split-schuif" min="1" max="99" value="50" step="1" aria-label="Positie scheidingswand in procent" aria-describedby="huis-split-preview"></label><p class="hint" id="huis-split-preview" role="status"></p><button type="button" class="knop" id="huis-snede-terug" aria-controls="huis-plan" hidden>↶ Laatste punt terug</button><details id="huis-indeling-precies"><summary>Maten, kamernamen en vrije snede</summary><p class="hint">Alleen lege kamers kunnen worden verdeeld. Werken en openingen worden nooit verwijderd. Voor een vrije snede kies je twee grenspunten dicht bij de kamerwanden in 2D. Backspace op het huisplan neemt het laatste punt terug; Escape annuleert.</p><div class="indeling-precies-velden"><label>Richting<select id="huis-split-as"><option value="x">Verticaal: vaste X</option><option value="y">Horizontaal: vaste Y</option><option value="vrij">Vrij: twee grenspunten</option></select></label><label id="huis-split-positie-label">Positie vanaf kamerbegin (m)<input type="number" min="0" max="1000" step="any" id="huis-split-waarde" value="2" required></label><label>Naam eerste kamer<input id="huis-naam-a" maxlength="100" placeholder="Bijvoorbeeld woonkamer"></label><label>Naam tweede kamer<input id="huis-naam-b" maxlength="100" placeholder="Bijvoorbeeld keuken"></label><button type="button" class="knop" id="huis-snede-start">Twee grenspunten kiezen</button></div></details><button type="submit" class="knop primair">Splitsen toepassen</button><button type="button" class="knop" id="huis-snede-stop">Annuleren</button></form></details>
       <p id="huis-melding" class="hint" role="status"></p>
       <section id="huis-selectie-info" aria-label="Geselecteerde kamer" aria-live="polite" hidden></section>
+      <form id="huis-naam-form" class="huis-naam-form" hidden><label for="huis-kamer-naam">Kamernaam</label><div><input id="huis-kamer-naam" data-fokus="huis_kamer_naam" maxlength="100" required autocomplete="off" placeholder="Bijvoorbeeld keuken"><button type="submit" class="knop">Bewaar</button><button type="button" class="knop compact-icon" id="huis-naam-annuleer" title="Naamswijziging annuleren" aria-label="Naamswijziging annuleren" disabled><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 4-5 5 5 5M4 9h9a7 7 0 0 1 0 14"/></svg></button></div><p id="huis-naam-status" role="status" class="hint"></p></form>
       <div class="huis-acties"><button type="button" class="knop primair compact-icon" id="huis-open" title="Geselecteerde kamer openen" aria-label="Geselecteerde kamer openen"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 3H4v18h7M10 12h11m-4-4 4 4-4 4"/></svg><span>Kamer openen</span></button><button type="button" class="knop compact-icon" id="huis-splits" title="Kamer splitsen" aria-label="Kamer splitsen"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="m8 8 13 13M8 16 21 3"/></svg><span>Indelen</span></button></div>
-      <details id="huis-splits-invoer"><summary>Scheidingswand precies tekenen</summary><p class="hint">Een snede loopt recht tussen twee kamergrenzen. Kies een X/Y-lijn, of tik in 2D op twee grenspunten. Alleen lege kamers kunnen worden gesplitst; bestaande werkposten/openingen worden nooit weggegooid.</p><form id="huis-splits-form"><label>Richting<select id="huis-split-as"><option value="x">Verticaal: vaste X</option><option value="y">Horizontaal: vaste Y</option><option value="vrij">Vrij: twee grenspunten</option></select></label><label>Positie vanaf kamerbegin (m)<input type="number" min="0" max="1000" step="any" id="huis-split-waarde" value="2" required></label><label>Naam eerste kamer<input id="huis-naam-a" maxlength="100" placeholder="Bijvoorbeeld woonkamer"></label><label>Naam tweede kamer<input id="huis-naam-b" maxlength="100" placeholder="Bijvoorbeeld keuken"></label><button type="button" class="knop" id="huis-snede-start">Twee grenspunten kiezen</button><button type="submit" class="knop primair">Splitsen toepassen</button><button type="button" class="knop" id="huis-snede-stop">Annuleren</button></form></details>
+
       <details id="huis-kamers"><summary>Kamers op het huisplan &amp; plaatsing</summary><div id="huis-kamerlijst"></div><form id="huis-plaats-form"><label>Ruimte<select id="huis-plaats-ruimte"></select></label><label>X op huisplan (m)<input type="number" min="0" max="1000" step="any" id="huis-plaats-x" value="0" required></label><label>Y op huisplan (m)<input type="number" min="0" max="1000" step="any" id="huis-plaats-y" value="0" required></label><button type="submit" class="knop">Plaats / verplaats ruimte</button><button type="button" class="knop" id="huis-losmaken">Van huisplan halen (werken blijven)</button><p id="huis-plaats-status" class="hint" role="status" aria-live="polite"></p></form></details>
     </section>
     <p id="studio-room-summary" class="studio-room-summary" aria-label="Kameroverzicht" hidden></p>
@@ -191,6 +193,7 @@
         </div>
       <button type="button" class="knop primair object-menu-start compact-icon" data-object-menu aria-haspopup="dialog" aria-controls="object-menu" title="Object toevoegen" aria-label="Object toevoegen"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v16M4 12h16"/></svg></button>
       </header>
+      <div class="opening-snel" role="group" aria-label="Deur of raam toevoegen"><button type="button" class="knop" data-opening-snel="Deur" aria-haspopup="dialog" aria-controls="opening-menu">＋ Deur</button><button type="button" class="knop" data-opening-snel="Raam" aria-haspopup="dialog" aria-controls="opening-menu">＋ Raam</button></div>
       <div id="vlak-bediening" class="vlak-bediening" hidden>
         <div class="vlak-intro"><strong>Elk vlak, recht in beeld</strong><span>Kies een vlak en positioneer de werken op het raster.</span></div>
         <div class="vlak-keuze" role="group" aria-label="Vlak voor vooraanzicht">
@@ -237,6 +240,7 @@
         <label id="sleepvlak-keuze">3D verplaatsen in <select id="plan-sleepvlak"><option value="auto">Automatisch per wand/vloer</option><option value="xy">Vloervlak X/Y</option><option value="xz">Hoogte X/Z</option><option value="yz">Hoogte Y/Z</option></select></label>
       </div>
       </div></details>
+
       <details class="studio-vouw" id="plan-objecten"><summary>Objecten &amp; verwijderen <span id="plan-objecten-aantal">Overzicht op de tekening</span></summary><div class="studio-vouw-inhoud">
       <div id="plan-legenda" class="plan-legenda" aria-label="Werken in de tekening"></div>
       <div id="plan-openingen" class="plan-legenda" aria-label="Openingen in de tekening"></div>
@@ -301,6 +305,21 @@
 
 <div class="toast" id="toast" hidden role="status" aria-live="polite"></div>
 
+<dialog id="opening-menu" class="object-menu" aria-labelledby="opening-titel">
+<form id="opening-form">
+<header class="object-menu-kop"><h2 id="opening-titel">Opening toevoegen</h2><button type="button" class="knop" id="opening-sluit" aria-label="Opening toevoegen annuleren">Sluiten ×</button></header>
+<div class="opening-velden">
+<div id="opening-presets" class="opening-presets" role="group" aria-label="Voorbeeldmaten van de opening in meter"></div>
+<figure class="opening-voorbeeld"><div id="opening-voorbeeld" aria-hidden="true"></div><figcaption id="opening-preview-status" role="status" aria-live="polite"></figcaption></figure>
+<label>Wand<select id="opening-wand"></select></label>
+<label>Breedte (m)<input id="opening-breedte" type="number" min="0.01" max="1000" step="any" required></label>
+<label>Hoogte (m)<input id="opening-hoogte" type="number" min="0.01" max="1000" step="any" required></label>
+<label>Vanaf begin wand (m)<input id="opening-positie" type="number" min="0" max="1000" step="any" placeholder="Midden"></label>
+<label>Onderkant boven vloer (m)<input id="opening-onderkant" type="number" min="0" max="1000" step="any" required></label>
+<p class="hint" id="opening-wand-info"></p><p id="opening-fout" role="alert" hidden></p>
+<button type="submit" class="knop primair">Toevoegen aan tekening</button>
+<p class="hint">Voorbeeldmaten van de opening, geen deurblad- of bestelmaten. Controleer ze op de werf. Na toevoegen kun je verslepen of de eigenschappen aanpassen.</p>
+</div></form></dialog>
 <dialog id="object-menu" class="object-menu" aria-labelledby="object-menu-titel">
   <header class="object-menu-kop"><div><h2 id="object-menu-titel">Object toevoegen</h2><p id="object-menu-ruimte"></p></div><button type="button" class="knop" id="object-menu-sluit" aria-label="Objectmenu sluiten">Sluiten ×</button></header>
   <div class="object-menu-invoer">
@@ -361,5 +380,6 @@
 <script src="huis-camera.js"></script>
 <script src="huis.js"></script>
 <script src="studio.js"></script>
+<script src="openingen.js"></script>
 </body>
 </html>

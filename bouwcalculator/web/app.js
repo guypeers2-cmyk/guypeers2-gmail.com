@@ -1259,18 +1259,7 @@ document.addEventListener("click", (e) => {
         state.actieveRuimteId = state.project.ruimtes.length ? state.project.ruimtes[0].id : null;
       });
     } else if (actie === "opening-toevoegen") {
-      const ruimte = actieveRuimte();
-      wijzig(() => {
-        ruimte.openingen.push({
-          naam: knop.dataset.soort || "Deur",
-          muur: "noord",
-          breedte: knop.dataset.soort === "Raam" ? 1.2 : 0.9,
-          hoogte: knop.dataset.soort === "Raam" ? 1.2 : 2.1,
-          aantal: 1,
-          positie: null,
-          borstwering: knop.dataset.soort === "Raam" ? 0.9 : 0,
-        });
-      });
+      window.BouwOpeningen.open(knop.dataset.soort || 'Deur');
     } else if (actie === "opening-verwijderen") {
       const ruimte = actieveRuimte();
       const index = Number(knop.dataset.index);
@@ -1662,11 +1651,11 @@ init();
     const vlak=$('#object-vlak').value;
     const opening=item.groep==='openingen';
     if(opening && ['vloer','plafond'].includes(vlak)){$('#object-menu-status').textContent='Kies een wand voor deze deur of dit raam.';$('#object-vlak').focus();return;}
+    if(opening){menu.close();window.BouwOpeningen.open(item.naam,vlak);return;}
     if(!opening && item.eenheid!=='m2' && !$('#object-aantal').reportValidity())return;
     const aantal=Number($('#object-aantal').value),id=uid();
     wijzig(()=>{
-      if(opening)room.openingen.push({naam:item.naam,muur:vlak,breedte:item.naam==='Raam'?1.2:.9,hoogte:item.naam==='Raam'?1.2:2.1,aantal:1,positie:null,borstwering:item.naam==='Raam'?.9:0});
-      else state.project.regels.push({id,ruimte_id:room.id,oppervlak:vlak,pakket_id:item.id,opties:{},hoeveelheid:item.eenheid==='m2'?null:aantal,notitie:''});
+      state.project.regels.push({id,ruimte_id:room.id,oppervlak:vlak,pakket_id:item.id,opties:{},hoeveelheid:item.eenheid==='m2'?null:aantal,notitie:''});
     });
     $('#object-menu-status').textContent=`${item.naam} toegevoegd op ${$('#object-vlak').selectedOptions[0].textContent.toLowerCase()}. Je kunt nog een object kiezen of het menu sluiten.`;
   });

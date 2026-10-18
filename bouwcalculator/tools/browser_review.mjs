@@ -34,6 +34,7 @@ try {
   await page.reload({waitUntil:'networkidle2'});
   await page.evaluate(()=>{for(const id of ['ruimte-invoer','werk-invoer','installatie-invoer','zijde'])document.getElementById(id).open=true;});
   await click('[data-actie="opening-toevoegen"][data-soort="Deur"]');
+  await click('#opening-form button[type="submit"]');
   await page.waitForNetworkIdle({idleTime:300});
   await click('[data-actie="regel-toevoegen"]');
   await page.waitForNetworkIdle({idleTime:300});

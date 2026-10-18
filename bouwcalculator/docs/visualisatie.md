@@ -573,3 +573,48 @@ annuleren en commits wissen de dubbele-activatieketen. Het UI-event opent de
 bestaande inspector zonder businessmutatie. `drawing_ui_review.mjs` controleert
 alle drie aanzichten, werk/opening, echte touch-dubbeltap, lijstselectie,
 veldveiligheid, focusherstel en ongewijzigde prijs/project/historie.
+
+
+### Eenvoudige openinginvoer en indelingsvoorbeeld
+
+`openingen.js` bundelt de nieuwe tekeningknoppen, oude ruimteknoppen en catalogus
+in een native dialoog. Wandlengte, positie, lokale plafondhoogte en beschikbare
+ruimte bij wandhelling worden vóór toevoegen gecontroleerd. Annuleren verandert
+geen project of historie. De rechthoekige `openingGeometrie` levert nu, net als
+de vrije-contourvariant, a/b/c/d zodat openingen ook in het huisplan 2D/3D tekenen.
+
+Het huisplan gebruikt bestaande `BouwVorm.cutAt` voor zowel voorbeeld als echte
+snede. De slider verandert alleen UI-invoer, nooit projectdata. De gekleurde
+vlakken zijn niet interactief en worden niet afgedrukt. Bevestigen gebruikt de
+bestaande kandidaatvalidatie en historie; bescherming voor bestaande werken,
+openingen en wandhelling blijft staan. De precieze invoer is inklapbaar.
+
+
+Het invoervenster gebruikt één `draft()`-validatie voor zowel het live voorbeeld
+als definitief toevoegen. Maatknoppen wijzigen alleen invoervelden. De schets
+beeldt de wandlengte en plafondhoogten af, met een expliciete schematische disclaimer;
+wandhelling moet in de kamertekening worden gecontroleerd. Verkeerde of onvolledige
+invoer toont geen schijnbaar geldige opening. Voorbeeldinteracties slaan niets op,
+voegen geen historie toe en doen geen rekenverzoeken.
+
+De inline kamernaam heeft een eigen UI-draft, gebonden aan project, kamer-id en
+oorspronkelijke naam. Renderen behoudt de tekst zolang deze binding ongewijzigd is;
+selectiewissel, projectvervanging en undo/redo synchroniseren de actuele naam.
+Bewaren trimt en valideert, en gebruikt de bestaande projecthistorie. Bewaren zonder
+verschil maakt geen historiestap. Annuleren verandert uitsluitend de UI-draft.
+
+
+### Vrije scheidingswanden: eerst valideren, dan bevestigen
+
+De UI-preview voor rechte én vrije sneden gebruikt de bestaande `cutAt`/`split`
+functies. Twee vrije grenspunten leveren alleen gekleurde delen op als de snede
+werkelijk binnen de kamer ligt en twee geldige contouren oplevert. De echte
+bevestiging behoudt de kandidaat-/layoutvalidatie. Incomplete en ongeldige
+voorbeelden schakelen de bevestigingsknop uit; de submitvalidatie blijft bestaan.
+
+Grenspunten klikken op 5 cm langs de wand. Een afstandscontrole in schermpixels
+voorkomt dat tikken ver van een wand ongewenst een grenspunt kiest. Dubbele punten
+worden geweigerd en een derde tik wist een voltooid voorbeeld niet. Punt-terug,
+Backspace op het canvas en Escape veranderen uitsluitend UI-staat. Backspace in
+tekstvelden blijft native. `free_cut_review.mjs` test ook concave contouren, echte
+touch, behoud van project/historie en ontbreken van rekenverzoeken tijdens tekenen.

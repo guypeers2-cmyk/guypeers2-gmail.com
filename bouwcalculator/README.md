@@ -187,6 +187,42 @@ verversen na verwijderen behouden. De prijs- en geometriekern zijn ongewijzigd.
 Regressie: `tools/archive_review.mjs` met 23 offertes, zoeken/sorteren, focus,
 bevestigingen, laad-/verwijderfouten, vertraagde antwoorden en 320–1440 px.
 
+## Ramen, deuren en kamers sneller invoeren
+
+Boven de kamertekening staan **＋ Deur** en **＋ Raam**. Kies de wand en geef
+breedte, hoogte en onderkant in één venster op. Een lege positie centreert de
+opening; een ingevulde positie meet vanaf het begin van de wand. Ongeldige maten
+of een opening boven het lokale schuine plafond worden geweigerd vóór opslaan.
+Tijdens invoeren toont een **live wandvoorbeeld** de opening en de vrije afstand
+links/rechts. Maatknoppen vullen voorbeeldmaten in (deur: 0,80/0,90/1,00 × 2,10 m;
+raam: 0,60 × 0,60 / 1,20 × 1,20 / 1,80 × 1,20 m). Dit zijn openingmaten, geen
+bestelmaten van kozijn of deurblad. Zelf ingevoerde posities blijven behouden bij
+het kiezen van een maatknop. Het voorbeeld bewaart niets en herberekent geen prijzen.
+
+Na toevoegen blijft de opening geselecteerd en openen de eigenschappen. Sleep om
+te verplaatsen; ongedaan maken blijft beschikbaar. Ook de objectcatalogus en de
+knoppen onder Ruimtematen gebruiken ditzelfde invoervenster.
+
+In het huisplan: selecteer een lege kamer en kies **Indelen**. **Links/rechts**
+of **Boven/onder** start een halve verdeling. Verschuif de scheidingswand met de
+schuifregelaar: de twee gekleurde delen en oppervlakten zijn alleen een voorbeeld.
+Pas **Splitsen toepassen** maakt kamers aan. **Maten, kamernamen en vrije snede**
+bevat de precieze invoer en twee-grenspuntenmethode. Ook een **vrije schuine snede**
+toont vóór bevestigen twee gekleurde delen, oppervlakten en de scheidingswandlengte.
+Tik dicht bij de kamerwanden; een tik midden in een kamer kiest geen onverwacht
+wandpunt. Een derde tik wist een voltooid voorbeeld niet. **Laatste punt terug**
+(of Backspace met focus op het huisplan) corrigeert het laatste grenspunt;
+Escape annuleert de snede. Ongeldige sneden hebben geen bevestigbaar voorbeeld.
+Herhaal voor meer kamers.
+Kamers met werken, openingen of wandhelling blijven beschermd tegen splitsen.
+
+Onder de geselecteerde kamer in het huisplan kun je ook meteen de **kamernaam**
+wijzigen. Alleen **Bewaar** schrijft de naam weg; Escape of de terugzetknop
+annuleert de tekstwijziging. Achtergrondverversingen behouden je nog niet bewaarde
+tekst. Undo/redo werkt ook voor de naam, zonder werken of maten te wijzigen.
+
+Regressie: `tools/easy_layout_review.mjs`, `tools/insertion_preview_review.mjs`, `tools/free_cut_review.mjs` en bestaande huis-/objectmenu-/dragreviews.
+
 ## Lichte en donkere weergave
 
 De app opent standaard **licht**, ook als het apparaat donker is ingesteld.
