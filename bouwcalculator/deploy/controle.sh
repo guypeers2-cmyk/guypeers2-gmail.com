@@ -28,6 +28,23 @@ check() { # naam url verwacht
 echo "Controle van $URL"
 echo
 
+# Eerst: serveert de worker onze app, of nog de standaard "Hello World!"?
+root=$(curl -s --max-time 20 "$URL/" 2>/dev/null || true)
+if printf "%s" "$root" | grep -qi "hello world"; then
+  echo "  inhoud root                    FOUT — standaard 'Hello World!'"
+  echo
+  echo "De worker bestaat, maar serveert nog de standaard 'Hello World!'." >&2
+  echo "De app is dus NIET (of niet met deze code) gedeployed." >&2
+  echo "  → deploy vanuit de repo-map:  bash bouwcalculator/deploy/nu-publiceren.sh" >&2
+  exit 1
+fi
+if printf "%s" "$root" | grep -qi "bouwprijscalculator\|bouwprijs"; then
+  echo "  inhoud root                    OK (onze app)"
+else
+  echo "  inhoud root                    ? (onbekende inhoud)"
+fi
+echo
+
 echo "Statische app"
 check "index.html" "$URL/" "200"
 check "styles.css" "$URL/styles.css" "200"
@@ -62,6 +79,12 @@ fi
 
 echo
 if [ "$fouten" -eq 0 ]; then
+  body=$(curl -s --max-time 20 "$URL/api/prijsboek" 2>/dev/null || true)
+  if printf "%s" "$body" | grep -qi "hello world"; then
+    echo "FOUT: de worker serveert de standaard 'Hello World!' — de app staat er nog niet." >&2
+    echo "      Deploy vanuit de repo-map:  bash bouwcalculator/deploy/nu-publiceren.sh" >&2
+    exit 1
+  fi
   echo "Alles OK — de app staat online op $URL"
 else
   echo "$fouten punt(en) mislukt."

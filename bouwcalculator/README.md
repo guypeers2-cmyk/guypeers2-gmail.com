@@ -2,8 +2,9 @@
 
 **Prijzen berekenen voor bouwwerk op basis van maten — gestart met Gyproc.**
 
-> 🟢 **Live:** <https://patient-sun-c959.guypeers2.workers.dev>
-> Cloudflare Worker · zelf publiceren met `npx wrangler deploy`
+> 🌐 **URL:** <https://patient-sun-c959.guypeers2.workers.dev>
+> Cloudflare Worker · publiceren met **één commando**:
+> `bash bouwcalculator/deploy/nu-publiceren.sh` (vanuit de repo-map!)
 
 Een zelfstandige webapp (zonder dependencies, pure Python-stdlib) waarmee een
 bouwer of werknemer vanuit de maten van een ruimte een offerte opstelt:
@@ -40,15 +41,38 @@ De app draait op drie manieren — alle drie zijn getest:
 
 ### De Worker publiceren
 
+**Eén commando** (deploy + controle in één keer):
+
+```bash
+bash bouwcalculator/deploy/nu-publiceren.sh
+```
+
+Het script gaat vanzelf naar de repo-map, zet het token klaar (of vraagt het
+veilig op), doet `wrangler deploy` en controleert daarna of de URL echt onze
+app serveert in plaats van de standaard "Hello World!".
+
+Handmatig kan ook, **maar dan vanuit de map met `wrangler.toml`**:
+
 ```bash
 cd <repo>                 # map met wrangler.toml
 npx wrangler login        # één keer, inloggen bij Cloudflare
 npx wrangler deploy
 ```
 
+> ⚠️ **Let op:** `npx wrangler deploy` vanuit een *andere* map dan de repo
+> vindt geen `wrangler.toml` en zet dan de standaard "Hello World!"-worker
+> op. Draai het daarom altijd in de repo-map (of gebruik het script).
+
 De worker heet `patient-sun-c959` (zie `wrangler.toml`) en komt live op:
 
 **https://patient-sun-c959.guypeers2.workers.dev**
+
+Controleren of er echt onze app staat (statische bestanden, API én een
+voorbeeldberekening):
+
+```bash
+bash bouwcalculator/deploy/controle.sh
+```
 
 De Worker serveert de app (statische bestanden) en rekent `/api/*` met de
 JS-rekenkern. De bestanden in `bouwcalculator/web/` worden automatisch
