@@ -53,12 +53,28 @@ meegestuurd als assets.
 
 ### Deployen bij elke push (GitHub Actions)
 
-Kopieer `bouwcalculator/deploy/deploy-worker.yml` naar
-`.github/workflows/deploy-worker.yml` en zet in de repo-secrets:
+De snelste route is het meegeleverde script — één commando doet alles:
 
-- `CLOUDFLARE_API_TOKEN` — een API-token met rechten *Edit Cloudflare Workers*
+```bash
+git clone -b arena/c5fdb0b8-guypeers2-gmail-com \
+  https://github.com/guypeers2-cmyk/guypeers2-gmail.com.git
+cd guypeers2-gmail.com
+bash bouwcalculator/deploy/ci.sh
+```
 
-De workflow draait eerst de tests (Python + JS-pariteit) en deployt daarna.
+Het script controleert je GitHub-login, vraagt om het Cloudflare-token (onzichtbaar
+invoer) en zet het als versleuteld secret, plaatst de workflow en pusht.
+
+Het token maak je zelf aan op
+<https://dash.cloudflare.com/profile/api-tokens> met de rechten
+*Edit Cloudflare Workers* (Account Resources → jouw account). Het token komt
+nooit in de repo of in een log terecht.
+
+De workflow draait eerst de tests (Python + JS-pariteit) en deployt daarna:
+
+```
+.bouwcalculator/deploy/deploy-worker.yml  →  .github/workflows/deploy-worker.yml
+```
 
 ### Workers Builds (Cloudflare)
 
