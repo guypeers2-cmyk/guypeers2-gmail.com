@@ -905,11 +905,13 @@ function importeerJson(tekst) {
 
 /* ---------------- events ---------------- */
 function selecteerPlanRegel(id) {
+  $("#plan-acties").open=false;
   planInspectieOpen=false;
   planSelectie = {type:'regel',id};
   renderPlanSelectie();
 }
 function selecteerPlanOpening(index) {
+  $("#plan-acties").open=false;
   planInspectieOpen=false;
   planSelectie = {type:'opening',index,ruimteId:actieveRuimte()?.id};
   renderPlanSelectie();
@@ -921,6 +923,7 @@ function renderPlanSelectie() {
   const opening=planSelectie?.type==='opening' && planSelectie.ruimteId===room?.id && room?.openingen[planSelectie.index];
   if(!regel && !opening)planSelectie=null;
   bar.hidden=!planSelectie;
+  if(!planSelectie)$("#plan-acties").open=false;
   renderPlanInspector(regel,opening);
   $$('#plan [data-opening-index]').forEach(el=>el.classList.toggle('plan-geselecteerd',!!opening && Number(el.dataset.openingIndex)===planSelectie.index));
   $$('#plan [data-plan-regel]').forEach(el=>el.classList.toggle('plan-geselecteerd',!!regel && el.dataset.planRegel===regel.id));
@@ -1590,3 +1593,59 @@ document.addEventListener('submit',e=>{
   }
   $('#plan-sleepstatus').textContent='Eigenschappen opgeslagen. Je kunt verder tekenen.';
 });
+
+/* Repeated placement and alignment operate on full work rules, never just SVG. */
+(function objectActies() {
+  const menu=$('#plan-acties');
+  document.addEventListener('click',e=>{
+    if(!menu.contains(e.target))menu.open=false;
+    const kopie=e.target.closest('#plan-dupliceer'),centreer=e.target.closest('#plan-centreer');
+    if(!kopie && !centreer)return;
+    menu.open=false;
+    if(document.querySelector('#plan.is-slepen,#plan.is-pannen'))return;
+    const room=actieveRuimte();if(!room || !planSelectie)return;
+    const regel=planSelectie.type==='regel' && planRegels(room).find(r=>r.id===planSelectie.id);
+    const opening=planSelectie.type==='opening' && room.openingen[planSelectie.index];
+    if(!regel && !opening)return;
+    if(kopie){
+      const naam=regel?regel.pakket.naam:opening.naam;
+      const aantal=regel?`${NRL.format(regel.hoeveelheid ?? regel.aantal)} ${regel.pakket.eenheid}`:`${opening.aantal ?? 1} opening(en)`;
+      const gevolg=regel?'De kopie telt EXTRA mee als werkregel in de offerte.':'Dit wijzigt de aftrek van openingen, netto-oppervlakte en offerte.';
+      if(!confirm(`“${naam}” dupliceren, inclusief ${aantal}? ${gevolg} Controleer daarna positie en aantallen.`))return;
+    }
+    if(opening){
+      const g=BouwPlan.openingGeometrie(room,planSelectie.index),axis=['noord','zuid'].includes(g.zijde)?0:1;
+      const max=Math.max(0,g.lengte-g.breedte),start=g.a[axis];
+      const positie=centreer?max/2:Math.max(0,Math.min(max,start+(start+.25<=max ? .25 : -.25)));
+      const nieuw=JSON.parse(JSON.stringify(opening));nieuw.positie=positie;
+      if(planWeergave==='aanzicht')planVlak=opening.muur;
+      wijzig(()=>{
+        if(kopie){
+          // Freeze automatic positions before the list length changes.
+          room.openingen.map((o,i)=>({o,g:o.muur===opening.muur && (o.positie==null || o.positie==='')?BouwPlan.openingGeometrie(room,i):null}))
+            .forEach(({o,g})=>{if(g)o.positie=g.a[axis];});
+          room.openingen.push(nieuw);planSelectie={type:'opening',index:room.openingen.length-1,ruimteId:room.id};planInspectieOpen=false;
+        }else opening.positie=positie;
+      });
+    }else{
+      const model=state.project.regels.find(r=>r.id===regel.id),g=BouwPlan.werkGeometrie(regel,room);
+      const axes=['noord','zuid'].includes(regel.oppervlak)?[0,2]:['west','oost'].includes(regel.oppervlak)?[1,2]:[0,1];
+      const route=regel.pakket.eenheid==='m',b=route?g.b:g.a;
+      const delta=BouwSleep.positieActie(g.a,b,[g.L,g.B,g.H],axes,centreer?'centreer':'kopie');
+      const nieuw=kopie?JSON.parse(JSON.stringify(model)):model;
+      const coord=(v,i)=>Math.round((v+delta[i])*1000)/1000;
+      const a=g.a.map(coord),eind=b.map(coord);
+      if(kopie){do{nieuw.id=uid();}while(state.project.regels.some(r=>r.id===nieuw.id));}
+      if(planWeergave==='aanzicht')planVlak=regel.oppervlak;
+      wijzig(()=>{
+        nieuw.visualisatie={...(nieuw.visualisatie || {}),x:a[0],y:a[1],z:a[2]};
+        if(route)Object.assign(nieuw.visualisatie,{x2:eind[0],y2:eind[1],z2:eind[2]});
+        if(kopie){state.project.regels.push(nieuw);planSelectie={type:'regel',id:nieuw.id};planInspectieOpen=false;}
+      });
+    }
+    $('#plan-sleepstatus').textContent=kopie?'Kopie toegevoegd; controleer positie en aantallen.':'Gecentreerd op het toegewezen vlak. Hoeveelheden blijven gelijk.';
+  });
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Escape' && menu.open){e.preventDefault();menu.open=false;menu.querySelector('summary').focus();}
+  });
+})();

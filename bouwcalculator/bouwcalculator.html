@@ -1434,6 +1434,13 @@ body.teken-focus-actief { overflow: hidden; }
 .meet-paneel header { display: grid; grid-template-columns: minmax(0,1fr) auto auto; gap: 8px; }
 .meet-paneel output { min-width: 80px; text-align: right; white-space: nowrap; font-size: 1rem; }
 @media (max-width:600px) { .iso-bediening [data-plan-gereedschap] { padding: 8px 6px; font-size: .78rem; } }
+.plan-selectie > div { flex-wrap: wrap; max-width: 100%; }
+.plan-acties { position: relative; }
+.plan-acties > summary { list-style: none; cursor: pointer; min-height: 44px; }
+.plan-acties > summary::-webkit-details-marker { display: none; }
+.plan-acties > div { position: absolute; right: 0; top: calc(100% + 6px); z-index: 35; width: 215px; padding: 8px; border: 1px solid var(--rand); border-radius: 10px; background: var(--oppervlak); box-shadow: var(--schaduw-2); display: grid; gap: 6px; }
+.plan-acties button { min-height: 44px; justify-content: flex-start; }
+@media print { .plan-acties { display: none !important; } }
 
 </style>
 </head>
@@ -1617,7 +1624,7 @@ body.teken-focus-actief { overflow: hidden; }
         <details><summary>Meetpunten precies invoeren</summary><form id="meet-form"><div id="meet-velden" class="meet-velden"></div><button type="submit" class="knop klein">Afstand tonen</button></form></details>
       </section>
       <div class="planhouder" id="plan" tabindex="0" aria-label="Interactieve tekening"></div>
-      <div id="plan-selectie" class="plan-selectie" hidden><span id="plan-selectie-naam"></span><div><button type="button" class="knop klein" id="plan-eigenschappen">Eigenschappen</button><button type="button" class="plan-vuilbak" id="plan-selectie-verwijder" aria-label="Geselecteerd object verwijderen"></button><button type="button" class="knop klein" id="plan-deselecteer" aria-label="Selectie opheffen">×</button></div></div>
+      <div id="plan-selectie" class="plan-selectie" hidden><span id="plan-selectie-naam"></span><div><button type="button" class="knop klein" id="plan-eigenschappen">Eigenschappen</button><details id="plan-acties" class="plan-acties"><summary class="knop klein">Acties ▾</summary><div><button type="button" class="knop klein" id="plan-dupliceer">Dupliceren…</button><button type="button" class="knop klein" id="plan-centreer">Centreren op vlak</button></div></details><button type="button" class="plan-vuilbak" id="plan-selectie-verwijder" aria-label="Geselecteerd object verwijderen"></button><button type="button" class="knop klein" id="plan-deselecteer" aria-label="Selectie opheffen">×</button></div></div>
       <section id="plan-inspector" class="plan-inspector" aria-label="Eigenschappen van geselecteerd object" hidden></section>
       <details class="studio-vouw studio-opties" id="tekenopties"><summary>Tekenopties <span>Lagen, raster en sleepvlak</span></summary><div class="studio-vouw-inhoud">
       <div class="plan-lagen" role="group" aria-label="Zichtbare werken">
@@ -4680,11 +4687,13 @@ function importeerJson(tekst) {
 
 /* ---------------- events ---------------- */
 function selecteerPlanRegel(id) {
+  $("#plan-acties").open=false;
   planInspectieOpen=false;
   planSelectie = {type:'regel',id};
   renderPlanSelectie();
 }
 function selecteerPlanOpening(index) {
+  $("#plan-acties").open=false;
   planInspectieOpen=false;
   planSelectie = {type:'opening',index,ruimteId:actieveRuimte()?.id};
   renderPlanSelectie();
@@ -4696,6 +4705,7 @@ function renderPlanSelectie() {
   const opening=planSelectie?.type==='opening' && planSelectie.ruimteId===room?.id && room?.openingen[planSelectie.index];
   if(!regel && !opening)planSelectie=null;
   bar.hidden=!planSelectie;
+  if(!planSelectie)$("#plan-acties").open=false;
   renderPlanInspector(regel,opening);
   $$('#plan [data-opening-index]').forEach(el=>el.classList.toggle('plan-geselecteerd',!!opening && Number(el.dataset.openingIndex)===planSelectie.index));
   $$('#plan [data-plan-regel]').forEach(el=>el.classList.toggle('plan-geselecteerd',!!regel && el.dataset.planRegel===regel.id));
@@ -5361,6 +5371,62 @@ document.addEventListener('submit',e=>{
   $('#plan-sleepstatus').textContent='Eigenschappen opgeslagen. Je kunt verder tekenen.';
 });
 
+/* Repeated placement and alignment operate on full work rules, never just SVG. */
+(function objectActies() {
+  const menu=$('#plan-acties');
+  document.addEventListener('click',e=>{
+    if(!menu.contains(e.target))menu.open=false;
+    const kopie=e.target.closest('#plan-dupliceer'),centreer=e.target.closest('#plan-centreer');
+    if(!kopie && !centreer)return;
+    menu.open=false;
+    if(document.querySelector('#plan.is-slepen,#plan.is-pannen'))return;
+    const room=actieveRuimte();if(!room || !planSelectie)return;
+    const regel=planSelectie.type==='regel' && planRegels(room).find(r=>r.id===planSelectie.id);
+    const opening=planSelectie.type==='opening' && room.openingen[planSelectie.index];
+    if(!regel && !opening)return;
+    if(kopie){
+      const naam=regel?regel.pakket.naam:opening.naam;
+      const aantal=regel?`${NRL.format(regel.hoeveelheid ?? regel.aantal)} ${regel.pakket.eenheid}`:`${opening.aantal ?? 1} opening(en)`;
+      const gevolg=regel?'De kopie telt EXTRA mee als werkregel in de offerte.':'Dit wijzigt de aftrek van openingen, netto-oppervlakte en offerte.';
+      if(!confirm(`“${naam}” dupliceren, inclusief ${aantal}? ${gevolg} Controleer daarna positie en aantallen.`))return;
+    }
+    if(opening){
+      const g=BouwPlan.openingGeometrie(room,planSelectie.index),axis=['noord','zuid'].includes(g.zijde)?0:1;
+      const max=Math.max(0,g.lengte-g.breedte),start=g.a[axis];
+      const positie=centreer?max/2:Math.max(0,Math.min(max,start+(start+.25<=max ? .25 : -.25)));
+      const nieuw=JSON.parse(JSON.stringify(opening));nieuw.positie=positie;
+      if(planWeergave==='aanzicht')planVlak=opening.muur;
+      wijzig(()=>{
+        if(kopie){
+          // Freeze automatic positions before the list length changes.
+          room.openingen.map((o,i)=>({o,g:o.muur===opening.muur && (o.positie==null || o.positie==='')?BouwPlan.openingGeometrie(room,i):null}))
+            .forEach(({o,g})=>{if(g)o.positie=g.a[axis];});
+          room.openingen.push(nieuw);planSelectie={type:'opening',index:room.openingen.length-1,ruimteId:room.id};planInspectieOpen=false;
+        }else opening.positie=positie;
+      });
+    }else{
+      const model=state.project.regels.find(r=>r.id===regel.id),g=BouwPlan.werkGeometrie(regel,room);
+      const axes=['noord','zuid'].includes(regel.oppervlak)?[0,2]:['west','oost'].includes(regel.oppervlak)?[1,2]:[0,1];
+      const route=regel.pakket.eenheid==='m',b=route?g.b:g.a;
+      const delta=BouwSleep.positieActie(g.a,b,[g.L,g.B,g.H],axes,centreer?'centreer':'kopie');
+      const nieuw=kopie?JSON.parse(JSON.stringify(model)):model;
+      const coord=(v,i)=>Math.round((v+delta[i])*1000)/1000;
+      const a=g.a.map(coord),eind=b.map(coord);
+      if(kopie){do{nieuw.id=uid();}while(state.project.regels.some(r=>r.id===nieuw.id));}
+      if(planWeergave==='aanzicht')planVlak=regel.oppervlak;
+      wijzig(()=>{
+        nieuw.visualisatie={...(nieuw.visualisatie || {}),x:a[0],y:a[1],z:a[2]};
+        if(route)Object.assign(nieuw.visualisatie,{x2:eind[0],y2:eind[1],z2:eind[2]});
+        if(kopie){state.project.regels.push(nieuw);planSelectie={type:'regel',id:nieuw.id};planInspectieOpen=false;}
+      });
+    }
+    $('#plan-sleepstatus').textContent=kopie?'Kopie toegevoegd; controleer positie en aantallen.':'Gecentreerd op het toegewezen vlak. Hoeveelheden blijven gelijk.';
+  });
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Escape' && menu.open){e.preventDefault();menu.open=false;menu.querySelector('summary').focus();}
+  });
+})();
+
 </script>
 <script>
 /* Pointer Events: mouse, pen and touch. Capture stays on the stable #plan host,
@@ -5390,7 +5456,20 @@ document.addEventListener('submit',e=>{
       return Math.max(-Math.min(a[i],b[i]), Math.min(limits[i]-Math.max(a[i],b[i]), d));
     });
   }
-  window.BouwSleep = {projectDelta,boundedDelta};
+  function positieActie(a,b,limits,axes,actie) {
+    const delta=[0,0,0];
+    if(actie==='centreer') {
+      axes.forEach(i=>delta[i]=limits[i]/2-(a[i]+b[i])/2);
+      return boundedDelta(a,b,delta,limits);
+    }
+    for(const axis of axes)for(const richting of [1,-1]) {
+      const d=[0,0,0];d[axis]=richting*.25;
+      const kandidaat=boundedDelta(a,b,d,limits);
+      if(Math.abs(kandidaat[axis])>.001)return kandidaat;
+    }
+    return delta;
+  }
+  window.BouwSleep = {projectDelta,boundedDelta,positieActie};
   const host = document.querySelector('#plan');
   if (!host) return;
   let drag = null, suppressClickUntil = 0;
@@ -5713,6 +5792,7 @@ function sluitTekenFocus() {
     if(host.querySelector('svg') && e.target.closest?.('#plan') && (planGereedschap==='meet' || performance.now()<suppress)){e.preventDefault();e.stopImmediatePropagation();suppress=0;}
   },true);
   document.addEventListener('keydown',e=>{
+    if(e.target.closest?.('#plan-acties'))return;
     if(e.key!=='Escape' || planGereedschap!=='meet' || (!gesture && (!maat || maat.klaar)))return;
     e.preventDefault();e.stopImmediatePropagation();
     if(gesture)einde(true);else {maat=null;render();}

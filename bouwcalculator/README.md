@@ -350,6 +350,29 @@ open/gesloten panelen behouden; een herladen pagina start weer rustig ingeklapt.
 
 Optionele browsercontrole: `tools/studio_review.mjs` (Worker of offline bestand).
 
+## Herhaald plaatsen en centreren
+
+Selecteer een werkregel of opening en open **Acties** in de selectiebalk.
+
+- **Dupliceren…** vraagt bevestiging. Een werkregel wordt volledig gekopieerd,
+  inclusief pakket, opties, notitie en hoeveelheid, en telt extra mee in de offerte.
+  Ook een automatische m²-post blijft een volledige extra m²-post.
+- De kopie krijgt een eigen ID en zelfstandige plaatsing. Waar ruimte is, wordt
+  ze maximaal 25 cm verschoven binnen het toegewezen vlak. Zonder vrije ruimte
+  kan de kopie overlappen: controleer de positie en aantallen zelf.
+- Een opening kopiëren neemt maten en aantal over, en beïnvloedt de aftrek van
+  openingen/netto-oppervlakte. Automatisch geplaatste openingen op die wand krijgen
+  hun huidige positie expliciet opgeslagen, zodat ze niet door de extra opening verschuiven.
+- **Centreren op vlak** centreert een punt/marker in de assen van zijn toegewezen
+  wand, vloer of plafond. De verborgen diepte blijft gelijk. Een tracé verschuift
+  als geheel, met behoud van de eindpuntvector. Een opening centreert langs de wand;
+  maten en borstwering blijven gelijk.
+- Beide acties werken met Ongedaan/Opnieuw. Centreren wijzigt geen hoeveelheden
+  of prijzen; dupliceren kan dat nadrukkelijk wel doen. Geen automatische botsingscontrole.
+
+Browsercontrole: `tools/acties_review.mjs`, inclusief annuleer/bevestig, offerte,
+openingen, tracés en mobiele menubediening.
+
 ## Afstanden controleren in de tekening
 
 Kies **Meten** en wijs twee punten aan, of sleep van begin naar einde. De
@@ -652,7 +675,7 @@ Daarom zijn er twee varianten:
 
 - **meerbestanden** (`bouwcalculator/web/`) — voor onze eigen Worker, Pages en
   de lokale server. De rekenkern is een ES-module.
-- **één bestand** (`bouwcalculator/bouwcalculator.html`, circa 259 KiB) — alles inline,
+- **één bestand** (`bouwcalculator/bouwcalculator.html`, circa 264 KiB) — alles inline,
   dus het werkt ook op hosts die HTML als `text/plain` teruggeven of op een
   stickie/schijf. De app rekent dan in de browser.
 

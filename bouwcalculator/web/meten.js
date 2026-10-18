@@ -84,6 +84,7 @@
     if(host.querySelector('svg') && e.target.closest?.('#plan') && (planGereedschap==='meet' || performance.now()<suppress)){e.preventDefault();e.stopImmediatePropagation();suppress=0;}
   },true);
   document.addEventListener('keydown',e=>{
+    if(e.target.closest?.('#plan-acties'))return;
     if(e.key!=='Escape' || planGereedschap!=='meet' || (!gesture && (!maat || maat.klaar)))return;
     e.preventDefault();e.stopImmediatePropagation();
     if(gesture)einde(true);else {maat=null;render();}

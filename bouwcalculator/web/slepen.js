@@ -25,7 +25,20 @@
       return Math.max(-Math.min(a[i],b[i]), Math.min(limits[i]-Math.max(a[i],b[i]), d));
     });
   }
-  window.BouwSleep = {projectDelta,boundedDelta};
+  function positieActie(a,b,limits,axes,actie) {
+    const delta=[0,0,0];
+    if(actie==='centreer') {
+      axes.forEach(i=>delta[i]=limits[i]/2-(a[i]+b[i])/2);
+      return boundedDelta(a,b,delta,limits);
+    }
+    for(const axis of axes)for(const richting of [1,-1]) {
+      const d=[0,0,0];d[axis]=richting*.25;
+      const kandidaat=boundedDelta(a,b,d,limits);
+      if(Math.abs(kandidaat[axis])>.001)return kandidaat;
+    }
+    return delta;
+  }
+  window.BouwSleep = {projectDelta,boundedDelta,positieActie};
   const host = document.querySelector('#plan');
   if (!host) return;
   let drag = null, suppressClickUntil = 0;

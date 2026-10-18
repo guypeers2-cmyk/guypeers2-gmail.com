@@ -14,7 +14,7 @@ const assert = require('node:assert/strict');
 global.window = {}; global.document = {querySelector:()=>null};
 require(process.argv[1]+'/plattegrond.js');
 require(process.argv[1]+'/slepen.js');
-const {projectDelta,boundedDelta} = window.BouwSleep;
+const {projectDelta,boundedDelta,positieActie} = window.BouwSleep;
 const room = {lengte:6,breedte:4,hoogte:2.7};
 const close = (a,b) => a.forEach((n,i)=>assert(Math.abs(n-b[i])<1e-9));
 for(let hoek=0;hoek<4;hoek++) {
@@ -66,6 +66,11 @@ for(let i=0;i<3;i++) {
 }
 close(boundedDelta([.12,.2,.3],[.12,.2,.3],[.11,0,0],limits,.05),[.13,0,0]);
 close(boundedDelta([.12,.2,.3],[.12,.2,.3],[.11,0,0],limits),[.11,0,0]);
+close(positieActie([1,0,.3],[1,0,.3],[4,3,2.5],[0,2],'centreer'),[1,0,.95]);
+close(positieActie([4,0,.3],[4,0,.3],[4,3,2.5],[0,2],'kopie'),[-.25,0,0]);
+close(positieActie([0,.5,0],[4,.5,0],[4,3,2.5],[0,1],'kopie'),[0,.25,0]);
+close(positieActie([0,0,0],[4,3,2.5],[4,3,2.5],[0,1],'kopie'),[0,0,0]);
+close(positieActie([.5,.5,.2],[3,1,.4],[4,3,2.5],[0,1],'centreer'),[.25,.75,0]);
 console.log('OK');
 '''
         result = subprocess.run(["node", "-e", code, str(web)],

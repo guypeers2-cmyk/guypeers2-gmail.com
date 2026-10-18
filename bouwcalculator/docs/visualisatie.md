@@ -212,3 +212,19 @@ aanzicht, vlak of ruimtematen wist de controlemaat.
 Dit is alleen een schematische controle: geen automatische object-/rand-snap,
 geen opmeting ter plaatse en geen leidinglengteberekening. Het verandert geen
 offertegegevens. Meetlijnen worden niet opgeslagen of afgedrukt.
+
+## Objectacties zonder de tekening te verlaten
+
+De selectiebalk bundelt minder gebruikte opdrachten onder **Acties**.
+Dupliceren maakt een zelfstandige werkregel met dezelfde hoeveelheid, opties en
+notitie; de offerte telt die extra regel mee. Ook een kopie van een m²-post telt
+het volledige gemeten vlak nogmaals mee. Daarom wordt eerst bevestiging gevraagd.
+Een opening kopiëren neemt ook het aantal over en wijzigt de netto-oppervlakte.
+
+De kopie wordt waar mogelijk tot 25 cm verschoven. Is er geen vrije verschuiving,
+dan kan zij overlappen; de app voert geen botsingscontrole uit. Bestaande automatische
+openingen op de wand behouden visueel hun plaats doordat hun positie wordt vastgelegd.
+
+Centreren verschuift punten en markers in hun toegewezen vlak. Voor tracés blijft
+de vector tussen begin en einde gelijk; een opening centreert alleen langs de wand.
+Deze plaatsingsactie verandert geen hoeveelheden. Beide acties zijn ongedaan te maken.
