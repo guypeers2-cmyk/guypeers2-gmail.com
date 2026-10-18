@@ -1235,6 +1235,33 @@ input[type="search"] { width: 100%; min-height: 38px; font: inherit; color: var(
 #plan-sleepstatus { min-block-size: 3em; }
 @media (max-width: 640px) { #plan-sleepstatus { min-block-size: 6em; } }
 
+/* Surface studio: contextual navigation stays directly above the drawing. */
+.plankop { flex-wrap: wrap; gap: 12px; }
+.plankeuze { flex-wrap: wrap; }
+.vlak-bediening { padding: 16px; margin-top: 14px; border: 1px solid var(--accent-rand); border-radius: 12px; background: var(--accent-zacht); }
+.vlak-intro { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; }
+.vlak-intro strong { font-size: .9rem; }
+.vlak-intro span { font-size: .78rem; color: var(--tekst-2); }
+.vlak-keuze { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; }
+.vlak-keuze button { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; min-height: 64px; padding: 10px 12px; border: 1px solid var(--rand); border-radius: 8px; background: var(--oppervlak); color: var(--tekst); cursor: pointer; text-align: left; }
+.vlak-keuze button span { font-size: .8rem; font-weight: 650; }
+.vlak-keuze button small { color: var(--tekst-2); font-size: .7rem; }
+.vlak-keuze button[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); background: var(--accent-zacht); }
+.vlak-keuze button[aria-pressed="true"] span { color: var(--accent); }
+.vlak-leeg { padding: 14px; font-size: .8rem; color: var(--tekst-2); background: var(--oppervlak-2); border-radius: 8px; grid-column: 1 / -1; }
+.aanzicht-papier { fill: var(--oppervlak); }
+.aanzicht-raster { stroke: var(--rand); stroke-width: .7; }
+.aanzicht-kader { fill: none; stroke: var(--tekst-2); stroke-width: 2; pointer-events: none; }
+.aanzicht-opening { stroke-width: 2; cursor: grab; }
+.aanzicht-opening.deur { fill: var(--oppervlak-2); stroke: #a16207; }
+.aanzicht-opening.raam { fill: var(--accent-zacht); stroke: var(--accent); }
+.aanzicht-titel { fill: var(--tekst); font-size: 20px; font-weight: 700; }
+.aanzicht-sub { fill: var(--tekst-2); font-size: 12px; }
+.aanzicht-maat { fill: var(--tekst); font-size: 14px; font-weight: 600; }
+.aanzicht-maatlijn { fill: none; stroke: var(--tekst-2); stroke-width: 1; }
+@media (max-width: 420px) { .vlak-keuze { grid-template-columns: repeat(2,minmax(0,1fr)); } .plankeuze { width: 100%; } .planknop { flex: 1; } }
+#sleepvlak-keuze[hidden] { display: none !important; }
+
 </style>
 </head>
 <body>
@@ -1364,12 +1391,24 @@ input[type="search"] { width: 100%; min-height: 38px; font: inherit; color: var(
 
     <div class="plankaart">
       <header class="plankop">
-        <h3>Plattegrond</h3>
+        <h3>Ruimteontwerp</h3>
         <div class="plankeuze" role="group" aria-label="Weergave kiezen">
           <button type="button" class="planknop actief" data-plan="plattegrond" aria-pressed="true">Bovenaanzicht</button>
+          <button type="button" class="planknop" data-plan="aanzicht" aria-pressed="false">Vlakaanzicht</button>
           <button type="button" class="planknop" data-plan="isometrie" aria-pressed="false">3D</button>
         </div>
       </header>
+      <div id="vlak-bediening" class="vlak-bediening" hidden>
+        <div class="vlak-intro"><strong>Elk vlak, recht in beeld</strong><span>Kies een vlak en positioneer de werken op het raster.</span></div>
+        <div class="vlak-keuze" role="group" aria-label="Vlak voor vooraanzicht">
+          <button type="button" data-aanzicht-vlak="noord" aria-pressed="false"><span>Wand noord</span><small></small></button>
+          <button type="button" data-aanzicht-vlak="oost" aria-pressed="false"><span>Wand oost</span><small></small></button>
+          <button type="button" data-aanzicht-vlak="zuid" aria-pressed="false"><span>Wand zuid</span><small></small></button>
+          <button type="button" data-aanzicht-vlak="west" aria-pressed="false"><span>Wand west</span><small></small></button>
+          <button type="button" data-aanzicht-vlak="vloer" aria-pressed="false"><span>Vloer</span><small></small></button>
+          <button type="button" data-aanzicht-vlak="plafond" aria-pressed="false"><span>Plafond</span><small></small></button>
+        </div>
+      </div>
       <div class="iso-bediening" id="iso-bediening" hidden role="group" aria-label="3D-bediening">
         <button type="button" class="knop klein" data-camera="links" aria-label="Draai 90 graden links">↶ Links</button>
         <span id="iso-richting" class="klein-muted" aria-live="polite"></span>
@@ -1386,7 +1425,7 @@ input[type="search"] { width: 100%; min-height: 38px; font: inherit; color: var(
       </div>
       <div class="plan-sleepopties">
         <label><input type="checkbox" id="plan-snap" checked> Vastklikken op 5 cm</label>
-        <label>3D verplaatsen in <select id="plan-sleepvlak"><option value="auto">Automatisch per wand/vloer</option><option value="xy">Vloervlak X/Y</option><option value="xz">Hoogte X/Z</option><option value="yz">Hoogte Y/Z</option></select></label>
+        <label id="sleepvlak-keuze">3D verplaatsen in <select id="plan-sleepvlak"><option value="auto">Automatisch per wand/vloer</option><option value="xy">Vloervlak X/Y</option><option value="xz">Hoogte X/Z</option><option value="yz">Hoogte Y/Z</option></select></label>
       </div>
       <p class="hint" id="plan-sleepstatus" role="status" aria-live="polite">Sleep symbolen, tracés, eindpunten, deuren, ramen of vlaknummers. Pijltjes: 5 cm · Shift: 25 cm · Alt: 1 cm. Escape annuleert. Scroll de pagina buiten de tekening.</p>
       <div class="planhouder" id="plan"></div>
@@ -2990,10 +3029,11 @@ if (typeof window !== "undefined") {
 /* ==========================================================
    PLATTEGROND — visuele weergave van een ruimte.
 
-   Twee weergaven, beide als zuiver SVG (scherp op elk scherm,
+   Drie weergaven, alle als zuiver SVG (scherp op elk scherm,
    printbaar en klikbaar):
      • plattegrond() — bovenaanzicht met maten, deuren en ramen
-     • isometrie()   — aaxonometrische 3D-weergave van de ruimte
+     • isometrie()   — axonometrische 3D-weergave van de ruimte
+     • aanzicht()    — orthografisch aanzicht van een gekozen vlak
 
    De wanden zijn klikbaar: klikken op een wand voegt werk toe
    (precies als de knop '+ werk' in de oppervlaktabel).
@@ -3429,7 +3469,49 @@ if (typeof window !== "undefined") {
     return `<svg class="plan iso" viewBox="${R((W-vw)/2)} ${R((HP-vh)/2)} ${R(vw)} ${R(vh)}" role="group" aria-label="3D-ruimte ${esc(ruimte.naam || '')}. Klik op een wand om werk toe te voegen.">${svg}</svg>`;
   }
 
-  window.BouwPlan = { plattegrond, isometrie, laag, werkGeometrie, tint, projectie, planProjectie, openingGeometrie };
+  /* Orthographic interior elevations share their exact projection with dragging. */
+  function aanzichtProjectie(ruimte, vlak = 'noord') {
+    if (![...ZIJDEN,'vloer','plafond'].includes(vlak)) vlak='noord';
+    const L=Math.max(.2,get(ruimte.lengte,.2)), B=Math.max(.2,get(ruimte.breedte,.2)), H=Math.max(.2,get(ruimte.hoogte,.2));
+    const horizontaal=['vloer','plafond'].includes(vlak);
+    const breedte=['west','oost'].includes(vlak) ? B : L, hoogte=horizontaal ? B : H;
+    const schaal=Math.min(600/breedte,350/hoogte), links=(780-breedte*schaal)/2, boven=104+(350-hoogte*schaal)/2;
+    const teken = ['zuid','west'].includes(vlak) ? -1 : 1;
+    const P=(x,y,z=0)=>{
+      const u=['west','oost'].includes(vlak) ? y : x;
+      return [links+(teken<0 ? breedte-u : u)*schaal,boven+(horizontaal ? y : hoogte-z)*schaal];
+    };
+    return {P,vlak,breedte,hoogte,schaal,links,boven,teken,plane:horizontaal ? 'xy' : ['west','oost'].includes(vlak) ? 'yz' : 'xz'};
+  }
+  function aanzicht(ruimte, vlakken, werk, opties={}) {
+    const g=aanzichtProjectie(ruimte,opties.vlak), {P,vlak,breedte,hoogte,schaal,links,boven}=g;
+    const naam={noord:'Wand noord',oost:'Wand oost',zuid:'Wand zuid',west:'Wand west',vloer:'Vloer',plafond:'Plafond'}[vlak];
+    const gekozen={...opties,regels:(opties.regels || []).filter(r=>r.oppervlak===vlak)};
+    const w=breedte*schaal,h=hoogte*schaal;
+    const horizontaal=['vloer','plafond'].includes(vlak);
+    let svg=`<text x="390" y="32" class="aanzicht-titel" text-anchor="middle">${naam}</text><text x="390" y="55" class="aanzicht-sub" text-anchor="middle">${horizontaal ? 'Vlakke projectie · noord boven' : 'Recht van binnenuit bekeken'} · ${F(breedte)} × ${F(hoogte)} m</text>`;
+    svg+=`<rect class="aanzicht-papier" x="${R(links)}" y="${R(boven)}" width="${R(w)}" height="${R(h)}"/>`;
+    // Bounded density: even very large rooms never generate an unbounded grid.
+    const stap=Math.max(.5,Math.ceil(Math.max(breedte,hoogte)/20*2)/2);
+    for(let u=stap;u<breedte;u+=stap) svg+=`<path class="aanzicht-raster" d="M${R(links+u*schaal)} ${R(boven)}v${R(h)}"/>`;
+    for(let v=stap;v<hoogte;v+=stap) svg+=`<path class="aanzicht-raster" d="M${R(links)} ${R(boven+v*schaal)}h${R(w)}"/>`;
+    if(!horizontaal) (ruimte.openingen || []).forEach((o,index)=>{
+      if(o.muur!==vlak)return;
+      const a=openingGeometrie(ruimte,index),b=[...a.a];
+      if(['west','oost'].includes(vlak))b[1]+=a.breedte;else b[0]+=a.breedte;
+      const onder=Math.min(a.H,Math.max(0,get(o.borstwering))),top=Math.min(a.H,onder+a.hoogte);
+      const puntenOpening=[P(a.a[0],a.a[1],onder),P(b[0],b[1],onder),P(b[0],b[1],top),P(a.a[0],a.a[1],top)];
+      svg+=`<g data-fokus="opening_sleep_${index}" data-plan-drag="opening" data-opening-index="${index}" tabindex="0" role="button" aria-label="${esc(o.naam)} verplaatsen"><polygon class="aanzicht-opening ${/^deur/i.test(o.naam || '') ? 'deur' : 'raam'}" points="${punten(puntenOpening)}"/><title>${esc(o.naam)} · ${F(a.breedte)} × ${F(a.hoogte)} m</title></g>`;
+    });
+    svg+=`<path class="aanzicht-kader" d="M${R(links)} ${R(boven)}h${R(w)}v${R(h)}h${R(-w)}Z"/>`;
+    svg+=werkOverlay(ruimte,gekozen,P)+vlakMarkeringen(ruimte,gekozen,P);
+    svg+=`<path class="aanzicht-maatlijn" d="M${R(links)} ${R(boven+h+16)}v12m0 -6h${R(w)}m0 -6v12M${R(links-16)} ${R(boven)}h-12m6 0v${R(h)}m-6 0h12"/><text class="aanzicht-maat" text-anchor="middle" x="390" y="${R(boven+h+46)}">${F(breedte)} m</text><text class="aanzicht-maat" text-anchor="middle" transform="translate(${R(links-37)} ${R(boven+h/2)}) rotate(-90)">${F(hoogte)} m</text>`;
+    const richtingen={noord:['West','Oost'],zuid:['Oost','West'],west:['Zuid','Noord'],oost:['Noord','Zuid'],vloer:['West','Oost'],plafond:['West','Oost']}[vlak];
+    svg+=`<text class="aanzicht-sub" x="${R(links)}" y="${R(boven-14)}">${richtingen[0]}</text><text class="aanzicht-sub" text-anchor="end" x="${R(links+w)}" y="${R(boven-14)}">${richtingen[1]}</text><text class="aanzicht-sub" x="390" y="530" text-anchor="middle">Raster ${F(stap)} m · ${horizontaal ? 'X / Y' : 'hoogte vanaf vloer'} · alleen werken op dit vlak</text>`;
+    return `<svg class="plan aanzicht" viewBox="0 0 780 550" role="group" aria-label="${naam}, vlakaanzicht van ${esc(ruimte.naam)}">${svg}</svg>`;
+  }
+
+  window.BouwPlan = { plattegrond, isometrie, laag, werkGeometrie, tint, projectie, planProjectie, openingGeometrie, aanzichtProjectie, aanzicht };
 })();
 
 </script>
@@ -4063,6 +4145,7 @@ function renderOfferte() {
 /* ---------------- render ---------------- */
 /* ---------------- plattegrond ---------------- */
 let planWeergave = "plattegrond";
+let planVlak = "noord";
 const planCamera = { hoek: 0, zoom: 1, maten: true };
 const planLagen = {afwerking: true, elektriciteit: true, sanitair: true};
 
@@ -4118,13 +4201,24 @@ function renderPlan() {
   });
 
   const vlakken = vlakkenVoor(ruimte);
-  const tekenaar = planWeergave === "isometrie" ? window.BouwPlan.isometrie : window.BouwPlan.plattegrond;
-    const regels = planRegels(ruimte);
-  houder.innerHTML = tekenaar(ruimte, vlakken, werk, {...planCamera, regels, lagen: planLagen});
+  const tekenaar = planWeergave === "aanzicht" ? window.BouwPlan.aanzicht : planWeergave === "isometrie" ? window.BouwPlan.isometrie : window.BouwPlan.plattegrond;
+  const regels = planRegels(ruimte);
+  houder.innerHTML = tekenaar(ruimte, vlakken, werk, {...planCamera, regels, lagen: planLagen, vlak: planVlak});
   const legenda = $("#plan-legenda");
-  if (legenda) legenda.innerHTML = planLegenda(regels);
+  if (legenda) legenda.innerHTML = planLegenda(planWeergave === "aanzicht" ? regels.filter(r=>r.oppervlak===planVlak) : regels) || '<p class="vlak-leeg">Nog geen zichtbare werken op dit vlak. Voeg hieronder een werkregel toe of schakel een laag in.</p>';
+  $("#vlak-bediening").hidden = planWeergave !== "aanzicht";
+  $("#sleepvlak-keuze").hidden = planWeergave !== "isometrie";
+  $$("[data-aanzicht-vlak]").forEach(b=>{
+    const v=vlakken.find(v=>v.sleutel===b.dataset.aanzichtVlak);
+    b.setAttribute("aria-pressed",String(b.dataset.aanzichtVlak===planVlak));
+    b.querySelector("small").textContent=v ? `${NRL.format(v.netto)} m² netto` : "";
+  });
   const bediening = $("#iso-bediening");
   if (bediening) bediening.hidden = planWeergave !== "isometrie";
+  const tip = $(".plantip");
+  if (tip) tip.textContent = planWeergave === "aanzicht"
+    ? "Sleep werken naar hun positie op dit vlak. Kies de locatie van een werkregel om die aan een ander vlak toe te wijzen."
+    : "Klik op een wand om werk toe te voegen. In 3D kun je draaien om alle wanden te bekijken.";
   const richting = $("#iso-richting");
   if (richting) richting.textContent = ["Noord / west", "Noord / oost", "Zuid / oost", "Zuid / west"][planCamera.hoek] + ` · ${Math.round(planCamera.zoom * 100)}%`;
   const matenKnop = $('[data-camera="maten"]');
@@ -4325,6 +4419,8 @@ document.addEventListener("click", (e) => {
     renderTarievenWaarden();
     return;
   }
+  const vlakKnop = e.target.closest("[data-aanzicht-vlak]");
+  if (vlakKnop) {planVlak=vlakKnop.dataset.aanzichtVlak;renderPlan();return;}
   const cameraKnop = e.target.closest("[data-camera]");
   if (cameraKnop) {
     const actie = cameraKnop.dataset.camera;
@@ -4776,6 +4872,7 @@ init();
   const coord = n => Math.round(n*1000)/1000;
   const note = text => {const el=document.querySelector('#plan-sleepstatus'); if(el) el.textContent=text;};
   function planeFor(surface,isOpening=false) {
+    if (planWeergave === 'aanzicht') return window.BouwPlan.aanzichtProjectie(actieveRuimte(),planVlak).plane;
     if (planWeergave !== 'isometrie') return 'xy';
     const requested = document.querySelector('#plan-sleepvlak')?.value;
     if (!isOpening && ['xy','xz','yz'].includes(requested)) return requested;
@@ -4802,7 +4899,7 @@ init();
     const route = r?.pakket.eenheid === 'm';
     return {room,model,r,index,isOpening,geom,endpoint,route,
       original:copy(model), plane:planeFor(isOpening ? geom.zijde : r.oppervlak,isOpening),
-      P:(planWeergave==='isometrie' ? window.BouwPlan.projectie(room,planCamera.hoek) : window.BouwPlan.planProjectie(room)).P};
+      P:(planWeergave==='aanzicht' ? window.BouwPlan.aanzichtProjectie(room,planVlak) : planWeergave==='isometrie' ? window.BouwPlan.projectie(room,planCamera.hoek) : window.BouwPlan.planProjectie(room)).P};
   }
   function apply(d,delta,step) {
     const {geom:g,model:m} = d, limits=[g.L,g.B,g.H];
@@ -4810,7 +4907,7 @@ init();
       const axis = ['noord','zuid'].includes(g.zijde) ? 0 : 1;
       const value = (n,change,max) => coord(Math.max(0,Math.min(max,step && Math.abs(change)>1e-9 ? Math.round((n+change)/step)*step : n+change)));
       m.positie=value(g.a[axis],delta[axis],Math.max(0,g.lengte-g.breedte));
-      if (planWeergave==='isometrie' && !/^deur/i.test(m.naam || '')) {
+      if (planWeergave!=='plattegrond' && !/^deur/i.test(m.naam || '')) {
         m.borstwering=value(g.a[2],delta[2],Math.max(0,g.H-g.hoogte));
       }
       note(`Opening: ${m.positie.toFixed(2)} m langs de wand · onderkant ${Number(m.borstwering || 0).toFixed(2)} m. Escape annuleert.`);
@@ -4880,7 +4977,7 @@ init();
     e.preventDefault(); drag.moved=true;host.classList.add('is-slepen');
     const dx=point.x-drag.point.x,dy=point.y-drag.point.y;
     let delta=projectDelta(drag.P,drag.plane,dx,dy);
-    if(drag.isOpening && planWeergave!=='isometrie') {
+    if(drag.isOpening && planWeergave==='plattegrond') {
       // Only the distance along the chosen wall changes in a top view.
       if(['noord','zuid'].includes(drag.geom.zijde)) delta[1]=0;else delta[0]=0;
     }
@@ -4906,7 +5003,8 @@ init();
     if(e.key==='ArrowLeft')delta[axes[0]]=-step;
     if(e.key==='ArrowUp')delta[axes[1]]=axes[1]===2 ? step : -step;
     if(e.key==='ArrowDown')delta[axes[1]]=axes[1]===2 ? -step : step;
-    if(d.isOpening && planWeergave!=='isometrie') {
+    if(planWeergave==='aanzicht')delta[axes[0]]*=window.BouwPlan.aanzichtProjectie(d.room,planVlak).teken;
+    if(d.isOpening && planWeergave==='plattegrond') {
       if(['noord','zuid'].includes(d.geom.zijde))delta[1]=0;else delta[0]=0;
     }
     apply(d,delta,0);commit(d);

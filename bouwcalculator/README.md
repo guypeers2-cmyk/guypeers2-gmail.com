@@ -322,7 +322,7 @@ conformiteit. Laat ontwerp en uitvoering door een vakbekwaam installateur
 beoordelen. Toestellen en leidingen worden schematisch getekend; automatische voorbeeldposities
 zijn geen exacte montagepunten. Vul daarvoor de plaatsing bij de werkregel in.
 
-## Alle werken visualiseren in 2D & 3D
+## Alle werken visualiseren in 2D, 3D & vlakaanzicht
 
 De plattegrond toont nu alle actieve werkregels van de gekozen ruimte:
 - Gyproc, voegafwerking en schilderwerk als genummerde vlakmarkering.
@@ -336,6 +336,11 @@ om een druk plan leesbaar te houden. Elk nummer verwijst naar de legenda;
 klik het symbool of de legendaregel aan om de bijbehorende werkregel te bewerken.
 Eén symbool vertegenwoordigt één werkregel, met een ×-aantal bij meerdere stuks.
 Splits een regel als je losse punten op verschillende posities wilt plaatsen.
+
+De tab **Vlakaanzicht** toont elke wand recht van binnenuit, plus een vlakke
+projectie van vloer en plafond. Kies het vlak via de zes kaarten boven de tekening.
+Metrisch raster, breedte-/hoogtematen en een gefilterde legenda ondersteunen het
+positioneren. Muis, touch en pijltjes werken ook in deze aanzichten.
 
 Bij elke installatiepost vind je **Plaatsing in 2D & 3D**:
 **X** vanaf west, **Y** vanaf noord en **Z** boven vloer, in meter.

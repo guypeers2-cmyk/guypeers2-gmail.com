@@ -135,12 +135,24 @@
 
     <div class="plankaart">
       <header class="plankop">
-        <h3>Plattegrond</h3>
+        <h3>Ruimteontwerp</h3>
         <div class="plankeuze" role="group" aria-label="Weergave kiezen">
           <button type="button" class="planknop actief" data-plan="plattegrond" aria-pressed="true">Bovenaanzicht</button>
+          <button type="button" class="planknop" data-plan="aanzicht" aria-pressed="false">Vlakaanzicht</button>
           <button type="button" class="planknop" data-plan="isometrie" aria-pressed="false">3D</button>
         </div>
       </header>
+      <div id="vlak-bediening" class="vlak-bediening" hidden>
+        <div class="vlak-intro"><strong>Elk vlak, recht in beeld</strong><span>Kies een vlak en positioneer de werken op het raster.</span></div>
+        <div class="vlak-keuze" role="group" aria-label="Vlak voor vooraanzicht">
+          <button type="button" data-aanzicht-vlak="noord" aria-pressed="false"><span>Wand noord</span><small></small></button>
+          <button type="button" data-aanzicht-vlak="oost" aria-pressed="false"><span>Wand oost</span><small></small></button>
+          <button type="button" data-aanzicht-vlak="zuid" aria-pressed="false"><span>Wand zuid</span><small></small></button>
+          <button type="button" data-aanzicht-vlak="west" aria-pressed="false"><span>Wand west</span><small></small></button>
+          <button type="button" data-aanzicht-vlak="vloer" aria-pressed="false"><span>Vloer</span><small></small></button>
+          <button type="button" data-aanzicht-vlak="plafond" aria-pressed="false"><span>Plafond</span><small></small></button>
+        </div>
+      </div>
       <div class="iso-bediening" id="iso-bediening" hidden role="group" aria-label="3D-bediening">
         <button type="button" class="knop klein" data-camera="links" aria-label="Draai 90 graden links">↶ Links</button>
         <span id="iso-richting" class="klein-muted" aria-live="polite"></span>
@@ -157,7 +169,7 @@
       </div>
       <div class="plan-sleepopties">
         <label><input type="checkbox" id="plan-snap" checked> Vastklikken op 5 cm</label>
-        <label>3D verplaatsen in <select id="plan-sleepvlak"><option value="auto">Automatisch per wand/vloer</option><option value="xy">Vloervlak X/Y</option><option value="xz">Hoogte X/Z</option><option value="yz">Hoogte Y/Z</option></select></label>
+        <label id="sleepvlak-keuze">3D verplaatsen in <select id="plan-sleepvlak"><option value="auto">Automatisch per wand/vloer</option><option value="xy">Vloervlak X/Y</option><option value="xz">Hoogte X/Z</option><option value="yz">Hoogte Y/Z</option></select></label>
       </div>
       <p class="hint" id="plan-sleepstatus" role="status" aria-live="polite">Sleep symbolen, tracés, eindpunten, deuren, ramen of vlaknummers. Pijltjes: 5 cm · Shift: 25 cm · Alt: 1 cm. Escape annuleert. Scroll de pagina buiten de tekening.</p>
       <div class="planhouder" id="plan"></div>

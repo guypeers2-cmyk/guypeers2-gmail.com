@@ -24,6 +24,24 @@ for(let hoek=0;hoek<4;hoek++) {
   close(projectDelta(P,plane,q[0]-p[0],q[1]-p[1]),delta);
  }
 }
+for(const vlak of ['noord','oost','zuid','west','vloer','plafond']) {
+ const {P,plane,teken} = window.BouwPlan.aanzichtProjectie(room,vlak);
+ const delta=plane==='xy' ? [.2,.3,0] : plane==='xz' ? [.2,0,.3] : [0,.2,.3];
+ const a=P(0,0,0),b=P(...delta);
+ close(projectDelta(P,plane,b[0]-a[0],b[1]-a[1]),delta);
+ assert.equal(teken,['zuid','west'].includes(vlak)?-1:1);
+ const regels=['noord','oost','zuid','west','vloer','plafond'].map((v,i)=>({
+   id:'v'+i,pakket_id:'elek_stopcontact',pakket:{naam:'Test',eenheid:'st'},
+   oppervlak:v,nummer:i+1,aantal:1}));
+ const svg=window.BouwPlan.aanzicht({...room,naam:'<script>',openingen:[]},[],{},{vlak,regels});
+ assert(!svg.includes('NaN') && !svg.includes('<script>'));
+ assert.equal((svg.match(/data-plan-regel=/g)||[]).length,1);
+ assert(svg.includes('data-plan-regel="v'+regels.findIndex(r=>r.oppervlak===vlak)+'"'));
+ const hidden=window.BouwPlan.aanzicht(room,[],{},{vlak,regels,lagen:{elektriciteit:false}});
+ assert(!hidden.includes('data-plan-regel='));
+}
+const huge=window.BouwPlan.aanzicht({lengte:1e6,breedte:1e6,hoogte:1e6},[],{},{vlak:'noord'});
+assert((huge.match(/aanzicht-raster/g)||[]).length<45);
 const {P} = window.BouwPlan.planProjectie(room);
 const p=P(0,0,0),q=P(.3,-.2,0);
 close(projectDelta(P,'xy',q[0]-p[0],q[1]-p[1]),[.3,-.2,0]);

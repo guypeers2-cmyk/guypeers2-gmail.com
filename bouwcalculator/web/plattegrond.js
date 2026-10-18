@@ -1,10 +1,11 @@
 /* ==========================================================
    PLATTEGROND — visuele weergave van een ruimte.
 
-   Twee weergaven, beide als zuiver SVG (scherp op elk scherm,
+   Drie weergaven, alle als zuiver SVG (scherp op elk scherm,
    printbaar en klikbaar):
      • plattegrond() — bovenaanzicht met maten, deuren en ramen
-     • isometrie()   — aaxonometrische 3D-weergave van de ruimte
+     • isometrie()   — axonometrische 3D-weergave van de ruimte
+     • aanzicht()    — orthografisch aanzicht van een gekozen vlak
 
    De wanden zijn klikbaar: klikken op een wand voegt werk toe
    (precies als de knop '+ werk' in de oppervlaktabel).
@@ -440,5 +441,47 @@
     return `<svg class="plan iso" viewBox="${R((W-vw)/2)} ${R((HP-vh)/2)} ${R(vw)} ${R(vh)}" role="group" aria-label="3D-ruimte ${esc(ruimte.naam || '')}. Klik op een wand om werk toe te voegen.">${svg}</svg>`;
   }
 
-  window.BouwPlan = { plattegrond, isometrie, laag, werkGeometrie, tint, projectie, planProjectie, openingGeometrie };
+  /* Orthographic interior elevations share their exact projection with dragging. */
+  function aanzichtProjectie(ruimte, vlak = 'noord') {
+    if (![...ZIJDEN,'vloer','plafond'].includes(vlak)) vlak='noord';
+    const L=Math.max(.2,get(ruimte.lengte,.2)), B=Math.max(.2,get(ruimte.breedte,.2)), H=Math.max(.2,get(ruimte.hoogte,.2));
+    const horizontaal=['vloer','plafond'].includes(vlak);
+    const breedte=['west','oost'].includes(vlak) ? B : L, hoogte=horizontaal ? B : H;
+    const schaal=Math.min(600/breedte,350/hoogte), links=(780-breedte*schaal)/2, boven=104+(350-hoogte*schaal)/2;
+    const teken = ['zuid','west'].includes(vlak) ? -1 : 1;
+    const P=(x,y,z=0)=>{
+      const u=['west','oost'].includes(vlak) ? y : x;
+      return [links+(teken<0 ? breedte-u : u)*schaal,boven+(horizontaal ? y : hoogte-z)*schaal];
+    };
+    return {P,vlak,breedte,hoogte,schaal,links,boven,teken,plane:horizontaal ? 'xy' : ['west','oost'].includes(vlak) ? 'yz' : 'xz'};
+  }
+  function aanzicht(ruimte, vlakken, werk, opties={}) {
+    const g=aanzichtProjectie(ruimte,opties.vlak), {P,vlak,breedte,hoogte,schaal,links,boven}=g;
+    const naam={noord:'Wand noord',oost:'Wand oost',zuid:'Wand zuid',west:'Wand west',vloer:'Vloer',plafond:'Plafond'}[vlak];
+    const gekozen={...opties,regels:(opties.regels || []).filter(r=>r.oppervlak===vlak)};
+    const w=breedte*schaal,h=hoogte*schaal;
+    const horizontaal=['vloer','plafond'].includes(vlak);
+    let svg=`<text x="390" y="32" class="aanzicht-titel" text-anchor="middle">${naam}</text><text x="390" y="55" class="aanzicht-sub" text-anchor="middle">${horizontaal ? 'Vlakke projectie · noord boven' : 'Recht van binnenuit bekeken'} · ${F(breedte)} × ${F(hoogte)} m</text>`;
+    svg+=`<rect class="aanzicht-papier" x="${R(links)}" y="${R(boven)}" width="${R(w)}" height="${R(h)}"/>`;
+    // Bounded density: even very large rooms never generate an unbounded grid.
+    const stap=Math.max(.5,Math.ceil(Math.max(breedte,hoogte)/20*2)/2);
+    for(let u=stap;u<breedte;u+=stap) svg+=`<path class="aanzicht-raster" d="M${R(links+u*schaal)} ${R(boven)}v${R(h)}"/>`;
+    for(let v=stap;v<hoogte;v+=stap) svg+=`<path class="aanzicht-raster" d="M${R(links)} ${R(boven+v*schaal)}h${R(w)}"/>`;
+    if(!horizontaal) (ruimte.openingen || []).forEach((o,index)=>{
+      if(o.muur!==vlak)return;
+      const a=openingGeometrie(ruimte,index),b=[...a.a];
+      if(['west','oost'].includes(vlak))b[1]+=a.breedte;else b[0]+=a.breedte;
+      const onder=Math.min(a.H,Math.max(0,get(o.borstwering))),top=Math.min(a.H,onder+a.hoogte);
+      const puntenOpening=[P(a.a[0],a.a[1],onder),P(b[0],b[1],onder),P(b[0],b[1],top),P(a.a[0],a.a[1],top)];
+      svg+=`<g data-fokus="opening_sleep_${index}" data-plan-drag="opening" data-opening-index="${index}" tabindex="0" role="button" aria-label="${esc(o.naam)} verplaatsen"><polygon class="aanzicht-opening ${/^deur/i.test(o.naam || '') ? 'deur' : 'raam'}" points="${punten(puntenOpening)}"/><title>${esc(o.naam)} · ${F(a.breedte)} × ${F(a.hoogte)} m</title></g>`;
+    });
+    svg+=`<path class="aanzicht-kader" d="M${R(links)} ${R(boven)}h${R(w)}v${R(h)}h${R(-w)}Z"/>`;
+    svg+=werkOverlay(ruimte,gekozen,P)+vlakMarkeringen(ruimte,gekozen,P);
+    svg+=`<path class="aanzicht-maatlijn" d="M${R(links)} ${R(boven+h+16)}v12m0 -6h${R(w)}m0 -6v12M${R(links-16)} ${R(boven)}h-12m6 0v${R(h)}m-6 0h12"/><text class="aanzicht-maat" text-anchor="middle" x="390" y="${R(boven+h+46)}">${F(breedte)} m</text><text class="aanzicht-maat" text-anchor="middle" transform="translate(${R(links-37)} ${R(boven+h/2)}) rotate(-90)">${F(hoogte)} m</text>`;
+    const richtingen={noord:['West','Oost'],zuid:['Oost','West'],west:['Zuid','Noord'],oost:['Noord','Zuid'],vloer:['West','Oost'],plafond:['West','Oost']}[vlak];
+    svg+=`<text class="aanzicht-sub" x="${R(links)}" y="${R(boven-14)}">${richtingen[0]}</text><text class="aanzicht-sub" text-anchor="end" x="${R(links+w)}" y="${R(boven-14)}">${richtingen[1]}</text><text class="aanzicht-sub" x="390" y="530" text-anchor="middle">Raster ${F(stap)} m · ${horizontaal ? 'X / Y' : 'hoogte vanaf vloer'} · alleen werken op dit vlak</text>`;
+    return `<svg class="plan aanzicht" viewBox="0 0 780 550" role="group" aria-label="${naam}, vlakaanzicht van ${esc(ruimte.naam)}">${svg}</svg>`;
+  }
+
+  window.BouwPlan = { plattegrond, isometrie, laag, werkGeometrie, tint, projectie, planProjectie, openingGeometrie, aanzichtProjectie, aanzicht };
 })();

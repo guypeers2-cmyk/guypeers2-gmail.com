@@ -116,3 +116,29 @@ De aanvullende `tools/drag_review.mjs` controleert met echte Chromium Pointer
 Events de vier 3D-hoeken, muis- en touchslepen, zoom, toetsenbord, Escape,
 openingen, tracés/eindpunten, vlaknummers, herladen en gelijkblijvende totalen.
 Dit is browseremulatie, geen test op fysieke iPhones of Android-apparaten.
+
+## Vlakaanzicht — elk vlak recht van voren
+
+De ontwerpkaart heeft drie weergaven: **Bovenaanzicht**, **Vlakaanzicht** en **3D**.
+Onder Vlakaanzicht staan zes vlakkaarten direct boven de tekening, met netto m²:
+noord, oost, zuid, west, vloer en plafond. De gekozen kaart is blauw gemarkeerd.
+
+- Wanden worden loodrecht van binnenuit bekeken, met horizontale breedte en
+  verticale hoogte. Richtingslabels geven aan wat links en rechts ligt.
+  Zuid en west zijn daarom horizontaal gespiegeld ten opzichte van de modelassen.
+- Vloer en plafond zijn vlakke X/Y-projecties, met noord boven als vaste referentie;
+  geen perspectief of geometrisch gespiegelde blik door het plafond.
+- Alleen werkregels die aan het gekozen vlak zijn toegewezen staan in de tekening
+  en legenda. Wandopeningen verschijnen op hun eigen wand. Lagen blijven werken.
+- Een rustig metrisch raster (standaard 50 cm, grover bij grote kamers), maatlijnen
+  en hoogte vanaf vloer helpen bij het positioneren. Symbolen blijven schematisch.
+- Slepen en pijltjes werken in het zichtbare vlak, zonder verborgen diepte te
+  wijzigen. Bij zuid/west beweegt pijltje rechts ook visueel naar rechts.
+  Ramen kunnen horizontaal en verticaal worden verplaatst; deurhoogtes niet.
+- Dit is geen automatische beste/veilige installatiepositie: je kiest zelf de
+  plaatsing. Wijzig de locatie van de werkregel om hem aan een ander vlak toe te wijzen.
+- Print/PDF houdt de bestaande 2D-overzichtstekening; de vlakkeuze is een schermfilter.
+
+Optionele browsertest: `tools/aanzicht_review.mjs`, met dezelfde omgevingsvariabelen
+als de andere browserreviews. Deze test controleert zes vlakken, filtering,
+positioneren, gespiegelde toetsenbordbediening, raamhoogte en responsive layout.

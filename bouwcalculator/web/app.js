@@ -627,6 +627,7 @@ function renderOfferte() {
 /* ---------------- render ---------------- */
 /* ---------------- plattegrond ---------------- */
 let planWeergave = "plattegrond";
+let planVlak = "noord";
 const planCamera = { hoek: 0, zoom: 1, maten: true };
 const planLagen = {afwerking: true, elektriciteit: true, sanitair: true};
 
@@ -682,13 +683,24 @@ function renderPlan() {
   });
 
   const vlakken = vlakkenVoor(ruimte);
-  const tekenaar = planWeergave === "isometrie" ? window.BouwPlan.isometrie : window.BouwPlan.plattegrond;
-    const regels = planRegels(ruimte);
-  houder.innerHTML = tekenaar(ruimte, vlakken, werk, {...planCamera, regels, lagen: planLagen});
+  const tekenaar = planWeergave === "aanzicht" ? window.BouwPlan.aanzicht : planWeergave === "isometrie" ? window.BouwPlan.isometrie : window.BouwPlan.plattegrond;
+  const regels = planRegels(ruimte);
+  houder.innerHTML = tekenaar(ruimte, vlakken, werk, {...planCamera, regels, lagen: planLagen, vlak: planVlak});
   const legenda = $("#plan-legenda");
-  if (legenda) legenda.innerHTML = planLegenda(regels);
+  if (legenda) legenda.innerHTML = planLegenda(planWeergave === "aanzicht" ? regels.filter(r=>r.oppervlak===planVlak) : regels) || '<p class="vlak-leeg">Nog geen zichtbare werken op dit vlak. Voeg hieronder een werkregel toe of schakel een laag in.</p>';
+  $("#vlak-bediening").hidden = planWeergave !== "aanzicht";
+  $("#sleepvlak-keuze").hidden = planWeergave !== "isometrie";
+  $$("[data-aanzicht-vlak]").forEach(b=>{
+    const v=vlakken.find(v=>v.sleutel===b.dataset.aanzichtVlak);
+    b.setAttribute("aria-pressed",String(b.dataset.aanzichtVlak===planVlak));
+    b.querySelector("small").textContent=v ? `${NRL.format(v.netto)} m² netto` : "";
+  });
   const bediening = $("#iso-bediening");
   if (bediening) bediening.hidden = planWeergave !== "isometrie";
+  const tip = $(".plantip");
+  if (tip) tip.textContent = planWeergave === "aanzicht"
+    ? "Sleep werken naar hun positie op dit vlak. Kies de locatie van een werkregel om die aan een ander vlak toe te wijzen."
+    : "Klik op een wand om werk toe te voegen. In 3D kun je draaien om alle wanden te bekijken.";
   const richting = $("#iso-richting");
   if (richting) richting.textContent = ["Noord / west", "Noord / oost", "Zuid / oost", "Zuid / west"][planCamera.hoek] + ` · ${Math.round(planCamera.zoom * 100)}%`;
   const matenKnop = $('[data-camera="maten"]');
@@ -889,6 +901,8 @@ document.addEventListener("click", (e) => {
     renderTarievenWaarden();
     return;
   }
+  const vlakKnop = e.target.closest("[data-aanzicht-vlak]");
+  if (vlakKnop) {planVlak=vlakKnop.dataset.aanzichtVlak;renderPlan();return;}
   const cameraKnop = e.target.closest("[data-camera]");
   if (cameraKnop) {
     const actie = cameraKnop.dataset.camera;

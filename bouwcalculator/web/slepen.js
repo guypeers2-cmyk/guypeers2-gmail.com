@@ -33,6 +33,7 @@
   const coord = n => Math.round(n*1000)/1000;
   const note = text => {const el=document.querySelector('#plan-sleepstatus'); if(el) el.textContent=text;};
   function planeFor(surface,isOpening=false) {
+    if (planWeergave === 'aanzicht') return window.BouwPlan.aanzichtProjectie(actieveRuimte(),planVlak).plane;
     if (planWeergave !== 'isometrie') return 'xy';
     const requested = document.querySelector('#plan-sleepvlak')?.value;
     if (!isOpening && ['xy','xz','yz'].includes(requested)) return requested;
@@ -59,7 +60,7 @@
     const route = r?.pakket.eenheid === 'm';
     return {room,model,r,index,isOpening,geom,endpoint,route,
       original:copy(model), plane:planeFor(isOpening ? geom.zijde : r.oppervlak,isOpening),
-      P:(planWeergave==='isometrie' ? window.BouwPlan.projectie(room,planCamera.hoek) : window.BouwPlan.planProjectie(room)).P};
+      P:(planWeergave==='aanzicht' ? window.BouwPlan.aanzichtProjectie(room,planVlak) : planWeergave==='isometrie' ? window.BouwPlan.projectie(room,planCamera.hoek) : window.BouwPlan.planProjectie(room)).P};
   }
   function apply(d,delta,step) {
     const {geom:g,model:m} = d, limits=[g.L,g.B,g.H];
@@ -67,7 +68,7 @@
       const axis = ['noord','zuid'].includes(g.zijde) ? 0 : 1;
       const value = (n,change,max) => coord(Math.max(0,Math.min(max,step && Math.abs(change)>1e-9 ? Math.round((n+change)/step)*step : n+change)));
       m.positie=value(g.a[axis],delta[axis],Math.max(0,g.lengte-g.breedte));
-      if (planWeergave==='isometrie' && !/^deur/i.test(m.naam || '')) {
+      if (planWeergave!=='plattegrond' && !/^deur/i.test(m.naam || '')) {
         m.borstwering=value(g.a[2],delta[2],Math.max(0,g.H-g.hoogte));
       }
       note(`Opening: ${m.positie.toFixed(2)} m langs de wand · onderkant ${Number(m.borstwering || 0).toFixed(2)} m. Escape annuleert.`);
@@ -137,7 +138,7 @@
     e.preventDefault(); drag.moved=true;host.classList.add('is-slepen');
     const dx=point.x-drag.point.x,dy=point.y-drag.point.y;
     let delta=projectDelta(drag.P,drag.plane,dx,dy);
-    if(drag.isOpening && planWeergave!=='isometrie') {
+    if(drag.isOpening && planWeergave==='plattegrond') {
       // Only the distance along the chosen wall changes in a top view.
       if(['noord','zuid'].includes(drag.geom.zijde)) delta[1]=0;else delta[0]=0;
     }
@@ -163,7 +164,8 @@
     if(e.key==='ArrowLeft')delta[axes[0]]=-step;
     if(e.key==='ArrowUp')delta[axes[1]]=axes[1]===2 ? step : -step;
     if(e.key==='ArrowDown')delta[axes[1]]=axes[1]===2 ? -step : step;
-    if(d.isOpening && planWeergave!=='isometrie') {
+    if(planWeergave==='aanzicht')delta[axes[0]]*=window.BouwPlan.aanzichtProjectie(d.room,planVlak).teken;
+    if(d.isOpening && planWeergave==='plattegrond') {
       if(['noord','zuid'].includes(d.geom.zijde))delta[1]=0;else delta[0]=0;
     }
     apply(d,delta,0);commit(d);
