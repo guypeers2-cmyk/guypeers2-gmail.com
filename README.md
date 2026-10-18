@@ -53,7 +53,9 @@ npx wrangler deploy                  # → https://patient-sun-c959.guypeers2.wo
 
 Maten (lengte × breedte × hoogte) + deuren/ramen → oppervlakken → materiaalname
 (take-off) + gewerkte uren → offerte met marge, korting en BTW → printbaar
-A4-offertedocument. Zie [`bouwcalculator/README.md`](bouwcalculator/README.md).
+A4-offertedocument. De app tekent de ruimte bovendien uit als plattegrond (2D)
+of 3D, en je klikt gewoon op een wand om werk toe te voegen.
+Zie [`bouwcalculator/README.md`](bouwcalculator/README.md).
 
 ---
 
