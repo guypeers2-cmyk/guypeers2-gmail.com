@@ -1120,6 +1120,43 @@ input[type="search"] { width: 100%; min-height: 38px; font: inherit; color: var(
 @media (max-width: 480px) { .elektriciteit-keuze { grid-template-columns: 1fr; } }
 @media print { .offerte-waarschuwingen { font-size: 8pt; background: white; border-color: #777; break-inside: avoid; } }
 
+/* Installaties en apparaatcompatibiliteit. Tabellen scrollen lokaal, niet de pagina. */
+.installatie-tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+.installatie-tabs [aria-pressed="true"] { background: var(--accent-zacht); border-color: var(--accent); color: var(--accent); }
+.elektriciteit-kaart[hidden] { display: none !important; }
+.oppervlakken { overflow-x: auto; }
+.oppervlakken table { min-width: 440px; }
+.details { overflow-x: auto; max-width: 100%; }
+.details table { min-width: 420px; }
+.projectregel { flex-wrap: wrap; overflow-wrap: anywhere; }
+.offerte-tabel { overflow-wrap: anywhere; }
+.veld, .ruimtekaart, .elektriciteit-kaart, .plankaart { min-width: 0; }
+@media (max-width: 900px) {
+  /* 16px voorkomt automatisch inzoomen op tekstinvoer in iOS Safari. */
+  input[type="text"], input[type="number"], input[type="date"], input[type="search"], textarea, select { font-size: 16px; }
+  .knop, .knop.klein, .knop.ico-only, .knop.klein.ico-only, .tab, .hoofdtab, .planknop, .openings .verwijder { min-height: 44px; }
+  .knop.ico-only, .knop.klein.ico-only, .openings .verwijder { min-width: 44px; }
+  .regelkaart > header select { max-width: 100%; width: 100%; }
+  .regelkaart > header .titel { min-width: 0; overflow-wrap: anywhere; }
+  .regelopties { flex-wrap: wrap; gap: 12px; }
+  .offertepaneel { overflow-x: auto; }
+  .offerte-tabel { min-width: 350px; }
+  .topbar-acties { gap: 6px; }
+  .installatie-tabs .knop { flex: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+@media print {
+  .offerte-tabel { min-width: 0; overflow-wrap: normal; }
+  .offertepaneel { overflow: visible; }
+}
+@media (max-width: 900px) {
+  .ruimtechip { min-height: 44px; }
+  .tarief-eigen { min-height: 44px; }
+  .knop, .hoofdtab, .tab, .planknop, .ruimtechip { touch-action: manipulation; }
+}
+
 </style>
 </head>
 <body>
@@ -1268,6 +1305,11 @@ input[type="search"] { width: 100%; min-height: 38px; font: inherit; color: var(
       <p class="hint plantip">Klik op een wand om werk toe te voegen. In 3D kun je draaien om alle wanden te bekijken.</p>
     </div>
 
+    <nav class="installatie-tabs" aria-label="Installatiewerken kiezen">
+      <button type="button" class="knop" data-installatie="elektriciteit" aria-pressed="true" aria-controls="elektriciteit">Elektriciteit</button>
+      <button type="button" class="knop" data-installatie="sanitair" aria-pressed="false" aria-controls="sanitair">Sanitair &amp; water</button>
+    </nav>
+    <section id="sanitair" class="elektriciteit-kaart" aria-label="Sanitair en water per ruimte" hidden></section>
     <section id="elektriciteit" class="elektriciteit-kaart" aria-label="Elektriciteit per ruimte"></section>
     <div class="oppervlakken" id="oppervlakken"></div>
     <div class="regels" id="regels"></div>
@@ -1286,7 +1328,7 @@ input[type="search"] { width: 100%; min-height: 38px; font: inherit; color: var(
         in de offerte.</p>
       <div class="tarieven-tools">
         <label class="veld"><span>Zoek in het prijsboek</span><input type="search" id="tarief-zoeken" placeholder="Bijvoorbeeld gipsplaat, isolatie of schilderen" autocomplete="off"></label>
-        <label class="veld"><span>Categorie</span><select id="tarief-categorie"><option value="alle">Alle categorieën</option><option value="materiaal">Materiaal</option><option value="taak">Arbeidsnormen</option><option value="elektriciteit">Elektriciteit</option><option value="m2">Snelle m²-prijzen</option></select></label>
+        <label class="veld"><span>Categorie</span><select id="tarief-categorie"><option value="alle">Alle categorieën</option><option value="materiaal">Materiaal</option><option value="taak">Arbeidsnormen</option><option value="elektriciteit">Elektriciteit</option><option value="sanitair">Sanitair &amp; water</option><option value="m2">Snelle m²-prijzen</option></select></label>
         <label class="tarief-eigen"><input type="checkbox" id="tarief-eigen"> Alleen aangepast</label>
       </div>
       <div class="tarieven-overzicht"><p id="tarief-resultaat" role="status" aria-live="polite"></p><button type="button" class="knop klein" id="tarieven-herstellen">Alle tarieven herstellen</button></div>
@@ -1606,6 +1648,180 @@ const TARIEVEN = {
     "eenheid": "uur/m",
     "prijs": 0.1,
     "soort": "taak"
+  },
+  "san_koudwater": {
+    "naam": "Sanitair & water: Koudwaterleiding meerlagen 16 mm · materiaal",
+    "eenheid": "m",
+    "prijs": 3.5,
+    "soort": "materiaal"
+  },
+  "uur_san_koudwater": {
+    "naam": "Sanitair & water: Koudwaterleiding meerlagen 16 mm · arbeid",
+    "eenheid": "uur/m",
+    "prijs": 0.12,
+    "soort": "taak"
+  },
+  "san_warmwater": {
+    "naam": "Sanitair & water: Warmwaterleiding meerlagen 16 mm · materiaal",
+    "eenheid": "m",
+    "prijs": 3.5,
+    "soort": "materiaal"
+  },
+  "uur_san_warmwater": {
+    "naam": "Sanitair & water: Warmwaterleiding meerlagen 16 mm · arbeid",
+    "eenheid": "uur/m",
+    "prijs": 0.12,
+    "soort": "taak"
+  },
+  "san_isolatie": {
+    "naam": "Sanitair & water: Leidingisolatie aanbrengen · materiaal",
+    "eenheid": "m",
+    "prijs": 1.8,
+    "soort": "materiaal"
+  },
+  "uur_san_isolatie": {
+    "naam": "Sanitair & water: Leidingisolatie aanbrengen · arbeid",
+    "eenheid": "uur/m",
+    "prijs": 0.04,
+    "soort": "taak"
+  },
+  "san_afvoer50": {
+    "naam": "Sanitair & water: Afvoerleiding PVC 50 mm · materiaal",
+    "eenheid": "m",
+    "prijs": 4.5,
+    "soort": "materiaal"
+  },
+  "uur_san_afvoer50": {
+    "naam": "Sanitair & water: Afvoerleiding PVC 50 mm · arbeid",
+    "eenheid": "uur/m",
+    "prijs": 0.15,
+    "soort": "taak"
+  },
+  "san_afvoer110": {
+    "naam": "Sanitair & water: Afvoerleiding PVC 110 mm · materiaal",
+    "eenheid": "m",
+    "prijs": 9,
+    "soort": "materiaal"
+  },
+  "uur_san_afvoer110": {
+    "naam": "Sanitair & water: Afvoerleiding PVC 110 mm · arbeid",
+    "eenheid": "uur/m",
+    "prijs": 0.2,
+    "soort": "taak"
+  },
+  "san_koppeling": {
+    "naam": "Sanitair & water: Leidingkoppeling monteren · materiaal",
+    "eenheid": "st",
+    "prijs": 5.5,
+    "soort": "materiaal"
+  },
+  "uur_san_koppeling": {
+    "naam": "Sanitair & water: Leidingkoppeling monteren · arbeid",
+    "eenheid": "uur/st",
+    "prijs": 0.1,
+    "soort": "taak"
+  },
+  "san_afvoerstuk": {
+    "naam": "Sanitair & water: Afvoerhulpstuk monteren · materiaal",
+    "eenheid": "st",
+    "prijs": 6,
+    "soort": "materiaal"
+  },
+  "uur_san_afvoerstuk": {
+    "naam": "Sanitair & water: Afvoerhulpstuk monteren · arbeid",
+    "eenheid": "uur/st",
+    "prijs": 0.12,
+    "soort": "taak"
+  },
+  "san_afsluitkraan": {
+    "naam": "Sanitair & water: Afsluitkraan plaatsen · materiaal",
+    "eenheid": "st",
+    "prijs": 12.5,
+    "soort": "materiaal"
+  },
+  "uur_san_afsluitkraan": {
+    "naam": "Sanitair & water: Afsluitkraan plaatsen · arbeid",
+    "eenheid": "uur/st",
+    "prijs": 0.25,
+    "soort": "taak"
+  },
+  "san_collector": {
+    "naam": "Sanitair & water: Collector met 4 uitgangen plaatsen · materiaal",
+    "eenheid": "st",
+    "prijs": 65,
+    "soort": "materiaal"
+  },
+  "uur_san_collector": {
+    "naam": "Sanitair & water: Collector met 4 uitgangen plaatsen · arbeid",
+    "eenheid": "uur/st",
+    "prijs": 0.75,
+    "soort": "taak"
+  },
+  "san_wc": {
+    "naam": "Sanitair & water: Staande wc met reservoir plaatsen · materiaal",
+    "eenheid": "st",
+    "prijs": 190,
+    "soort": "materiaal"
+  },
+  "uur_san_wc": {
+    "naam": "Sanitair & water: Staande wc met reservoir plaatsen · arbeid",
+    "eenheid": "uur/st",
+    "prijs": 2,
+    "soort": "taak"
+  },
+  "san_lavabo": {
+    "naam": "Sanitair & water: Lavabo met sifon plaatsen · materiaal",
+    "eenheid": "st",
+    "prijs": 120,
+    "soort": "materiaal"
+  },
+  "uur_san_lavabo": {
+    "naam": "Sanitair & water: Lavabo met sifon plaatsen · arbeid",
+    "eenheid": "uur/st",
+    "prijs": 1.5,
+    "soort": "taak"
+  },
+  "san_mengkraan": {
+    "naam": "Sanitair & water: Lavabomengkraan plaatsen · materiaal",
+    "eenheid": "st",
+    "prijs": 85,
+    "soort": "materiaal"
+  },
+  "uur_san_mengkraan": {
+    "naam": "Sanitair & water: Lavabomengkraan plaatsen · arbeid",
+    "eenheid": "uur/st",
+    "prijs": 0.6,
+    "soort": "taak"
+  },
+  "san_douchekraan": {
+    "naam": "Sanitair & water: Opbouw-douchemengkraan plaatsen · materiaal",
+    "eenheid": "st",
+    "prijs": 125,
+    "soort": "materiaal"
+  },
+  "uur_san_douchekraan": {
+    "naam": "Sanitair & water: Opbouw-douchemengkraan plaatsen · arbeid",
+    "eenheid": "uur/st",
+    "prijs": 1,
+    "soort": "taak"
+  },
+  "san_wasmachine": {
+    "naam": "Sanitair & water: Wasmachine-aansluitpunt plaatsen · materiaal",
+    "eenheid": "st",
+    "prijs": 35,
+    "soort": "materiaal"
+  },
+  "uur_san_wasmachine": {
+    "naam": "Sanitair & water: Wasmachine-aansluitpunt plaatsen · arbeid",
+    "eenheid": "uur/st",
+    "prijs": 0.6,
+    "soort": "taak"
+  },
+  "uur_san_druktest": {
+    "naam": "Sanitair & water: Drukproef waterleiding · arbeid",
+    "eenheid": "uur/st",
+    "prijs": 1,
+    "soort": "taak"
   }
 };
 const PAKKETTEN = [
@@ -1820,6 +2036,186 @@ const PAKKETTEN = [
     "recept": {
       "materiaal": "elek_sleuf_dichten",
       "arbeid": "uur_elek_sleuf_dichten"
+    }
+  },
+  {
+    "id": "san_koudwater",
+    "naam": "Koudwaterleiding meerlagen 16 mm",
+    "categorie": "Sanitair & water",
+    "eenheid": "m",
+    "beschrijving": "Leiding en kleine bevestigingen per lopende meter. Zonder isolatie, koppelingen, sleuven of aansluitpunten; diameter is een ramingskeuze, geen dimensioneringsadvies.",
+    "opties": [],
+    "recept": {
+      "materiaal": "san_koudwater",
+      "arbeid": "uur_san_koudwater"
+    }
+  },
+  {
+    "id": "san_warmwater",
+    "naam": "Warmwaterleiding meerlagen 16 mm",
+    "categorie": "Sanitair & water",
+    "eenheid": "m",
+    "beschrijving": "Leiding en kleine bevestigingen per lopende meter. Isolatie, koppelingen, sleuven en aansluitpunten apart. Geen dimensioneringsadvies.",
+    "opties": [],
+    "recept": {
+      "materiaal": "san_warmwater",
+      "arbeid": "uur_san_warmwater"
+    }
+  },
+  {
+    "id": "san_isolatie",
+    "naam": "Leidingisolatie aanbrengen",
+    "categorie": "Sanitair & water",
+    "eenheid": "m",
+    "beschrijving": "Isolatiemantel en montage per meter voor een kleine sanitaire leiding. Zonder leiding of doorvoeren.",
+    "opties": [],
+    "recept": {
+      "materiaal": "san_isolatie",
+      "arbeid": "uur_san_isolatie"
+    }
+  },
+  {
+    "id": "san_afvoer50",
+    "naam": "Afvoerleiding PVC 50 mm",
+    "categorie": "Sanitair & water",
+    "eenheid": "m",
+    "beschrijving": "Rechte leiding met kleine bevestigingen. Bochten, T-stukken, doorvoeren en aansluitpunten apart; geen afschot- of capaciteitsberekening.",
+    "opties": [],
+    "recept": {
+      "materiaal": "san_afvoer50",
+      "arbeid": "uur_san_afvoer50"
+    }
+  },
+  {
+    "id": "san_afvoer110",
+    "naam": "Afvoerleiding PVC 110 mm",
+    "categorie": "Sanitair & water",
+    "eenheid": "m",
+    "beschrijving": "Rechte leiding met kleine bevestigingen. Hulpstukken, doorvoeren, aansluiting op riolering en graafwerk niet inbegrepen.",
+    "opties": [],
+    "recept": {
+      "materiaal": "san_afvoer110",
+      "arbeid": "uur_san_afvoer110"
+    }
+  },
+  {
+    "id": "san_koppeling",
+    "naam": "Leidingkoppeling monteren",
+    "categorie": "Sanitair & water",
+    "eenheid": "st",
+    "beschrijving": "Eén standaard koppeling voor kleine meerlagenleiding inclusief montage. Geen afsluiter of collector.",
+    "opties": [],
+    "recept": {
+      "materiaal": "san_koppeling",
+      "arbeid": "uur_san_koppeling"
+    }
+  },
+  {
+    "id": "san_afvoerstuk",
+    "naam": "Afvoerhulpstuk monteren",
+    "categorie": "Sanitair & water",
+    "eenheid": "st",
+    "beschrijving": "Eén standaard PVC-bocht of T-stuk inclusief montage. Pas de prijs aan op diameter en uitvoering.",
+    "opties": [],
+    "recept": {
+      "materiaal": "san_afvoerstuk",
+      "arbeid": "uur_san_afvoerstuk"
+    }
+  },
+  {
+    "id": "san_afsluitkraan",
+    "naam": "Afsluitkraan plaatsen",
+    "categorie": "Sanitair & water",
+    "eenheid": "st",
+    "beschrijving": "Eén standaard afsluitkraan met montage; zonder toevoerleiding of extra koppelingen.",
+    "opties": [],
+    "recept": {
+      "materiaal": "san_afsluitkraan",
+      "arbeid": "uur_san_afsluitkraan"
+    }
+  },
+  {
+    "id": "san_collector",
+    "naam": "Collector met 4 uitgangen plaatsen",
+    "categorie": "Sanitair & water",
+    "eenheid": "st",
+    "beschrijving": "Eén basiscollector met vier uitgangen; zonder kast, toevoerleidingen of aansluitkoppelingen.",
+    "opties": [],
+    "recept": {
+      "materiaal": "san_collector",
+      "arbeid": "uur_san_collector"
+    }
+  },
+  {
+    "id": "san_wc",
+    "naam": "Staande wc met reservoir plaatsen",
+    "categorie": "Sanitair & water",
+    "eenheid": "st",
+    "beschrijving": "Standaard staande wc, reservoir en montage. Geen hang-wc-frame, toevoerleiding, afvoerleiding of verbouwingswerk.",
+    "opties": [],
+    "recept": {
+      "materiaal": "san_wc",
+      "arbeid": "uur_san_wc"
+    }
+  },
+  {
+    "id": "san_lavabo",
+    "naam": "Lavabo met sifon plaatsen",
+    "categorie": "Sanitair & water",
+    "eenheid": "st",
+    "beschrijving": "Standaard lavabo, sifon, bevestiging en montage. Kraan, meubel, toevoer- en afvoerleidingen apart.",
+    "opties": [],
+    "recept": {
+      "materiaal": "san_lavabo",
+      "arbeid": "uur_san_lavabo"
+    }
+  },
+  {
+    "id": "san_mengkraan",
+    "naam": "Lavabomengkraan plaatsen",
+    "categorie": "Sanitair & water",
+    "eenheid": "st",
+    "beschrijving": "Standaard mengkraan met meegeleverde aansluitslangen. Geen nieuwe leidingen of lavabo.",
+    "opties": [],
+    "recept": {
+      "materiaal": "san_mengkraan",
+      "arbeid": "uur_san_mengkraan"
+    }
+  },
+  {
+    "id": "san_douchekraan",
+    "naam": "Opbouw-douchemengkraan plaatsen",
+    "categorie": "Sanitair & water",
+    "eenheid": "st",
+    "beschrijving": "Standaard opbouwkraan en montage op voorbereide aansluitingen. Zonder douchebak, douchewand, leidingen, afvoer of waterdichting.",
+    "opties": [],
+    "recept": {
+      "materiaal": "san_douchekraan",
+      "arbeid": "uur_san_douchekraan"
+    }
+  },
+  {
+    "id": "san_wasmachine",
+    "naam": "Wasmachine-aansluitpunt plaatsen",
+    "categorie": "Sanitair & water",
+    "eenheid": "st",
+    "beschrijving": "Toestelkraan en afvoeraansluiting op voorbereide leidingen. Zonder nieuwe leidingen, elektriciteit of wasmachine.",
+    "opties": [],
+    "recept": {
+      "materiaal": "san_wasmachine",
+      "arbeid": "uur_san_wasmachine"
+    }
+  },
+  {
+    "id": "san_druktest",
+    "naam": "Drukproef waterleiding",
+    "categorie": "Sanitair & water",
+    "eenheid": "st",
+    "beschrijving": "Eén testbeurt op een voorbereide, bereikbare installatie. Indicatieve arbeidsraming; geen officiële keuring of conformiteitsattest. Herstellingen en extern keuringsorganisme apart.",
+    "opties": [],
+    "recept": {
+      "materiaal": null,
+      "arbeid": "uur_san_druktest"
     }
   }
 ];
@@ -2417,6 +2813,9 @@ function berekenOfferte(projectData = {}) {
 
   if (regels.some(r => r.pakket.categorie === "Elektriciteit")) {
     waarschuwingen.push("Elektriciteit: indicatieve raming. Kabel, sleuf en aansluitpunten apart tellen. Zonder verdeelkast, keuring, schema’s of conformiteitscontrole; laat ontwerp en uitvoering door een vakbekwaam elektricien beoordelen.");
+  }
+  if (regels.some(r => r.pakket.categorie === "Sanitair & water")) {
+    waarschuwingen.push('Sanitair & water: indicatieve raming. Leidingen, hulpstukken en toestellen apart tellen. Zonder breekwerk, waterdichting, rioleringsaansluiting of officiële keuring. Geen dimensionerings- of drinkwaterconformiteitscontrole; laat ontwerp en uitvoering door een vakbekwaam installateur beoordelen.');
   }
   const materiaal = money(regels.reduce((s, r) => s + r.materiaal_kosten, 0));
   const arbeid = money(regels.reduce((s, r) => s + r.arbeidskosten, 0));
@@ -3041,7 +3440,7 @@ function filterTarieven() {
     rij.querySelector(".tarief-markering").hidden = !eigen;
     rij.querySelector("[data-herstel-tarief]").disabled = !eigen;
     rij.hidden = !(rij.title.toLocaleLowerCase("nl").includes(zoek)
-      && (categorie === "alle" || rij.dataset.tariefSoort === categorie || (categorie === "elektriciteit" && rij.title.startsWith("Elektriciteit:")))
+      && (categorie === "alle" || rij.dataset.tariefSoort === categorie || (categorie === "elektriciteit" && rij.title.startsWith("Elektriciteit:")) || (categorie === "sanitair" && rij.title.startsWith("Sanitair & water:")))
       && (!alleenEigen || eigen));
     if (!rij.hidden) zichtbaar++;
   });
@@ -3077,14 +3476,14 @@ function renderRuimteChips() {
 function renderRuimtekaart(ruimte) {
   const openingen = ruimte.openingen.map((o, i) => `
     <tr>
-      <td><input type="text" value="${esc(o.naam)}" data-opening="${i}" data-opening-veld="naam"
+      <td><input type="text" value="${esc(o.naam)}" aria-label="Naam opening ${i + 1}" data-opening="${i}" data-opening-veld="naam"
                  data-fokus="o_${ruimte.id}_${i}_naam"></td>
-      <td><select data-opening="${i}" data-opening-veld="muur" data-fokus="o_${ruimte.id}_${i}_muur">
+      <td><select aria-label="Wand opening ${i + 1}" data-opening="${i}" data-opening-veld="muur" data-fokus="o_${ruimte.id}_${i}_muur">
         ${["noord", "zuid", "oost", "west"].map((z) => `<option value="${z}" ${o.muur === z ? "selected" : ""}>${z}</option>`).join("")}
       </select></td>
-      <td><input type="number" step="0.05" min="0" value="${esc(o.breedte)}" data-opening="${i}"
+      <td><input type="number" step="0.05" min="0" value="${esc(o.breedte)}" aria-label="Breedte opening ${i + 1} in meter" data-opening="${i}"
                  data-opening-veld="breedte" data-fokus="o_${ruimte.id}_${i}_b" style="width:74px"></td>
-      <td><input type="number" step="0.05" min="0" value="${esc(o.hoogte)}" data-opening="${i}"
+      <td><input type="number" step="0.05" min="0" value="${esc(o.hoogte)}" aria-label="Hoogte opening ${i + 1} in meter" data-opening="${i}"
                  data-opening-veld="hoogte" data-fokus="o_${ruimte.id}_${i}_h" style="width:74px"></td>
       <td><input type="number" step="0.05" min="0" value="${esc(o.positie ?? "")}" placeholder="Auto"
           aria-label="Afstand vanaf begin wand in meter" data-opening="${i}" data-opening-veld="positie" data-fokus="o_${ruimte.id}_${i}_positie"></td>
@@ -3096,7 +3495,7 @@ function renderRuimtekaart(ruimte) {
 
   return `
     <header>
-      <h3><input type="text" value="${esc(ruimte.naam)}" data-ruimte="naam"
+      <h3><input type="text" value="${esc(ruimte.naam)}" aria-label="Naam ruimte" data-ruimte="naam"
                  data-fokus="r_${ruimte.id}_naam"
                  style="font-weight:700;font-size:1rem;border:0;background:transparent;padding:2px 0;width:220px"></h3>
       <span class="klein-muted">lengte × breedte × hoogte (m)</span>
@@ -3150,21 +3549,34 @@ function renderOppervlakken() {
     </table>`;
 }
 
-function renderElektriciteit() {
-  const houder = $("#elektriciteit");
-  if (!houder) return;
-  const ruimte = actieveRuimte();
-  if (!ruimte) { houder.innerHTML = ""; return; }
-  const pakketten = (state.prijsboek?.pakketten || []).filter(p => p.categorie === "Elektriciteit");
-  const locatie = $("#elek-vlak")?.value || "noord";
-  houder.innerHTML = `
-    <header class="elektriciteit-kop"><div><p class="tarieven-label">WERK TOEVOEGEN</p><h3>Elektriciteit</h3></div>
-      <label>Locatie in ${esc(ruimte.naam)}<select id="elek-vlak" aria-label="Locatie elektriciteitswerk">
-        ${["noord", "zuid", "oost", "west", "plafond", "vloer"].map(v => `<option value="${v}" ${locatie === v ? "selected" : ""}>${v === "plafond" ? "Plafond" : v === "vloer" ? "Vloer" : "Wand " + v}</option>`).join("")}
-      </select></label></header>
-    <div class="elektriciteit-keuze">${pakketten.map(p => `<button type="button" class="elek-knop" data-elek-pakket="${esc(p.id)}" title="${esc(p.beschrijving)}"><span>+ ${esc(p.naam)}</span><small>${p.eenheid === "st" ? "Per stuk" : "Per lopende meter"}</small></button>`).join("")}</div>
-    <p class="hint">Voeg een werkregel toe en vul hieronder het aantal of de lengte in. Aansluitpunten, kabels, sleuven en dichtzetten zijn aparte posten: tel ze niet dubbel.</p>
-    <p class="elek-opmerking">Indicatieve startprijzen, exclusief verdeelkast, keuring en schema’s. Geen installatieontwerp of AREI-conformiteitscontrole. Laat ontwerp en uitvoering door een vakbekwaam elektricien beoordelen.</p>`;
+let installatieKeuze = "elektriciteit";
+const INSTALLATIES = {
+  elektriciteit: {categorie: "Elektriciteit", locatie: "elek-vlak",
+    uitleg: "Aansluitpunten, kabels, sleuven en dichtzetten zijn aparte posten: tel ze niet dubbel.",
+    waarschuwing: "Indicatieve startprijzen, exclusief verdeelkast, keuring en schema’s. Geen installatieontwerp of AREI-conformiteitscontrole. Laat ontwerp en uitvoering door een vakbekwaam elektricien beoordelen."},
+  sanitair: {categorie: "Sanitair & water", locatie: "san-vlak",
+    uitleg: "Leidingen, isolatie, hulpstukken en toestellen zijn aparte posten. Voeg bijvoorbeeld 8 m koud water, 8 m warm water en de benodigde koppelingen toe.",
+    waarschuwing: "Indicatieve startprijzen. Zonder breekwerk, waterdichting, rioleringsaansluiting of officiële keuring. Leidingdiameters zijn ramingskeuzes, geen installatieadvies. Laat ontwerp, drinkwaterveiligheid en uitvoering door een vakbekwaam installateur beoordelen."},
+};
+
+function renderInstallaties() {
+  for (const [soort, info] of Object.entries(INSTALLATIES)) {
+    const houder = $("#" + soort);
+    if (!houder) continue;
+    const ruimte = actieveRuimte();
+    if (!ruimte) { houder.innerHTML = ""; continue; }
+    const pakketten = (state.prijsboek?.pakketten || []).filter(p => p.categorie === info.categorie);
+    const locatie = $("#" + info.locatie)?.value || "noord";
+    houder.hidden = installatieKeuze !== soort;
+    houder.innerHTML = `
+      <header class="elektriciteit-kop"><div><p class="tarieven-label">WERK TOEVOEGEN</p><h3>${info.categorie}</h3></div>
+        <label>Locatie in ${esc(ruimte.naam)}<select id="${info.locatie}" aria-label="Locatie ${info.categorie}">
+          ${["noord", "zuid", "oost", "west", "plafond", "vloer"].map(v => `<option value="${v}" ${locatie === v ? "selected" : ""}>${v === "plafond" ? "Plafond" : v === "vloer" ? "Vloer" : "Wand " + v}</option>`).join("")}
+        </select></label></header>
+      <div class="elektriciteit-keuze">${pakketten.map(p => `<button type="button" class="elek-knop" ${soort === "elektriciteit" ? 'data-elek-pakket' : 'data-installatie-pakket'}="${esc(p.id)}" data-installatie-soort="${soort}" title="${esc(p.beschrijving)}"><span>+ ${esc(p.naam)}</span><small>${p.eenheid === "st" ? "Per stuk" : "Per lopende meter"}</small></button>`).join("")}</div>
+      <p class="hint">Voeg een werkregel toe en vul hieronder het aantal of de lengte in. ${info.uitleg}</p>
+      <p class="elek-opmerking">${info.waarschuwing}</p>`;
+  }
 }
 
 function standaardPakket(soort) {
@@ -3197,13 +3609,14 @@ function renderRegelkaart(regel, vlakken) {
     <header>
       <div class="titel">${esc(vlak ? vlak.naam : regel.oppervlak)}
         <span class="klein-muted">· ${esc(pakket.categorie)}</span></div>
-      <select data-pakket data-fokus="r_${regel.id}_pakket">
-        ${pakketten.map((p) => `<option value="${esc(p.id)}" ${p.id === regel.pakket_id ? "selected" : ""}>${esc(p.naam)}</option>`).join("")}
+      <select aria-label="Werkpakket" data-pakket data-fokus="r_${regel.id}_pakket">
+        ${[...new Set(pakketten.map(p => p.categorie))].map(categorie => `<optgroup label="${esc(categorie)}">${pakketten.filter(p => p.categorie === categorie).map(p => `<option value="${esc(p.id)}" ${p.id === regel.pakket_id ? "selected" : ""}>${esc(p.naam)}</option>`).join("")}</optgroup>`).join("")}
       </select>
       <button type="button" class="knop klein gevaar ico-only" data-actie="regel-verwijderen"
               data-id="${esc(regel.id)}" aria-label="Regel verwijderen">${ICO.prullenbak}</button>
     </header>
     <div class="regelopties">
+      ${!oppervlaktePakket ? `<label>Locatie<select data-regel-vlak data-fokus="r_${regel.id}_vlak">${vlakken.map(v => `<option value="${esc(v.sleutel)}" ${v.sleutel === regel.oppervlak ? "selected" : ""}>${esc(v.naam)}</option>`).join("")}</select></label>` : ""}
       ${optieVelden}
       <label>${pakket.eenheid === "st" ? "Aantal" : pakket.eenheid === "m" ? "Lengte" : "Hoeveelheid"} (${esc(pakket.eenheid || "m2")})
         <input type="number" step="${pakket.eenheid === "st" ? "1" : "0.01"}" min="0" value="${hoeveelheid}" data-hoeveelheid
@@ -3460,7 +3873,7 @@ function render() {
   const kaart = $("#ruimtekaart");
   if (kaart) kaart.innerHTML = ruimte ? renderRuimtekaart(ruimte) : "";
   renderPlan();
-  renderElektriciteit();
+  renderInstallaties();
   renderOppervlakken();
   renderRegels();
   renderOfferte();
@@ -3598,14 +4011,22 @@ function importeerJson(tekst) {
 
 /* ---------------- events ---------------- */
 document.addEventListener("click", (e) => {
-  const elek = e.target.closest("[data-elek-pakket]");
+  const discipline = e.target.closest("[data-installatie]");
+  if (discipline) {
+    installatieKeuze = discipline.dataset.installatie;
+    $$("[data-installatie]").forEach(b => b.setAttribute("aria-pressed", String(b === discipline)));
+    for (const soort of Object.keys(INSTALLATIES)) $("#" + soort).hidden = soort !== installatieKeuze;
+    return;
+  }
+  const elek = e.target.closest("[data-elek-pakket], [data-installatie-pakket]");
   if (elek) {
     const ruimte = actieveRuimte();
     if (!ruimte) return;
-    const locatie = $("#elek-vlak")?.value || "noord";
+    const info = INSTALLATIES[elek.dataset.installatieSoort || "elektriciteit"];
+    const locatie = $("#" + info.locatie)?.value || "noord";
     const id = uid();
     wijzig(() => state.project.regels.push({id, ruimte_id: ruimte.id, oppervlak: locatie,
-      pakket_id: elek.dataset.elekPakket, opties: {}, hoeveelheid: 1, notitie: ""}));
+      pakket_id: elek.dataset.elekPakket || elek.dataset.installatiePakket, opties: {}, hoeveelheid: 1, notitie: ""}));
     const veld = document.querySelector(`[data-fokus="r_${id}_aantal"]`);
     if (veld) { veld.focus(); veld.select(); }
     return;
@@ -3857,6 +4278,15 @@ document.addEventListener("change", (e) => {
 
   if (el.name === "prijsmodus") {
     wijzig(() => { state.project.prijsmodus = el.value; });
+    return;
+  }
+
+  if (el.dataset.regelVlak !== undefined) {
+    const id = el.closest("[data-regel]")?.dataset.regel;
+    wijzig(() => {
+      const regel = state.project.regels.find(r => r.id === id);
+      if (regel && vlakkenVoor(actieveRuimte()).some(v => v.sleutel === el.value)) regel.oppervlak = el.value;
+    });
     return;
   }
 

@@ -325,7 +325,7 @@ def _schilderen_gyproc(ctx: Ctx) -> Tuple[List[Dict[str, Any]], List[Dict[str, A
     return materiaal, taken
 
 
-def _elektriciteit(ctx: Ctx, recept: Dict[str, Any]):
+def _installatiewerk(ctx: Ctx, recept: Dict[str, Any]):
     """Losse punten/meters: nooit afleiden van het wandoppervlak."""
     if ctx.aantal <= 0:
         return [], []
@@ -346,7 +346,7 @@ BEREKENERS: Dict[str, Callable[[Ctx], Tuple[List[Dict[str, Any]], List[Dict[str,
 
 for _pakket in PAKKET_OP_ID.values():
     if _pakket.get("recept"):
-        BEREKENERS[_pakket["id"]] = lambda ctx, recept=_pakket["recept"]: _elektriciteit(ctx, recept)
+        BEREKENERS[_pakket["id"]] = lambda ctx, recept=_pakket["recept"]: _installatiewerk(ctx, recept)
 
 
 # ---------------------------------------------------------------------------

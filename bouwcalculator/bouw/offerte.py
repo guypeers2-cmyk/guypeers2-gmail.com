@@ -120,6 +120,8 @@ def bereken_offerte(project_data: Dict[str, Any]) -> Dict[str, Any]:
 
     if any(r["pakket"]["categorie"] == "Elektriciteit" for r in regels):
         waarschuwingen.append("Elektriciteit: indicatieve raming. Kabel, sleuf en aansluitpunten apart tellen. Zonder verdeelkast, keuring, schema’s of conformiteitscontrole; laat ontwerp en uitvoering door een vakbekwaam elektricien beoordelen.")
+    if any(r["pakket"]["categorie"] == "Sanitair & water" for r in regels):
+        waarschuwingen.append('Sanitair & water: indicatieve raming. Leidingen, hulpstukken en toestellen apart tellen. Zonder breekwerk, waterdichting, rioleringsaansluiting of officiële keuring. Geen dimensionerings- of drinkwaterconformiteitscontrole; laat ontwerp en uitvoering door een vakbekwaam installateur beoordelen.')
     materiaal = money(sum(r["materiaal_kosten"] for r in regels))
     arbeid = money(sum(r["arbeidskosten"] for r in regels))
     uren = money(sum(r["uren"] for r in regels))

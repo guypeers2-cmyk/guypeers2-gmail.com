@@ -268,6 +268,73 @@ voorlopig een gekozen wand/vloer/plafond, niet een exact installatiepunt.
 
 ---
 
+## Sanitair & water
+
+Kies **Sanitair & water** bij de installatiewerken onder de plattegrond.
+Kies de locatie (wand/vloer/plafond) en voeg een pakket toe. Het begint met
+1 stuk of meter: vul de werkelijk gemeten hoeveelheid in. Ook achteraf kun je
+in de werkregel de locatie wijzigen. De werkpakketkeuzelijst is per vakgebied
+ingedeeld. Sanitair rekent in zowel detail- als m²-modus per stuk of meter.
+
+| Pakket | Eenheid | Startprijs materiaal excl. btw | Arbeidsnorm |
+|---|---|---:|---:|
+| Koudwaterleiding meerlagen 16 mm | m | € 3,50 | 0,12 u/m |
+| Warmwaterleiding meerlagen 16 mm | m | € 3,50 | 0,12 u/m |
+| Leidingisolatie aanbrengen | m | € 1,80 | 0,04 u/m |
+| Afvoerleiding PVC 50 mm | m | € 4,50 | 0,15 u/m |
+| Afvoerleiding PVC 110 mm | m | € 9,00 | 0,20 u/m |
+| Leidingkoppeling monteren | st | € 5,50 | 0,10 u/st |
+| Afvoerhulpstuk monteren | st | € 6,00 | 0,12 u/st |
+| Afsluitkraan plaatsen | st | € 12,50 | 0,25 u/st |
+| Collector met 4 uitgangen plaatsen | st | € 65,00 | 0,75 u/st |
+| Staande wc met reservoir plaatsen | st | € 190,00 | 2,00 u/st |
+| Lavabo met sifon plaatsen | st | € 120,00 | 1,50 u/st |
+| Lavabomengkraan plaatsen | st | € 85,00 | 0,60 u/st |
+| Opbouw-douchemengkraan plaatsen | st | € 125,00 | 1,00 u/st |
+| Wasmachine-aansluitpunt plaatsen | st | € 35,00 | 0,60 u/st |
+| Drukproef waterleiding | st | € 0,00 | 1,00 u/st |
+
+Alle startprijzen zijn **gekozen, indicatieve ramingswaarden**, geen
+geverifieerde marktprijzen. Pas ze aan onder **Tarieven → Sanitair & water**.
+Dezelfde projectmarge, korting, uurtarief en btw gelden als voor andere werken.
+Alles blijft bewaard bij opslaan en JSON export/import; de offerte toont een
+waarschuwing over de beperkingen.
+
+### Inbegrepen en uitgesloten
+
+- Waterleidingen: rechte meerlagenleiding 16 mm en kleine bevestigingen;
+  koppelingen, isolatie, sleuven en aansluitpunten apart begroten.
+- PVC-afvoer 50/110 mm: rechte buis en kleine bevestigingen; bochten en
+  T-stukken apart. Geen rioleringsaansluiting, graafwerk, afschotberekening
+  of automatisch diameteradvies.
+- Collector: basiscollector met vier uitgangen; zonder kast of koppelingen.
+- Wc: standaard staande wc met reservoir; geen hang-wc-frame of leidingen.
+- Lavabo: standaard lavabo met sifon; kraan, meubel en leidingen apart.
+- Douchekraan: opbouwkraan op voorbereide aansluitingen; zonder douchebak,
+  wand, afvoer of waterdichting. Wasmachinepunt op voorbereide leidingen;
+  zonder toestel, nieuwe leidingen of elektriciteit.
+- Drukproef: één arbeidsraming voor een testbeurt, **geen officiële keuring**
+  en geen conformiteitsattest. Externe keuring en herstellingen apart.
+
+Dit is een offertecalculator, geen installatieontwerp of controle op
+leidingdimensionering, drinkwaterveiligheid, terugstroombeveiliging of
+conformiteit. Laat ontwerp en uitvoering door een vakbekwaam installateur
+beoordelen. Er worden geen fictieve exacte toestelposities in 3D getekend.
+
+## Apparaatcompatibiliteit
+
+De layout is getest met Chromium op breedtes van **320 tot 1920 px**, inclusief
+mobiele aanraakemulatie. Brede tabellen scrollen binnen hun eigen kaart.
+Mobiele bediening heeft knoppen van minimaal 44 px hoog en geld-/meetvelden
+met 16 px invoertekst. Donkere modus, verminderde animatie en A4-print vanuit
+het tarievenblad zijn gecontroleerd. Dit vervangt geen echte Safari/iPhone-,
+Firefox- of Android-hardwaretest.
+
+Zie [de apparaatreview](docs/device-compatibility.md) voor de matrix, beperkingen
+en het herhaalbare testschema.
+
+---
+
 ## De rekenkern in het kort
 
 Per werkpakket rekent de app twee dingen uit:

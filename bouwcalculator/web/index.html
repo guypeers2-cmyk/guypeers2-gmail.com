@@ -154,6 +154,11 @@
       <p class="hint plantip">Klik op een wand om werk toe te voegen. In 3D kun je draaien om alle wanden te bekijken.</p>
     </div>
 
+    <nav class="installatie-tabs" aria-label="Installatiewerken kiezen">
+      <button type="button" class="knop" data-installatie="elektriciteit" aria-pressed="true" aria-controls="elektriciteit">Elektriciteit</button>
+      <button type="button" class="knop" data-installatie="sanitair" aria-pressed="false" aria-controls="sanitair">Sanitair &amp; water</button>
+    </nav>
+    <section id="sanitair" class="elektriciteit-kaart" aria-label="Sanitair en water per ruimte" hidden></section>
     <section id="elektriciteit" class="elektriciteit-kaart" aria-label="Elektriciteit per ruimte"></section>
     <div class="oppervlakken" id="oppervlakken"></div>
     <div class="regels" id="regels"></div>
@@ -172,7 +177,7 @@
         in de offerte.</p>
       <div class="tarieven-tools">
         <label class="veld"><span>Zoek in het prijsboek</span><input type="search" id="tarief-zoeken" placeholder="Bijvoorbeeld gipsplaat, isolatie of schilderen" autocomplete="off"></label>
-        <label class="veld"><span>Categorie</span><select id="tarief-categorie"><option value="alle">Alle categorieën</option><option value="materiaal">Materiaal</option><option value="taak">Arbeidsnormen</option><option value="elektriciteit">Elektriciteit</option><option value="m2">Snelle m²-prijzen</option></select></label>
+        <label class="veld"><span>Categorie</span><select id="tarief-categorie"><option value="alle">Alle categorieën</option><option value="materiaal">Materiaal</option><option value="taak">Arbeidsnormen</option><option value="elektriciteit">Elektriciteit</option><option value="sanitair">Sanitair &amp; water</option><option value="m2">Snelle m²-prijzen</option></select></label>
         <label class="tarief-eigen"><input type="checkbox" id="tarief-eigen"> Alleen aangepast</label>
       </div>
       <div class="tarieven-overzicht"><p id="tarief-resultaat" role="status" aria-live="polite"></p><button type="button" class="knop klein" id="tarieven-herstellen">Alle tarieven herstellen</button></div>

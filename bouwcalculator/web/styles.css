@@ -1103,3 +1103,40 @@ input[type="search"] { width: 100%; min-height: 38px; font: inherit; color: var(
 .elek-regel-uitleg { padding: 0 12px 10px; }
 @media (max-width: 480px) { .elektriciteit-keuze { grid-template-columns: 1fr; } }
 @media print { .offerte-waarschuwingen { font-size: 8pt; background: white; border-color: #777; break-inside: avoid; } }
+
+/* Installaties en apparaatcompatibiliteit. Tabellen scrollen lokaal, niet de pagina. */
+.installatie-tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+.installatie-tabs [aria-pressed="true"] { background: var(--accent-zacht); border-color: var(--accent); color: var(--accent); }
+.elektriciteit-kaart[hidden] { display: none !important; }
+.oppervlakken { overflow-x: auto; }
+.oppervlakken table { min-width: 440px; }
+.details { overflow-x: auto; max-width: 100%; }
+.details table { min-width: 420px; }
+.projectregel { flex-wrap: wrap; overflow-wrap: anywhere; }
+.offerte-tabel { overflow-wrap: anywhere; }
+.veld, .ruimtekaart, .elektriciteit-kaart, .plankaart { min-width: 0; }
+@media (max-width: 900px) {
+  /* 16px voorkomt automatisch inzoomen op tekstinvoer in iOS Safari. */
+  input[type="text"], input[type="number"], input[type="date"], input[type="search"], textarea, select { font-size: 16px; }
+  .knop, .knop.klein, .knop.ico-only, .knop.klein.ico-only, .tab, .hoofdtab, .planknop, .openings .verwijder { min-height: 44px; }
+  .knop.ico-only, .knop.klein.ico-only, .openings .verwijder { min-width: 44px; }
+  .regelkaart > header select { max-width: 100%; width: 100%; }
+  .regelkaart > header .titel { min-width: 0; overflow-wrap: anywhere; }
+  .regelopties { flex-wrap: wrap; gap: 12px; }
+  .offertepaneel { overflow-x: auto; }
+  .offerte-tabel { min-width: 350px; }
+  .topbar-acties { gap: 6px; }
+  .installatie-tabs .knop { flex: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+@media print {
+  .offerte-tabel { min-width: 0; overflow-wrap: normal; }
+  .offertepaneel { overflow: visible; }
+}
+@media (max-width: 900px) {
+  .ruimtechip { min-height: 44px; }
+  .tarief-eigen { min-height: 44px; }
+  .knop, .hoofdtab, .tab, .planknop, .ruimtechip { touch-action: manipulation; }
+}

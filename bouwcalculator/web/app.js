@@ -242,7 +242,7 @@ function filterTarieven() {
     rij.querySelector(".tarief-markering").hidden = !eigen;
     rij.querySelector("[data-herstel-tarief]").disabled = !eigen;
     rij.hidden = !(rij.title.toLocaleLowerCase("nl").includes(zoek)
-      && (categorie === "alle" || rij.dataset.tariefSoort === categorie || (categorie === "elektriciteit" && rij.title.startsWith("Elektriciteit:")))
+      && (categorie === "alle" || rij.dataset.tariefSoort === categorie || (categorie === "elektriciteit" && rij.title.startsWith("Elektriciteit:")) || (categorie === "sanitair" && rij.title.startsWith("Sanitair & water:")))
       && (!alleenEigen || eigen));
     if (!rij.hidden) zichtbaar++;
   });
@@ -278,14 +278,14 @@ function renderRuimteChips() {
 function renderRuimtekaart(ruimte) {
   const openingen = ruimte.openingen.map((o, i) => `
     <tr>
-      <td><input type="text" value="${esc(o.naam)}" data-opening="${i}" data-opening-veld="naam"
+      <td><input type="text" value="${esc(o.naam)}" aria-label="Naam opening ${i + 1}" data-opening="${i}" data-opening-veld="naam"
                  data-fokus="o_${ruimte.id}_${i}_naam"></td>
-      <td><select data-opening="${i}" data-opening-veld="muur" data-fokus="o_${ruimte.id}_${i}_muur">
+      <td><select aria-label="Wand opening ${i + 1}" data-opening="${i}" data-opening-veld="muur" data-fokus="o_${ruimte.id}_${i}_muur">
         ${["noord", "zuid", "oost", "west"].map((z) => `<option value="${z}" ${o.muur === z ? "selected" : ""}>${z}</option>`).join("")}
       </select></td>
-      <td><input type="number" step="0.05" min="0" value="${esc(o.breedte)}" data-opening="${i}"
+      <td><input type="number" step="0.05" min="0" value="${esc(o.breedte)}" aria-label="Breedte opening ${i + 1} in meter" data-opening="${i}"
                  data-opening-veld="breedte" data-fokus="o_${ruimte.id}_${i}_b" style="width:74px"></td>
-      <td><input type="number" step="0.05" min="0" value="${esc(o.hoogte)}" data-opening="${i}"
+      <td><input type="number" step="0.05" min="0" value="${esc(o.hoogte)}" aria-label="Hoogte opening ${i + 1} in meter" data-opening="${i}"
                  data-opening-veld="hoogte" data-fokus="o_${ruimte.id}_${i}_h" style="width:74px"></td>
       <td><input type="number" step="0.05" min="0" value="${esc(o.positie ?? "")}" placeholder="Auto"
           aria-label="Afstand vanaf begin wand in meter" data-opening="${i}" data-opening-veld="positie" data-fokus="o_${ruimte.id}_${i}_positie"></td>
@@ -297,7 +297,7 @@ function renderRuimtekaart(ruimte) {
 
   return `
     <header>
-      <h3><input type="text" value="${esc(ruimte.naam)}" data-ruimte="naam"
+      <h3><input type="text" value="${esc(ruimte.naam)}" aria-label="Naam ruimte" data-ruimte="naam"
                  data-fokus="r_${ruimte.id}_naam"
                  style="font-weight:700;font-size:1rem;border:0;background:transparent;padding:2px 0;width:220px"></h3>
       <span class="klein-muted">lengte × breedte × hoogte (m)</span>
@@ -351,21 +351,34 @@ function renderOppervlakken() {
     </table>`;
 }
 
-function renderElektriciteit() {
-  const houder = $("#elektriciteit");
-  if (!houder) return;
-  const ruimte = actieveRuimte();
-  if (!ruimte) { houder.innerHTML = ""; return; }
-  const pakketten = (state.prijsboek?.pakketten || []).filter(p => p.categorie === "Elektriciteit");
-  const locatie = $("#elek-vlak")?.value || "noord";
-  houder.innerHTML = `
-    <header class="elektriciteit-kop"><div><p class="tarieven-label">WERK TOEVOEGEN</p><h3>Elektriciteit</h3></div>
-      <label>Locatie in ${esc(ruimte.naam)}<select id="elek-vlak" aria-label="Locatie elektriciteitswerk">
-        ${["noord", "zuid", "oost", "west", "plafond", "vloer"].map(v => `<option value="${v}" ${locatie === v ? "selected" : ""}>${v === "plafond" ? "Plafond" : v === "vloer" ? "Vloer" : "Wand " + v}</option>`).join("")}
-      </select></label></header>
-    <div class="elektriciteit-keuze">${pakketten.map(p => `<button type="button" class="elek-knop" data-elek-pakket="${esc(p.id)}" title="${esc(p.beschrijving)}"><span>+ ${esc(p.naam)}</span><small>${p.eenheid === "st" ? "Per stuk" : "Per lopende meter"}</small></button>`).join("")}</div>
-    <p class="hint">Voeg een werkregel toe en vul hieronder het aantal of de lengte in. Aansluitpunten, kabels, sleuven en dichtzetten zijn aparte posten: tel ze niet dubbel.</p>
-    <p class="elek-opmerking">Indicatieve startprijzen, exclusief verdeelkast, keuring en schema’s. Geen installatieontwerp of AREI-conformiteitscontrole. Laat ontwerp en uitvoering door een vakbekwaam elektricien beoordelen.</p>`;
+let installatieKeuze = "elektriciteit";
+const INSTALLATIES = {
+  elektriciteit: {categorie: "Elektriciteit", locatie: "elek-vlak",
+    uitleg: "Aansluitpunten, kabels, sleuven en dichtzetten zijn aparte posten: tel ze niet dubbel.",
+    waarschuwing: "Indicatieve startprijzen, exclusief verdeelkast, keuring en schema’s. Geen installatieontwerp of AREI-conformiteitscontrole. Laat ontwerp en uitvoering door een vakbekwaam elektricien beoordelen."},
+  sanitair: {categorie: "Sanitair & water", locatie: "san-vlak",
+    uitleg: "Leidingen, isolatie, hulpstukken en toestellen zijn aparte posten. Voeg bijvoorbeeld 8 m koud water, 8 m warm water en de benodigde koppelingen toe.",
+    waarschuwing: "Indicatieve startprijzen. Zonder breekwerk, waterdichting, rioleringsaansluiting of officiële keuring. Leidingdiameters zijn ramingskeuzes, geen installatieadvies. Laat ontwerp, drinkwaterveiligheid en uitvoering door een vakbekwaam installateur beoordelen."},
+};
+
+function renderInstallaties() {
+  for (const [soort, info] of Object.entries(INSTALLATIES)) {
+    const houder = $("#" + soort);
+    if (!houder) continue;
+    const ruimte = actieveRuimte();
+    if (!ruimte) { houder.innerHTML = ""; continue; }
+    const pakketten = (state.prijsboek?.pakketten || []).filter(p => p.categorie === info.categorie);
+    const locatie = $("#" + info.locatie)?.value || "noord";
+    houder.hidden = installatieKeuze !== soort;
+    houder.innerHTML = `
+      <header class="elektriciteit-kop"><div><p class="tarieven-label">WERK TOEVOEGEN</p><h3>${info.categorie}</h3></div>
+        <label>Locatie in ${esc(ruimte.naam)}<select id="${info.locatie}" aria-label="Locatie ${info.categorie}">
+          ${["noord", "zuid", "oost", "west", "plafond", "vloer"].map(v => `<option value="${v}" ${locatie === v ? "selected" : ""}>${v === "plafond" ? "Plafond" : v === "vloer" ? "Vloer" : "Wand " + v}</option>`).join("")}
+        </select></label></header>
+      <div class="elektriciteit-keuze">${pakketten.map(p => `<button type="button" class="elek-knop" ${soort === "elektriciteit" ? 'data-elek-pakket' : 'data-installatie-pakket'}="${esc(p.id)}" data-installatie-soort="${soort}" title="${esc(p.beschrijving)}"><span>+ ${esc(p.naam)}</span><small>${p.eenheid === "st" ? "Per stuk" : "Per lopende meter"}</small></button>`).join("")}</div>
+      <p class="hint">Voeg een werkregel toe en vul hieronder het aantal of de lengte in. ${info.uitleg}</p>
+      <p class="elek-opmerking">${info.waarschuwing}</p>`;
+  }
 }
 
 function standaardPakket(soort) {
@@ -398,13 +411,14 @@ function renderRegelkaart(regel, vlakken) {
     <header>
       <div class="titel">${esc(vlak ? vlak.naam : regel.oppervlak)}
         <span class="klein-muted">· ${esc(pakket.categorie)}</span></div>
-      <select data-pakket data-fokus="r_${regel.id}_pakket">
-        ${pakketten.map((p) => `<option value="${esc(p.id)}" ${p.id === regel.pakket_id ? "selected" : ""}>${esc(p.naam)}</option>`).join("")}
+      <select aria-label="Werkpakket" data-pakket data-fokus="r_${regel.id}_pakket">
+        ${[...new Set(pakketten.map(p => p.categorie))].map(categorie => `<optgroup label="${esc(categorie)}">${pakketten.filter(p => p.categorie === categorie).map(p => `<option value="${esc(p.id)}" ${p.id === regel.pakket_id ? "selected" : ""}>${esc(p.naam)}</option>`).join("")}</optgroup>`).join("")}
       </select>
       <button type="button" class="knop klein gevaar ico-only" data-actie="regel-verwijderen"
               data-id="${esc(regel.id)}" aria-label="Regel verwijderen">${ICO.prullenbak}</button>
     </header>
     <div class="regelopties">
+      ${!oppervlaktePakket ? `<label>Locatie<select data-regel-vlak data-fokus="r_${regel.id}_vlak">${vlakken.map(v => `<option value="${esc(v.sleutel)}" ${v.sleutel === regel.oppervlak ? "selected" : ""}>${esc(v.naam)}</option>`).join("")}</select></label>` : ""}
       ${optieVelden}
       <label>${pakket.eenheid === "st" ? "Aantal" : pakket.eenheid === "m" ? "Lengte" : "Hoeveelheid"} (${esc(pakket.eenheid || "m2")})
         <input type="number" step="${pakket.eenheid === "st" ? "1" : "0.01"}" min="0" value="${hoeveelheid}" data-hoeveelheid
@@ -661,7 +675,7 @@ function render() {
   const kaart = $("#ruimtekaart");
   if (kaart) kaart.innerHTML = ruimte ? renderRuimtekaart(ruimte) : "";
   renderPlan();
-  renderElektriciteit();
+  renderInstallaties();
   renderOppervlakken();
   renderRegels();
   renderOfferte();
@@ -799,14 +813,22 @@ function importeerJson(tekst) {
 
 /* ---------------- events ---------------- */
 document.addEventListener("click", (e) => {
-  const elek = e.target.closest("[data-elek-pakket]");
+  const discipline = e.target.closest("[data-installatie]");
+  if (discipline) {
+    installatieKeuze = discipline.dataset.installatie;
+    $$("[data-installatie]").forEach(b => b.setAttribute("aria-pressed", String(b === discipline)));
+    for (const soort of Object.keys(INSTALLATIES)) $("#" + soort).hidden = soort !== installatieKeuze;
+    return;
+  }
+  const elek = e.target.closest("[data-elek-pakket], [data-installatie-pakket]");
   if (elek) {
     const ruimte = actieveRuimte();
     if (!ruimte) return;
-    const locatie = $("#elek-vlak")?.value || "noord";
+    const info = INSTALLATIES[elek.dataset.installatieSoort || "elektriciteit"];
+    const locatie = $("#" + info.locatie)?.value || "noord";
     const id = uid();
     wijzig(() => state.project.regels.push({id, ruimte_id: ruimte.id, oppervlak: locatie,
-      pakket_id: elek.dataset.elekPakket, opties: {}, hoeveelheid: 1, notitie: ""}));
+      pakket_id: elek.dataset.elekPakket || elek.dataset.installatiePakket, opties: {}, hoeveelheid: 1, notitie: ""}));
     const veld = document.querySelector(`[data-fokus="r_${id}_aantal"]`);
     if (veld) { veld.focus(); veld.select(); }
     return;
@@ -1058,6 +1080,15 @@ document.addEventListener("change", (e) => {
 
   if (el.name === "prijsmodus") {
     wijzig(() => { state.project.prijsmodus = el.value; });
+    return;
+  }
+
+  if (el.dataset.regelVlak !== undefined) {
+    const id = el.closest("[data-regel]")?.dataset.regel;
+    wijzig(() => {
+      const regel = state.project.regels.find(r => r.id === id);
+      if (regel && vlakkenVoor(actieveRuimte()).some(v => v.sleutel === el.value)) regel.oppervlak = el.value;
+    });
     return;
   }
 

@@ -596,6 +596,9 @@ export function berekenOfferte(projectData = {}) {
   if (regels.some(r => r.pakket.categorie === "Elektriciteit")) {
     waarschuwingen.push("Elektriciteit: indicatieve raming. Kabel, sleuf en aansluitpunten apart tellen. Zonder verdeelkast, keuring, schema’s of conformiteitscontrole; laat ontwerp en uitvoering door een vakbekwaam elektricien beoordelen.");
   }
+  if (regels.some(r => r.pakket.categorie === "Sanitair & water")) {
+    waarschuwingen.push('Sanitair & water: indicatieve raming. Leidingen, hulpstukken en toestellen apart tellen. Zonder breekwerk, waterdichting, rioleringsaansluiting of officiële keuring. Geen dimensionerings- of drinkwaterconformiteitscontrole; laat ontwerp en uitvoering door een vakbekwaam installateur beoordelen.');
+  }
   const materiaal = money(regels.reduce((s, r) => s + r.materiaal_kosten, 0));
   const arbeid = money(regels.reduce((s, r) => s + r.arbeidskosten, 0));
   const uren = money(regels.reduce((s, r) => s + r.uren, 0));

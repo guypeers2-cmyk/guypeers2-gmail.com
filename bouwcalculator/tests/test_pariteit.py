@@ -90,6 +90,18 @@ PROJECTS.append(project("Gemengd Gyproc elektriciteit", regels=[
     tarieven={"elek_stopcontact": 18.75, "uur_elek_stopcontact": .4},
     uurtarief=60, korting_pct=10, btw_pct=6))
 
+from bouw.tarieven import PAKKETTEN
+for _pakket in (p for p in PAKKETTEN if p["categorie"] == "Sanitair & water"):
+    for _aantal in (None, -1, 0, 1.1, 5.5):
+        PROJECTS.append(project("Sanitair " + _pakket["id"], regels=[
+            regel(pakket=_pakket["id"], hoeveelheid=_aantal)], prijsmodus="m2"))
+PROJECTS.append(project("Badkamer gemengd", regels=[
+    regel(), regel(pakket="san_lavabo", hoeveelheid=1, id="s"),
+    regel(pakket="san_koudwater", hoeveelheid=8.5, id="w"),
+    regel(pakket="elek_stopcontact", hoeveelheid=2, id="e")],
+    tarieven={"san_koudwater": 5.5, "uur_san_koudwater": .2},
+    uurtarief=60, marge_pct=20, korting_pct=5, btw_pct=6))
+
 
 class TestPariteit(unittest.TestCase):
     """De JS-port en de Python-kern leveren identieke offertes."""
