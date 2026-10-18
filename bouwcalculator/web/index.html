@@ -3,6 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="Bouwprijscalculator — maak een offerte op basis van maten, materiaal en gewerkte uren. Gestart met Gyproc.">
   <title>Bouwprijscalculator — Gyproc, isolatie & afwerking</title>
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -10,18 +12,25 @@
 
 <header class="topbar">
   <div class="merk">
-    <span class="logo">🏗️</span>
+    <span class="logo" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 20h18"></path>
+        <path d="M5 20V9.5L12 4l7 5.5V20"></path>
+        <path d="M9.5 20v-5.5h5V20"></path>
+      </svg>
+    </span>
     <div>
       <h1>Bouwprijscalculator</h1>
       <p>Gyproc · isolatie · afwerking — prijs per m² uit je eigen maten</p>
     </div>
   </div>
   <div class="topbar-acties">
-    <span class="status" id="status" aria-live="polite"></span>
-    <button type="button" class="knop" id="btn-nieuw">🆕 Nieuw</button>
-    <button type="button" class="knop" id="btn-opslaan">💾 Opslaan</button>
-    <button type="button" class="knop" id="btn-openen">📂 Openen</button>
-    <button type="button" class="knop primair" id="btn-print">🖨 Offerte printen</button>
+    <span class="status" id="status" role="status" aria-live="polite"></span>
+    <button type="button" class="knop" id="btn-nieuw" title="Nieuwe offerte beginnen"><svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V7z"/><path d="M14 3v4h4"/><path d="M12 11v6M9 14h6"/></svg> Nieuw</button>
+    <button type="button" class="knop" id="btn-opslaan" title="Offerte opslaan"><svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h12l4 4v12H4z"/><path d="M8 4v6h8V4"/><path d="M8 20v-6h8v6"/></svg> Opslaan</button>
+    <button type="button" class="knop" id="btn-openen" title="Opgeslagen offertes openen"><svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg> Openen</button>
+    <button type="button" class="knop primair" id="btn-print" title="Offerte printen of als pdf opslaan"><svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 9V4h10v5"/><path d="M7 18H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2"/><path d="M7 14h10v6H7z"/></svg> Offerte printen</button>
   </div>
 </header>
 
@@ -29,13 +38,13 @@
 
   <!-- ================= LINKERZIJDE: project, instellingen, tarieven ================= -->
   <aside class="paneel zijde" id="zijde">
-    <nav class="tabs" role="tablist">
-      <button class="tab actief" data-tab="project" role="tab">Project</button>
-      <button class="tab" data-tab="instellingen" role="tab">Prijzen</button>
-      <button class="tab" data-tab="tarieven" role="tab">Tarieven</button>
+    <nav class="tabs" role="tablist" aria-label="Onderdelen">
+      <button class="tab actief" data-tab="project" role="tab" aria-selected="true" aria-controls="paneel-project" id="tab-project">Project</button>
+      <button class="tab" data-tab="instellingen" role="tab" aria-selected="false" aria-controls="paneel-instellingen" id="tab-instellingen">Prijzen</button>
+      <button class="tab" data-tab="tarieven" role="tab" aria-selected="false" aria-controls="paneel-tarieven" id="tab-tarieven">Tarieven</button>
     </nav>
 
-    <section class="tabpaneel actief" data-paneel="project">
+    <section class="tabpaneel actief" data-paneel="project" role="tabpanel" id="paneel-project" aria-labelledby="tab-project">
       <h2>Offertegegevens</h2>
       <label class="veld">
         <span>Project / offerte</span>
@@ -51,7 +60,7 @@
       </label>
       <div class="rij">
         <label class="veld">
-          <span>Offerte-nummer</span>
+          <span>Offertenummer</span>
           <input type="text" data-project="offerte_nummer" data-fokus="p_num" placeholder="O-2026-001">
         </label>
         <label class="veld">
@@ -69,13 +78,13 @@
                   placeholder="Prijsberekening op basis van de opgegeven maten. Werkzaamheden conform de gangbare normen."></textarea>
       </label>
       <div class="openings-acties" style="margin-top:6px">
-        <button type="button" class="knop klein" id="btn-export">⬇ Exporteer JSON</button>
-        <button type="button" class="knop klein" id="btn-import">⬆ Importeer JSON</button>
+        <button type="button" class="knop klein" id="btn-export"><svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="M7 11l5 5 5-5"/><path d="M4 20h16"/></svg> Exporteer JSON</button>
+        <button type="button" class="knop klein" id="btn-import"><svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3"/><path d="M7 7l5-5 5 5"/><path d="M4 20h16"/></svg> Importeer JSON</button>
         <input type="file" id="import-bestand" accept="application/json" hidden>
       </div>
     </section>
 
-    <section class="tabpaneel" data-paneel="instellingen">
+    <section class="tabpaneel" data-paneel="instellingen" role="tabpanel" id="paneel-instellingen" aria-labelledby="tab-instellingen" hidden>
       <h2>Uurtarief & marges</h2>
       <div class="rij">
         <label class="veld">
@@ -113,7 +122,7 @@
         <em>Tarieven</em>.</p>
     </section>
 
-    <section class="tabpaneel" data-paneel="tarieven">
+    <section class="tabpaneel" data-paneel="tarieven" role="tabpanel" id="paneel-tarieven" aria-labelledby="tab-tarieven" hidden>
       <h2>Prijsboek</h2>
       <p class="hint">Pas de prijzen aan op jouw inkoop. De waarde wordt meteen doorberekend
         in de offerte.</p>
@@ -146,7 +155,7 @@
   </div>
 </div>
 
-<div class="toast" id="toast" hidden></div>
+<div class="toast" id="toast" hidden role="status" aria-live="polite"></div>
 
 <script type="module" src="engine.js"></script>
 <script src="app.js"></script>

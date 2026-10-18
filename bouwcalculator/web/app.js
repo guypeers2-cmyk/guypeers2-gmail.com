@@ -16,6 +16,26 @@ const OPSLAG_LIJST = "bouwcalculator-projecten-v1";
 const NR = new Intl.NumberFormat("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const NRL = new Intl.NumberFormat("nl-BE", { maximumFractionDigits: 2 });
 
+/* ---------------- iconen (SVG, niet emoji: rendert overal hetzelfde) ---------------- */
+const ico = (pad, extra = "") =>
+  `<svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ${extra}>${pad}</svg>`;
+
+const ICO = {
+  plus: ico('<path d="M12 5v14M5 12h14"/>'),
+  deur: ico('<path d="M5 21V4a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v17"/><path d="M3 21h18"/><path d="M13 12h.01"/>'),
+  raam: ico('<rect x="4" y="4" width="16" height="16" rx="1"/><path d="M12 4v16M4 12h16"/>'),
+  prullenbak: ico('<path d="M4 7h16M10 11v6M14 11v6"/><path d="M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13"/><path d="M9 7V4h6v3"/>'),
+  document: ico('<path d="M14 3H7a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V7z"/><path d="M14 3v4h4"/><path d="M9 13h6M9 17h4"/>'),
+  kruis: ico('<path d="M6 6l12 12M18 6L6 18"/>'),
+};
+
+function datumTekst(datum) {
+  const d = String(datum || "").trim();
+  const p = d.split("-");
+  return p.length === 3 && p.every((x) => x !== "") ? `${p[2]}-${p[1]}-${p[0]}` : d;
+}
+
 const state = {
   project: null,
   projectId: null,
@@ -215,7 +235,7 @@ function renderRuimteChips() {
     <button type="button" class="ruimtechip ${r.id === state.actieveRuimteId ? "actief" : ""}"
             data-actie="ruimte-kiezen" data-id="${esc(r.id)}"
             data-fokus="chip_${esc(r.id)}">${esc(r.naam || "Ruimte")}</button>
-  `).join("") + `<button type="button" class="ruimtechip" data-actie="ruimte-toevoegen">＋ Ruimte</button>`;
+  `).join("") + `<button type="button" class="ruimtechip" data-actie="ruimte-toevoegen">${ICO.plus} Ruimte</button>`;
 }
 
 function renderRuimtekaart(ruimte) {
@@ -231,7 +251,7 @@ function renderRuimtekaart(ruimte) {
       <td><input type="number" step="0.05" min="0" value="${esc(o.hoogte)}" data-opening="${i}"
                  data-opening-veld="hoogte" data-fokus="o_${ruimte.id}_${i}_h" style="width:74px"></td>
       <td><button type="button" class="verwijder" data-actie="opening-verwijderen" data-index="${i}"
-                  title="Verwijderen">✕</button></td>
+                  title="Verwijderen" aria-label="Verwijderen">${ICO.kruis}</button></td>
     </tr>`).join("");
 
   return `
@@ -240,7 +260,7 @@ function renderRuimtekaart(ruimte) {
                  data-fokus="r_${ruimte.id}_naam"
                  style="font-weight:700;font-size:1rem;border:0;background:transparent;padding:2px 0;width:220px"></h3>
       <span class="klein-muted">lengte × breedte × hoogte (m)</span>
-      <button type="button" class="knop klein gevaar" data-actie="ruimte-verwijderen">🗑 Ruimte weg</button>
+      <button type="button" class="knop klein gevaar" data-actie="ruimte-verwijderen">${ICO.prullenbak} Ruimte weg</button>
     </header>
     <div class="maten">
       <label class="veld"><span>Lengte</span>
@@ -260,8 +280,8 @@ function renderRuimtekaart(ruimte) {
         <tbody>${openingen}</tbody></table>`
         : '<p class="klein-muted">Geen openingen. Klik hieronder om een deur of raam toe te voegen.</p>'}
       <div class="openings-acties">
-        <button type="button" class="knop klein" data-actie="opening-toevoegen" data-soort="Deur">＋ Deur</button>
-        <button type="button" class="knop klein" data-actie="opening-toevoegen" data-soort="Raam">＋ Raam</button>
+        <button type="button" class="knop klein" data-actie="opening-toevoegen" data-soort="Deur">${ICO.deur} Deur</button>
+        <button type="button" class="knop klein" data-actie="opening-toevoegen" data-soort="Raam">${ICO.raam} Raam</button>
       </div>
     </div>`;
 }
@@ -321,8 +341,8 @@ function renderRegelkaart(regel, vlakken) {
       <select data-pakket data-fokus="r_${regel.id}_pakket">
         ${pakketten.map((p) => `<option value="${esc(p.id)}" ${p.id === regel.pakket_id ? "selected" : ""}>${esc(p.naam)}</option>`).join("")}
       </select>
-      <button type="button" class="knop klein gevaar" data-actie="regel-verwijderen"
-              data-id="${esc(regel.id)}">🗑</button>
+      <button type="button" class="knop klein gevaar ico-only" data-actie="regel-verwijderen"
+              data-id="${esc(regel.id)}" aria-label="Regel verwijderen">${ICO.prullenbak}</button>
     </header>
     <div class="regelopties">
       ${optieVelden}
@@ -419,10 +439,12 @@ function renderOfferte() {
   if (!offerte.regels.length) {
     container.innerHTML = `
       <div class="offerte-kop"><h2>Offerte</h2>
-        <div class="meta"><span>${esc(project.offerte_nummer)}</span><span>${esc(project.datum)}</span></div></div>
+        <div class="meta"><span>${esc(project.offerte_nummer || "—")}</span><span>${esc(datumTekst(project.datum))}</span></div></div>
       <div class="leeg-melding">
-        <span class="groot-emoji">📋</span>
-        Nog geen werk gekozen.<br>Voeg een ruimte toe en klik bij een oppervlak op <b>+ werk</b>.
+        <span class="groot-emoji">${ICO.document}</span>
+        Nog geen werk gekozen.<br>
+        Voeg een ruimte toe, klik bij een oppervlak op <b>+ werk</b> en de offerte
+        vult zichzelf aan.
       </div>`;
     return;
   }
@@ -438,18 +460,21 @@ function renderOfferte() {
     const regels = perRuimte.get(ruimte.id) || [];
     if (!regels.length) continue;
     rijen.push(`<tr class="ruimte-kop">
-        <td colspan="5">${esc(ruimte.naam)}
+        <td colspan="4">${esc(ruimte.naam)}
           <span class="klein-muted">· ${NRL.format(ruimte.lengte)} × ${NRL.format(ruimte.breedte)} × ${NRL.format(ruimte.hoogte)} m</span>
         </td></tr>`);
     for (const regel of regels) {
+      // Opties die al in de omschrijving staan (zoals bij de detailschuif)
+      // herhalen we niet — anders staat elke optie twee keer in de offerte.
       const opties = Object.entries(regel.opties || {})
         .filter(([, waarde]) => waarde && waarde !== "geen" && waarde !== "1 zijde")
+        .filter(([, waarde]) => !regel.omschrijving.includes(waarde))
         .map(([id, waarde]) => `${id}: ${waarde}`).join(" · ");
       rijen.push(`<tr>
-        <td>${esc(regel.omschrijving)}
+        <td><span class="klein-muted">${NRL.format(regel.aantal)} ${esc(regel.eenheid)}</span>
+          ${esc(regel.omschrijving)}
           ${opties ? `<br><span class="klein-muted">${esc(opties)}</span>` : ""}
           ${regel.notitie ? `<br><span class="klein-muted">${esc(regel.notitie)}</span>` : ""}</td>
-        <td class="num">${NRL.format(regel.aantal)} ${esc(regel.eenheid)}</td>
         <td class="num">${eur(regel.materiaal_kosten)}</td>
         <td class="num">${eur(regel.arbeidskosten)}</td>
         <td class="num"><b>${eur(regel.totaal)}</b></td></tr>`);
@@ -458,10 +483,13 @@ function renderOfferte() {
 
   container.innerHTML = `
     <div class="offerte-kop">
-      <h2>Offerte</h2>
+      <div>
+        <h2>Offerte</h2>
+        ${project.naam ? `<p class="offerte-project">${esc(project.naam)}</p>` : ""}
+      </div>
       <div class="meta">
         <span>${esc(project.offerte_nummer || "—")}</span>
-        <span>${esc(project.datum || "")}</span>
+        <span>${esc(datumTekst(project.datum))}</span>
       </div>
     </div>
     <div class="offerte-partijen">
@@ -475,11 +503,9 @@ function renderOfferte() {
         ${project.adres ? `<p>${esc(project.adres)}</p>` : ""}
       </div>
     </div>
-    <p class="klein-muted" style="margin-bottom:12px">
-      <b>Project:</b> ${esc(project.naam)}</p>
     <table class="offerte-tabel">
       <thead><tr>
-        <th>Omschrijving</th><th class="num">Aantal</th>
+        <th>Omschrijving</th>
         <th class="num">Materiaal</th><th class="num">Arbeid</th><th class="num">Totaal</th>
       </tr></thead>
       <tbody>${rijen.join("")}</tbody>
@@ -493,7 +519,11 @@ function renderOfferte() {
       <div><span>BTW ${NRL.format(totalen.btw_pct)}%</span><span>${eur(totalen.btw)}</span></div>
       <div class="eind"><span>Totaal</span><span>${eur(totalen.totaal)}</span></div>
     </div>
-    ${project.opmerking ? `<p class="offerte-noot">${esc(project.opmerking)}</p>` : ""}`;
+    ${project.opmerking ? `<p class="offerte-noot">${esc(project.opmerking)}</p>` : ""}
+    <p class="offerte-voet">
+      ${esc(project.aannemer || "Aannemer")} · ${esc(project.naam || "Project")} ·
+      ${esc(project.offerte_nummer || "Offerte")} · ${esc(datumTekst(project.datum))}
+    </p>`;
 }
 
 /* ---------------- render ---------------- */
@@ -613,9 +643,9 @@ async function openenDialog() {
         <div class="projectregel">
           <span class="naam">${esc(p.naam)}<br><span class="meta">${esc(p.klant || "—")} · ${esc(p.ruimtes)} ruimte(s) · ${esc(p.gewijzigd || "")}</span></span>
           <button type="button" class="knop klein" data-actie="project-laden" data-id="${esc(p.id)}">Openen</button>
-          <button type="button" class="knop klein gevaar" data-actie="project-verwijderen" data-id="${esc(p.id)}">🗑</button>
+          <button type="button" class="knop klein gevaar ico-only" data-actie="project-verwijderen" data-id="${esc(p.id)}" aria-label="Offerte verwijderen">${ICO.prullenbak}</button>
         </div>`).join("")}</div>`
-    : "<p class='hint'>Nog geen opgeslagen offertes. Sla je huidige offerte op met 💾.</p>";
+    : `<p class="hint">Nog geen opgeslagen offertes. Sla je huidige offerte op met de knop <b>Opslaan</b>.</p>`;
 }
 
 function exporteerJson() {
@@ -889,11 +919,24 @@ async function laadLokaleEngine() {
 
 async function init() {
   $$(".tab").forEach((tab) => tab.addEventListener("click", () => {
-    $$(".tab").forEach((t) => t.classList.toggle("actief", t === tab));
-    $$(".tabpaneel").forEach((p) => p.classList.toggle("actief", p.dataset.paneel === tab.dataset.tab));
+    $$(".tab").forEach((t) => {
+      const actief = t === tab;
+      t.classList.toggle("actief", actief);
+      t.setAttribute("aria-selected", actief ? "true" : "false");
+    });
+    $$(".tabpaneel").forEach((p) => {
+      const actief = p.dataset.paneel === tab.dataset.tab;
+      p.classList.toggle("actief", actief);
+      p.hidden = !actief;
+    });
   }));
 
   try {
+    // Lokaal geopend bestand (file://) kent geen API — dan direct de
+    // ingesloten rekenkern gebruiken, zonder storende fetch-fouten.
+    if (!/^https?:$/.test(location.protocol)) {
+      throw new Error("lokaal bestand");
+    }
     const antwoord = await fetch("/api/prijsboek");
     state.prijsboek = await antwoord.json();
     state.opslag = state.prijsboek.opslag || "server";

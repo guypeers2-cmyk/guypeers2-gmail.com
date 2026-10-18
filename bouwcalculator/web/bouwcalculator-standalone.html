@@ -10,297 +10,938 @@
 
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="Bouwprijscalculator — maak een offerte op basis van maten, materiaal en gewerkte uren. Gestart met Gyproc.">
   <title>Bouwprijscalculator — Gyproc, isolatie & afwerking</title>
   <style>
 /* ==========================================================
-   BOUWPRIJSCALCULATOR — stijl
-   Licht, leesbaar, grote knoppen: ook met werkhandschoenen
-   en in zonlicht nog bruikbaar. Het offertedocument is
-   printgericht (wit, A4).
+   BOUWPRIJSCALCULATOR — ontwerpsysteem
+   ------------------------------------------------------------
+   Een professioneel, rustig werkvlak voor bouw en installatie:
+   hoge leesbaarheid, grote treffervlakken (werkhandschoenen,
+   zonlicht) en een offertedocument dat eruitziet als een
+   document dat je aan een klant kunt geven.
+
+   Inhoudsopgave
+     1. Tokens (kleur, type, ruimte, elevatie)
+     2. Basis
+     3. Knoppen & formulier
+     4. Applicatieschil (topbar, kolommen, tabs)
+     5. Ruimtes, oppervlakken, werkregels
+     6. Prijsboek
+     7. Offertedocument
+     8. Dialoog, toast, lege staten
+     9. Responsief
+    10. Afdrukken (A4)
    ========================================================== */
 
+/* ---------- 1. Tokens ---------- */
 :root {
-  --bg: #eef1f6;
-  --paneel: #ffffff;
-  --paneel-2: #f7f9fc;
-  --rand: #d6dde8;
-  --rand-sterk: #b9c4d4;
-  --tekst: #16202e;
-  --tekst-dim: #5b6a7f;
-  --accent: #d9480f;
-  --accent-zacht: #fff1e8;
-  --accent-2: #1c7ed6;
-  --groen: #2b8a3e;
-  --groen-zacht: #ebfbee;
-  --rood: #c92a2a;
-  --amber: #b8860b;
-  --grijs-zacht: #f1f3f7;
+  /* kleuren — neutraal */
+  --bg: #f4f6f8;
+  --oppervlak: #ffffff;
+  --oppervlak-2: #f8fafc;
+  --oppervlak-3: #f1f4f8;
+  --rand: #e3e8ef;
+  --rand-sterk: #cfd6e0;
+  --tekst: #101828;
+  --tekst-2: #475467;
+  --tekst-3: #7b8798;
+
+  /* kleuren — merk & semantiek */
+  --accent: #1d4ed8;
+  --accent-hover: #1e40af;
+  --accent-zacht: #eff4ff;
+  --accent-rand: #c7d7fe;
+  --goud: #b45309;
+  --goud-zacht: #fffaeb;
+  --goud-rand: #fedf89;
+  --groen: #067647;
+  --groen-zacht: #ecfdf3;
+  --groen-rand: #abefc6;
+  --rood: #b42318;
+  --rood-zacht: #fef3f2;
+  --rood-rand: #fecdca;
+
+  /* typografie */
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, "Noto Sans", sans-serif;
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  --fs-xs: 0.75rem;
+  --fs-sm: 0.8125rem;
+  --fs-md: 0.875rem;
+  --fs-lg: 1rem;
+  --fs-xl: 1.125rem;
+  --fs-2xl: 1.375rem;
+
+  /* ruimte & vorm */
+  --ruimte-1: 4px;
+  --ruimte-2: 8px;
+  --ruimte-3: 12px;
+  --ruimte-4: 16px;
+  --ruimte-5: 20px;
+  --ruimte-6: 24px;
+  --radius-s: 6px;
   --radius: 10px;
-  --schaduw: 0 1px 2px rgba(16, 26, 40, .06), 0 4px 16px rgba(16, 26, 40, .06);
+  --radius-l: 14px;
+  --schaduw-1: 0 1px 2px rgba(16, 24, 40, 0.05);
+  --schaduw-2: 0 1px 3px rgba(16, 24, 40, 0.08), 0 8px 24px -12px rgba(16, 24, 40, 0.16);
+  --schaduw-3: 0 12px 40px -12px rgba(16, 24, 40, 0.28);
+  --ring: 0 0 0 3px rgba(29, 78, 216, 0.22);
+  --overgang: 140ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0c111a;
+    --oppervlak: #141b26;
+    --oppervlak-2: #1a2331;
+    --oppervlak-3: #202b3a;
+    --rand: #243043;
+    --rand-sterk: #33415a;
+    --tekst: #e8edf5;
+    --tekst-2: #a9b6c8;
+    --tekst-3: #7d8ba0;
+
+    --accent: #6b8cff;
+    --accent-hover: #8aa3ff;
+    --accent-zacht: #17233f;
+    --accent-rand: #2c3d6b;
+    --goud: #f5b544;
+    --goud-zacht: #2a2113;
+    --goud-rand: #55401c;
+    --groen: #4ec98a;
+    --groen-zacht: #10261c;
+    --groen-rand: #1f4a35;
+    --rood: #f97066;
+    --rood-zacht: #2c1614;
+    --rood-rand: #5a2723;
+
+    --schaduw-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --schaduw-2: 0 1px 3px rgba(0, 0, 0, 0.45), 0 10px 28px -14px rgba(0, 0, 0, 0.7);
+    --schaduw-3: 0 16px 48px -16px rgba(0, 0, 0, 0.8);
+    --ring: 0 0 0 3px rgba(107, 140, 255, 0.32);
+  }
+}
+
+/* ---------- 2. Basis ---------- */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
+html { -webkit-text-size-adjust: 100%; }
+
 body {
-  font-family: "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
-  background: var(--bg);
+  font-family: var(--font);
+  font-size: var(--fs-md);
+  line-height: 1.5;
   color: var(--tekst);
-  font-size: 15px;
-  line-height: 1.45;
+  background: var(--bg);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-h1, h2, h3 { line-height: 1.25; }
+h1, h2, h3, h4 { line-height: 1.25; letter-spacing: -0.011em; }
 
-/* ---------------- Topbar ---------------- */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-s);
+}
+
+::selection { background: var(--accent); color: #fff; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* koppen in panelen: kleine, sobere sectietitels */
+h2 {
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--tekst-3);
+  margin: var(--ruimte-2) 0 var(--ruimte-3);
+}
+h2:not(:first-child) { margin-top: var(--ruimte-6); }
+
+/* ---------- 3. Knoppen & formulier ---------- */
+.ico-svg {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  display: inline-block;
+  vertical-align: -3px;
+}
+.knop .ico-svg { width: 15px; height: 15px; }
+.knop.klein .ico-svg { width: 14px; height: 14px; }
+.knop.ico-only { padding: 8px; width: 38px; }
+.knop.klein.ico-only { padding: 6px; width: 32px; }
+
+.knop {
+  font: inherit;
+  font-size: var(--fs-md);
+  font-weight: 600;
+  line-height: 1;
+  color: var(--tekst);
+  background: var(--oppervlak);
+  border: 1px solid var(--rand-sterk);
+  border-radius: var(--radius);
+  padding: 9px 14px;
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--overgang), border-color var(--overgang),
+    color var(--overgang), box-shadow var(--overgang), transform var(--overgang);
+}
+.knop:hover { background: var(--oppervlak-3); border-color: var(--tekst-3); }
+.knop:active { transform: translateY(1px); }
+.knop:focus-visible { outline: none; box-shadow: var(--ring); border-color: var(--accent); }
+.knop:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+.knop.primair {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  box-shadow: var(--schaduw-1);
+}
+.knop.primair:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+
+.knop.klein {
+  font-size: var(--fs-sm);
+  min-height: 32px;
+  padding: 6px 10px;
+  border-radius: var(--radius-s);
+}
+
+.knop.gevaar { color: var(--rood); border-color: var(--rood-rand); background: var(--rood-zacht); }
+.knop.gevaar:hover { background: var(--rood); border-color: var(--rood); color: #fff; }
+
+.knop:focus-visible:focus, .knop:focus-visible { outline: none; }
+
+/* invoervelden */
+input[type="text"], input[type="number"], input[type="date"], textarea, select {
+  font: inherit;
+  font-size: var(--fs-md);
+  color: var(--tekst);
+  background: var(--oppervlak);
+  border: 1px solid var(--rand-sterk);
+  border-radius: var(--radius);
+  padding: 8px 11px;
+  min-height: 38px;
+  width: 100%;
+  transition: border-color var(--overgang), box-shadow var(--overgang), background var(--overgang);
+}
+input:hover:not(:disabled), select:hover:not(:disabled), textarea:hover:not(:disabled) {
+  border-color: var(--tekst-3);
+}
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: var(--ring);
+}
+input[type="number"] { font-variant-numeric: tabular-nums; }
+input::placeholder, textarea::placeholder { color: var(--tekst-3); }
+textarea { resize: vertical; min-height: 86px; line-height: 1.5; }
+select {
+  appearance: none;
+  padding-right: 30px;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='none' stroke='%237b8798' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round' d='M2.5 4.5 6 8l3.5-3.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+}
+
+.veld { display: block; margin-bottom: var(--ruimte-3); }
+.veld > span {
+  display: block;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--tekst-2);
+  margin-bottom: 5px;
+  letter-spacing: 0.01em;
+}
+.rij { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ruimte-3); }
+.hint {
+  font-size: var(--fs-sm);
+  color: var(--tekst-2);
+  margin: var(--ruimte-2) 0 var(--ruimte-3);
+  line-height: 1.5;
+}
+.hint em { color: var(--accent); font-style: normal; font-weight: 600; }
+
+/* keuzerondjes als kaarten */
+.keuze { display: flex; flex-direction: column; gap: var(--ruimte-2); }
+.radio {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  border: 1px solid var(--rand);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  cursor: pointer;
+  background: var(--oppervlak);
+  transition: border-color var(--overgang), background var(--overgang), box-shadow var(--overgang);
+}
+.radio:hover { border-color: var(--rand-sterk); background: var(--oppervlak-2); }
+.radio:has(input:checked) {
+  border-color: var(--accent);
+  background: var(--accent-zacht);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+.radio input { margin-top: 3px; accent-color: var(--accent); width: 16px; height: 16px; flex: none; }
+.radio strong { font-weight: 650; font-size: var(--fs-md); }
+.radio small { color: var(--tekst-2); font-size: var(--fs-xs); line-height: 1.45; }
+
+/* ---------- 4. Applicatieschil ---------- */
 .topbar {
-  background: var(--paneel);
-  border-bottom: 1px solid var(--rand);
-  padding: 10px 18px;
+  position: sticky;
+  top: 0;
+  z-index: 30;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: var(--ruimte-4);
   flex-wrap: wrap;
-  position: sticky;
-  top: 0;
-  z-index: 20;
+  padding: 10px var(--ruimte-5);
+  background: color-mix(in srgb, var(--oppervlak) 88%, transparent);
+  backdrop-filter: saturate(180%) blur(12px);
+  border-bottom: 1px solid var(--rand);
+  box-shadow: var(--schaduw-1);
 }
-.merk { display: flex; align-items: center; gap: 12px; }
-.merk .logo { font-size: 30px; }
-.merk h1 { font-size: 1.15rem; letter-spacing: -.01em; }
-.merk p { font-size: .8rem; color: var(--tekst-dim); }
-.topbar-acties { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.status { font-size: .8rem; color: var(--tekst-dim); margin-right: 6px; }
-
-/* ---------------- Knoppen ---------------- */
-.knop {
-  font: inherit;
-  font-size: .88rem;
-  font-weight: 600;
-  color: var(--tekst);
-  background: var(--paneel);
-  border: 1px solid var(--rand-sterk);
-  border-radius: 8px;
-  padding: 8px 13px;
-  cursor: pointer;
-  transition: background .12s, border-color .12s, transform .06s;
+.merk { display: flex; align-items: center; gap: var(--ruimte-3); min-width: 0; }
+.merk .logo {
+  width: 38px;
+  height: 38px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 11px;
+  background: linear-gradient(145deg, var(--accent), color-mix(in srgb, var(--accent) 62%, #0b1f4d));
+  color: #fff;
+  box-shadow: var(--schaduw-1);
 }
-.knop:hover { background: var(--grijs-zacht); }
-.knop:active { transform: translateY(1px); }
-.knop.primair { background: var(--accent); border-color: var(--accent); color: #fff; }
-.knop.primair:hover { background: #c14009; }
-.knop.klein { font-size: .8rem; padding: 5px 9px; }
-.knop.gevaar { color: var(--rood); border-color: #f0c4c4; }
-.knop.gevaar:hover { background: #fff5f5; }
-.knop:disabled { opacity: .5; cursor: not-allowed; }
+.merk .logo svg { width: 21px; height: 21px; display: block; }
+.merk h1 { font-size: var(--fs-lg); font-weight: 680; letter-spacing: -0.015em; }
+.merk p {
+  font-size: var(--fs-xs);
+  color: var(--tekst-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.topbar-acties { display: flex; align-items: center; gap: var(--ruimte-2); flex-wrap: wrap; }
+.status {
+  font-size: var(--fs-sm);
+  color: var(--tekst-2);
+  padding-right: var(--ruimte-2);
+  max-width: 34ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
-/* ---------------- Layout ---------------- */
 .layout {
   flex: 1;
   display: grid;
-  grid-template-columns: 320px minmax(0, 1fr) 430px;
-  gap: 14px;
-  padding: 14px;
+  grid-template-columns: 310px minmax(0, 1fr) 500px;
+  gap: var(--ruimte-4);
+  padding: var(--ruimte-4) var(--ruimte-5) var(--ruimte-6);
   align-items: start;
+  max-width: 1800px;
+  width: 100%;
+  margin: 0 auto;
 }
 .paneel {
-  background: var(--paneel);
+  background: var(--oppervlak);
   border: 1px solid var(--rand);
-  border-radius: var(--radius);
-  box-shadow: var(--schaduw);
-  padding: 14px;
+  border-radius: var(--radius-l);
+  box-shadow: var(--schaduw-2);
+  padding: var(--ruimte-4);
+  min-width: 0;
 }
-.zijde { position: sticky; top: 76px; max-height: calc(100vh - 92px); overflow-y: auto; }
-.offertepaneel { position: sticky; top: 76px; max-height: calc(100vh - 92px); overflow-y: auto; }
+.zijde, .offertepaneel {
+  position: sticky;
+  top: 74px;
+  max-height: calc(100vh - 90px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+.werkvlak { display: flex; flex-direction: column; gap: var(--ruimte-4); background: transparent; border: 0; box-shadow: none; padding: 0; }
 
-/* ---------------- Tabs ---------------- */
-.tabs { display: flex; gap: 4px; margin-bottom: 14px; background: var(--grijs-zacht); padding: 4px; border-radius: 8px; }
+/* tabs als segmentcontroller */
+.tabs {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  margin-bottom: var(--ruimte-4);
+  background: var(--oppervlak-3);
+  border-radius: var(--radius);
+}
 .tab {
   flex: 1;
   font: inherit;
-  font-size: .85rem;
+  font-size: var(--fs-sm);
   font-weight: 600;
-  border: none;
+  color: var(--tekst-2);
+  border: 0;
   background: transparent;
-  color: var(--tekst-dim);
-  padding: 7px 4px;
-  border-radius: 6px;
+  border-radius: var(--radius-s);
+  padding: 7px 6px;
   cursor: pointer;
+  transition: background var(--overgang), color var(--overgang), box-shadow var(--overgang);
 }
-.tab.actief { background: var(--paneel); color: var(--accent); box-shadow: var(--schaduw); }
+.tab:hover { color: var(--tekst); }
+.tab.actief {
+  background: var(--oppervlak);
+  color: var(--accent);
+  box-shadow: var(--schaduw-1);
+}
 .tabpaneel { display: none; }
-.tabpaneel.actief { display: block; }
+.tabpaneel.actief { display: block; animation: fade 180ms ease; }
+@keyframes fade { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: none; } }
 
-h2 { font-size: .95rem; text-transform: uppercase; letter-spacing: .04em; color: var(--tekst-dim); margin: 4px 0 10px; }
-h2:not(:first-child) { margin-top: 20px; }
-
-/* ---------------- Velden ---------------- */
-.veld { display: block; margin-bottom: 10px; }
-.veld > span { display: block; font-size: .78rem; font-weight: 600; color: var(--tekst-dim); margin-bottom: 3px; }
-input[type=text], input[type=number], input[type=date], textarea, select {
-  font: inherit;
-  width: 100%;
-  padding: 8px 10px;
-  border: 1px solid var(--rand-sterk);
-  border-radius: 7px;
-  background: var(--paneel);
-  color: var(--tekst);
-}
-input:focus, textarea:focus, select:focus {
-  outline: 2px solid var(--accent-zacht);
-  border-color: var(--accent);
-}
-textarea { resize: vertical; }
-.rij { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.hint { font-size: .78rem; color: var(--tekst-dim); margin: 8px 0 12px; }
-
-.keuze { display: flex; flex-direction: column; gap: 8px; }
-.radio {
-  display: flex; gap: 9px; align-items: flex-start;
-  border: 1px solid var(--rand); border-radius: 8px; padding: 9px 11px; cursor: pointer;
-}
-.radio:has(input:checked) { border-color: var(--accent); background: var(--accent-zacht); }
-.radio input { margin-top: 3px; accent-color: var(--accent); }
-.radio small { color: var(--tekst-dim); font-size: .78rem; }
-
-/* ---------------- Ruimtes ---------------- */
-.ruimtechips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+/* ---------- 5. Ruimtes, oppervlakken, werkregels ---------- */
+.ruimtechips { display: flex; gap: var(--ruimte-2); flex-wrap: wrap; }
 .ruimtechip {
-  font: inherit; font-size: .86rem; font-weight: 600;
-  border: 1px solid var(--rand-sterk); background: var(--paneel); color: var(--tekst);
-  padding: 7px 13px; border-radius: 999px; cursor: pointer;
+  font: inherit;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--tekst-2);
+  border: 1px solid var(--rand-sterk);
+  background: var(--oppervlak);
+  padding: 7px 13px;
+  border-radius: 999px;
+  cursor: pointer;
+  min-height: 34px;
+  transition: all var(--overgang);
 }
-.ruimtechip.actief { background: var(--accent); border-color: var(--accent); color: #fff; }
-.ruimtechip:hover:not(.actief) { background: var(--grijs-zacht); }
+.ruimtechip:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-zacht); }
+.ruimtechip.actief {
+  background: var(--tekst);
+  border-color: var(--tekst);
+  color: var(--oppervlak);
+}
 
-.ruimtekaart { border: 1px solid var(--rand); border-radius: var(--radius); padding: 13px; margin-bottom: 14px; background: var(--paneel-2); }
-.ruimtekaart header { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
-.ruimtekaart header h3 { font-size: 1rem; flex: 1; }
-.maten { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.ruimtekaart {
+  background: var(--oppervlak);
+  border: 1px solid var(--rand);
+  border-radius: var(--radius-l);
+  box-shadow: var(--schaduw-2);
+  padding: var(--ruimte-4);
+}
+.ruimtekaart header {
+  display: flex;
+  align-items: center;
+  gap: var(--ruimte-3);
+  flex-wrap: wrap;
+  padding-bottom: var(--ruimte-3);
+  margin-bottom: var(--ruimte-4);
+  border-bottom: 1px solid var(--rand);
+}
+.ruimtekaart header h3 { font-size: var(--fs-xl); font-weight: 680; flex: 1; min-width: 180px; }
+.ruimtekaart header h3 input {
+  font-weight: 680;
+  font-size: var(--fs-xl);
+  letter-spacing: -0.015em;
+  border: 0;
+  background: transparent;
+  padding: 2px 4px;
+  margin-left: -4px;
+  width: 240px;
+  min-height: 0;
+  border-radius: var(--radius-s);
+}
+.ruimtekaart header h3 input:hover { background: var(--oppervlak-3); }
+.ruimtekaart header h3 input:focus { background: var(--oppervlak); box-shadow: var(--ring); }
+.maten { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--ruimte-3); }
 .maten .veld { margin-bottom: 0; }
+.maten input { font-size: var(--fs-lg); font-weight: 600; }
 
-.openings { margin-top: 13px; }
-.openings table { width: 100%; border-collapse: collapse; font-size: .85rem; }
-.openings th { text-align: left; font-size: .74rem; text-transform: uppercase; letter-spacing: .04em; color: var(--tekst-dim); padding-bottom: 5px; font-weight: 600; }
-.openings td { padding: 3px 4px 3px 0; }
-.openings input, .openings select { padding: 6px 8px; }
-.openings .verwijder { background: none; border: none; color: var(--rood); cursor: pointer; font-size: 1rem; padding: 2px 6px; }
-.openings-acties { display: flex; gap: 8px; margin-top: 9px; }
+.openings { margin-top: var(--ruimte-5); }
+.openings h3 { font-size: var(--fs-md); font-weight: 650; margin-bottom: var(--ruimte-2); }
+.openings table { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); }
+.openings th {
+  text-align: left;
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--tekst-3);
+  font-weight: 650;
+  padding: 0 10px 6px 0;
+  border-bottom: 1px solid var(--rand);
+}
+.openings td { padding: 5px 10px 5px 0; border-bottom: 1px solid var(--rand); }
+.openings tr:last-child td { border-bottom: 0; }
+.openings input, .openings select { min-height: 34px; padding: 6px 9px; }
+.openings .verwijder {
+  background: none;
+  border: 0;
+  color: var(--tekst-3);
+  cursor: pointer;
+  font-size: var(--fs-lg);
+  line-height: 1;
+  padding: 6px 8px;
+  border-radius: var(--radius-s);
+  transition: all var(--overgang);
+}
+.openings .verwijder:hover { color: var(--rood); background: var(--rood-zacht); }
+.openings-acties { display: flex; gap: var(--ruimte-2); margin-top: var(--ruimte-3); flex-wrap: wrap; }
 
-/* ---------------- Oppervlakken ---------------- */
-.oppervlakken { margin: 16px 0; }
-.oppervlakken h3 { font-size: .9rem; margin-bottom: 8px; }
-table.opp { width: 100%; border-collapse: collapse; font-size: .88rem; }
-table.opp th { text-align: left; font-size: .74rem; text-transform: uppercase; letter-spacing: .04em; color: var(--tekst-dim); border-bottom: 1px solid var(--rand); padding: 6px 8px 6px 0; font-weight: 600; }
-table.opp td { padding: 7px 8px 7px 0; border-bottom: 1px solid var(--grijs-zacht); }
-table.opp td.num, table.opp th.num { text-align: right; font-variant-numeric: tabular-nums; }
-table.opp tr.vlak-muur td:first-child { border-left: 3px solid var(--accent-2); padding-left: 9px; }
-table.opp tr.vlak-plafond td:first-child { border-left: 3px solid var(--groen); padding-left: 9px; }
-table.opp tr.vlak-vloer td:first-child { border-left: 3px solid var(--rand-sterk); padding-left: 9px; }
-.klein-muted { font-size: .78rem; color: var(--tekst-dim); }
+/* oppervlakken */
+.oppervlakken {
+  background: var(--oppervlak);
+  border: 1px solid var(--rand);
+  border-radius: var(--radius-l);
+  box-shadow: var(--schaduw-2);
+  padding: var(--ruimte-4);
+}
+.oppervlakken h3 { font-size: var(--fs-md); font-weight: 650; margin-bottom: var(--ruimte-3); }
+table.opp { width: 100%; border-collapse: collapse; font-size: var(--fs-md); }
+table.opp th {
+  text-align: left;
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--tekst-3);
+  font-weight: 650;
+  padding: 0 12px 8px 0;
+  border-bottom: 1px solid var(--rand);
+}
+table.opp th.num, table.opp td.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+table.opp td { padding: 9px 12px 9px 0; border-bottom: 1px solid var(--rand); }
+table.opp tbody tr:last-child td { border-bottom: 0; }
+table.opp tbody tr:hover td { background: var(--oppervlak-2); }
+table.opp tr.vlak-muur td:first-child { border-left: 3px solid var(--accent); padding-left: 10px; }
+table.opp tr.vlak-plafond td:first-child { border-left: 3px solid var(--groen); padding-left: 10px; }
+table.opp tr.vlak-vloer td:first-child { border-left: 3px solid var(--tekst-3); padding-left: 10px; }
+table.opp .netto { font-weight: 650; }
+.klein-muted { font-size: var(--fs-xs); color: var(--tekst-3); }
 
-/* ---------------- Werkregels ---------------- */
-.regels { display: flex; flex-direction: column; gap: 12px; }
-.regelkaart { border: 1px solid var(--rand); border-left: 4px solid var(--accent); border-radius: var(--radius); background: var(--paneel); }
-.regelkaart > header { display: flex; gap: 9px; align-items: center; padding: 11px 13px; flex-wrap: wrap; }
-.regelkaart > header .titel { font-weight: 700; font-size: .95rem; flex: 1; min-width: 200px; }
-.regelkaart > header select { width: auto; max-width: 260px; }
-.regelopties { display: flex; gap: 12px; flex-wrap: wrap; padding: 0 13px 11px; }
-.regelopties label { font-size: .78rem; color: var(--tekst-dim); }
-.regelopties select { margin-top: 2px; font-size: .84rem; padding: 6px 8px; }
-.regelprijs { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; padding: 10px 13px; background: var(--paneel-2); border-top: 1px solid var(--grijs-zacht); font-size: .85rem; }
-.regelprijs .totaal { margin-left: auto; font-weight: 700; font-size: 1.02rem; color: var(--accent); font-variant-numeric: tabular-nums; }
-.regelprijs .deel { color: var(--tekst-dim); }
-.regelprijs .deel b { color: var(--tekst); font-weight: 600; }
-details.details { border-top: 1px solid var(--grijs-zacht); }
-details.details > summary { cursor: pointer; padding: 9px 13px; font-size: .82rem; font-weight: 600; color: var(--accent-2); list-style: none; }
+/* werkregels */
+.regels { display: flex; flex-direction: column; gap: var(--ruimte-3); }
+.regels > h3 { font-size: var(--fs-md); font-weight: 650; }
+.regelkaart {
+  background: var(--oppervlak);
+  border: 1px solid var(--rand);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius);
+  box-shadow: var(--schaduw-1);
+  overflow: hidden;
+  transition: box-shadow var(--overgang);
+}
+.regelkaart:hover { box-shadow: var(--schaduw-2); }
+.regelkaart > header {
+  display: flex;
+  gap: var(--ruimte-3);
+  align-items: center;
+  padding: var(--ruimte-3) var(--ruimte-4);
+  flex-wrap: wrap;
+}
+.regelkaart > header .titel { font-weight: 650; font-size: var(--fs-lg); flex: 1; min-width: 200px; }
+.regelkaart > header select { width: auto; max-width: 280px; }
+.regelopties {
+  display: flex;
+  gap: var(--ruimte-4);
+  flex-wrap: wrap;
+  padding: 0 var(--ruimte-4) var(--ruimte-3);
+}
+.regelopties label { font-size: var(--fs-xs); color: var(--tekst-2); font-weight: 600; }
+.regelopties select { margin-top: 4px; font-size: var(--fs-sm); min-height: 34px; }
+.regelprijs {
+  display: flex;
+  gap: var(--ruimte-4);
+  flex-wrap: wrap;
+  align-items: baseline;
+  padding: 10px var(--ruimte-4);
+  background: var(--oppervlak-2);
+  border-top: 1px solid var(--rand);
+  font-size: var(--fs-sm);
+  color: var(--tekst-2);
+}
+.regelprijs .deel b { color: var(--tekst); font-weight: 650; }
+.regelprijs .totaal {
+  margin-left: auto;
+  font-weight: 700;
+  font-size: var(--fs-xl);
+  color: var(--tekst);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+details.details { border-top: 1px solid var(--rand); }
+details.details > summary {
+  cursor: pointer;
+  padding: 10px var(--ruimte-4);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--accent);
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: background var(--overgang);
+}
+details.details > summary:hover { background: var(--oppervlak-2); }
 details.details > summary::-webkit-details-marker { display: none; }
-details.details > summary::before { content: "▸ "; }
-details.details[open] > summary::before { content: "▾ "; }
-details.details table { width: 100%; border-collapse: collapse; font-size: .82rem; padding: 0; }
-details.details td { padding: 4px 13px; }
-details.details td.num { text-align: right; font-variant-numeric: tabular-nums; width: 90px; }
-details.details td.eenheid { width: 52px; color: var(--tekst-dim); }
-details.details tr.sectie td { background: var(--grijs-zacht); font-weight: 700; font-size: .76rem; text-transform: uppercase; letter-spacing: .04em; color: var(--tekst-dim); padding-top: 8px; padding-bottom: 5px; }
-details.details tr.totaal td { border-top: 1px solid var(--rand); font-weight: 700; padding-top: 7px; }
+details.details > summary::before {
+  content: "";
+  width: 0;
+  height: 0;
+  border-left: 5px solid currentColor;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  transition: transform var(--overgang);
+}
+details.details[open] > summary::before { transform: rotate(90deg); }
+details.details table { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); }
+details.details td { padding: 5px var(--ruimte-4); }
+details.details td.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  width: 92px;
+  white-space: nowrap;
+}
+details.details td.eenheid { width: 54px; color: var(--tekst-3); }
+details.details tr.sectie td {
+  background: var(--oppervlak-3);
+  font-weight: 700;
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--tekst-2);
+  padding-top: 9px;
+  padding-bottom: 6px;
+}
+details.details tr.totaal td { border-top: 1px solid var(--rand); font-weight: 700; padding-top: 8px; }
 
-/* ---------------- Offerte (document) ---------------- */
-.offerte { background: #fff; }
-.offerte-kop { border-bottom: 2px solid var(--tekst); padding-bottom: 12px; margin-bottom: 14px; }
-.offerte-kop h2 { font-size: 1.25rem; text-transform: none; letter-spacing: 0; color: var(--tekst); margin: 0 0 4px; }
-.offerte-kop .meta { display: flex; justify-content: space-between; gap: 12px; font-size: .82rem; color: var(--tekst-dim); flex-wrap: wrap; }
-.offerte-partijen { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; font-size: .85rem; }
-.offerte-partijen h4 { font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; color: var(--tekst-dim); margin-bottom: 4px; }
-.offerte-partijen p { margin-bottom: 2px; }
-table.offerte-tabel { width: 100%; border-collapse: collapse; font-size: .85rem; margin-bottom: 14px; }
-table.offerte-tabel th { text-align: left; font-size: .72rem; text-transform: uppercase; letter-spacing: .04em; color: var(--tekst-dim); border-bottom: 1px solid var(--rand); padding: 5px 6px 5px 0; }
-table.offerte-tabel td { padding: 7px 6px 7px 0; border-bottom: 1px solid var(--grijs-zacht); vertical-align: top; }
-table.offerte-tabel td.num, table.offerte-tabel th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
-table.offerte-tabel tr.ruimte-kop td { background: var(--paneel-2); font-weight: 700; font-size: .8rem; text-transform: uppercase; letter-spacing: .03em; padding: 7px 6px; }
-.offerte-totaal { margin-left: auto; width: 300px; max-width: 100%; font-size: .88rem; }
-.offerte-totaal div { display: flex; justify-content: space-between; gap: 12px; padding: 4px 0; }
-.offerte-totaal .groot { font-weight: 700; font-size: .95rem; }
-.offerte-totaal .eind { border-top: 2px solid var(--tekst); margin-top: 6px; padding-top: 9px; font-weight: 800; font-size: 1.15rem; }
+/* ---------- 6. Prijsboek ---------- */
+.tarievenlijst { display: flex; flex-direction: column; gap: 2px; }
+.tarief-groep {
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--tekst-3);
+  font-weight: 700;
+  margin: var(--ruimte-4) 0 var(--ruimte-1);
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--rand);
+}
+.tarief {
+  display: grid;
+  grid-template-columns: 1fr 84px 44px;
+  gap: var(--ruimte-2);
+  align-items: center;
+  font-size: var(--fs-sm);
+  padding: 2px 0;
+}
+.tarief input { min-height: 32px; padding: 5px 8px; text-align: right; font-variant-numeric: tabular-nums; }
+.tarief .eenheid { color: var(--tekst-3); font-size: var(--fs-xs); }
+.tarief .naam { color: var(--tekst-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tarief.is-taak .naam { color: var(--accent); }
+.tarief.is-m2 .naam { color: var(--goud); }
+
+/* ---------- 7. Offertedocument ---------- */
+.offerte { background: var(--oppervlak); }
+.offerte-kop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--ruimte-3);
+  flex-wrap: wrap;
+  padding-bottom: var(--ruimte-3);
+  margin-bottom: var(--ruimte-4);
+  border-bottom: 2px solid var(--tekst);
+}
+.offerte-kop h2 {
+  font-size: var(--fs-2xl);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  text-transform: none;
+  color: var(--tekst);
+  margin: 0;
+}
+.offerte-kop .offerte-project { font-size: var(--fs-md); color: var(--tekst-2); margin-top: 3px; }
+.offerte-kop .meta { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; font-size: var(--fs-sm); }
+.offerte-kop .meta span:first-child { font-weight: 650; font-variant-numeric: tabular-nums; }
+.offerte-kop .meta span:last-child { color: var(--tekst-3); }
+
+.offerte-partijen {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--ruimte-4);
+  margin-bottom: var(--ruimte-5);
+  font-size: var(--fs-sm);
+}
+.offerte-partijen > div {
+  padding: var(--ruimte-3);
+  background: var(--oppervlak-2);
+  border-radius: var(--radius);
+  border: 1px solid var(--rand);
+}
+.offerte-partijen h4 {
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--tekst-3);
+  font-weight: 700;
+  margin-bottom: 5px;
+}
+.offerte-partijen p { color: var(--tekst-2); line-height: 1.45; }
+.offerte-partijen b { color: var(--tekst); font-weight: 650; }
+
+table.offerte-tabel {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-sm);
+  margin-bottom: var(--ruimte-4);
+  table-layout: fixed;
+}
+table.offerte-tabel th { font-size: 0.625rem; letter-spacing: 0.04em; padding-right: 10px; }
+table.offerte-tabel th:nth-child(2) { width: 84px; }
+table.offerte-tabel th:nth-child(3) { width: 78px; }
+table.offerte-tabel th:nth-child(4) { width: 92px; }
+table.offerte-tabel th {
+  text-align: left;
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--tekst-3);
+  font-weight: 650;
+  border-bottom: 1px solid var(--rand-sterk);
+  padding: 0 10px 8px 0;
+}
+table.offerte-tabel td {
+  padding: 9px 6px 9px 0;
+  border-bottom: 1px solid var(--rand);
+  vertical-align: top;
+  line-height: 1.45;
+}
+table.offerte-tabel td.num, table.offerte-tabel th.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+table.offerte-tabel tr.ruimte-kop td {
+  background: var(--oppervlak-3);
+  font-weight: 700;
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--tekst-2);
+  padding: 8px 10px;
+}
+table.offerte-tabel tbody tr:hover td { background: var(--oppervlak-2); }
+table.offerte-tabel tr.ruimte-kop:hover td { background: var(--oppervlak-3); }
+
+.offerte-totaal {
+  margin-left: auto;
+  width: 320px;
+  max-width: 100%;
+  font-size: var(--fs-md);
+  border-top: 1px solid var(--rand);
+  padding-top: var(--ruimte-2);
+}
+.offerte-totaal div {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--ruimte-4);
+  padding: 5px 0;
+  color: var(--tekst-2);
+}
+.offerte-totaal div span:last-child { font-variant-numeric: tabular-nums; color: var(--tekst); }
+.offerte-totaal .groot { font-weight: 650; color: var(--tekst); border-top: 1px solid var(--rand); margin-top: 4px; padding-top: 9px; }
+.offerte-totaal .eind {
+  border-top: 2px solid var(--tekst);
+  margin-top: 8px;
+  padding-top: 11px;
+  font-weight: 700;
+  font-size: var(--fs-xl);
+  color: var(--tekst);
+  letter-spacing: -0.015em;
+}
 .offerte-totaal .eind span:last-child { color: var(--accent); }
-.offerte-noot { font-size: .78rem; color: var(--tekst-dim); margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--grijs-zacht); white-space: pre-wrap; }
-.leeg-melding { text-align: center; padding: 40px 14px; color: var(--tekst-dim); }
-.leeg-melding .groot-emoji { font-size: 2.2rem; display: block; margin-bottom: 8px; }
 
-/* ---------------- Tarievenlijst ---------------- */
-.tarievenlijst { display: flex; flex-direction: column; gap: 4px; }
-.tarief-groep { font-size: .74rem; text-transform: uppercase; letter-spacing: .05em; color: var(--tekst-dim); font-weight: 700; margin: 12px 0 4px; }
-.tarief { display: grid; grid-template-columns: 1fr 88px 52px; gap: 7px; align-items: center; font-size: .8rem; }
-.tarief input { padding: 5px 7px; text-align: right; font-variant-numeric: tabular-nums; }
-.tarief .eenheid { color: var(--tekst-dim); font-size: .75rem; }
-.tarief .naam { color: var(--tekst); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.tarief.is-taak .naam { color: var(--accent-2); }
-.tarief.is-m2 .naam { color: var(--amber); }
+.offerte-noot {
+  font-size: var(--fs-sm);
+  color: var(--tekst-2);
+  margin-top: var(--ruimte-5);
+  padding-top: var(--ruimte-3);
+  border-top: 1px solid var(--rand);
+  white-space: pre-wrap;
+  line-height: 1.55;
+}
+.offerte-voet {
+  display: none;
+  margin-top: var(--ruimte-5);
+  padding-top: var(--ruimte-3);
+  border-top: 1px solid var(--rand);
+  font-size: var(--fs-xs);
+  color: var(--tekst-3);
+  line-height: 1.6;
+}
 
-/* ---------------- Modal & toast ---------------- */
-.modal-achtergrond { position: fixed; inset: 0; background: rgba(16, 26, 40, .45); display: flex; align-items: center; justify-content: center; z-index: 60; padding: 20px; }
-.modal { background: var(--paneel); border-radius: 12px; padding: 18px; width: min(560px, 100%); max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,.3); }
-.modal h2 { color: var(--tekst); text-transform: none; letter-spacing: 0; font-size: 1.05rem; }
-.modal-acties { display: flex; justify-content: flex-end; margin-top: 16px; }
-.projectlijst { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
-.projectregel { display: flex; align-items: center; gap: 10px; border: 1px solid var(--rand); border-radius: 8px; padding: 9px 11px; }
-.projectregel .naam { font-weight: 600; flex: 1; }
-.projectregel .meta { font-size: .78rem; color: var(--tekst-dim); }
+.leeg-melding { text-align: center; padding: 44px 16px; color: var(--tekst-2); }
+.leeg-melding .groot-emoji {
+  display: block;
+  line-height: 0;
+  margin: 0 auto 12px;
+  width: 34px;
+  height: 34px;
+  color: var(--tekst-3);
+}
+.leeg-melding .groot-emoji .ico-svg { width: 34px; height: 34px; stroke-width: 1.4; }
+.leeg-melding b { color: var(--tekst); }
+
+/* ---------- 8. Dialoog, toast, lege staten ---------- */
+.modal-achtergrond {
+  position: fixed;
+  inset: 0;
+  background: rgba(16, 24, 40, 0.55);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 60;
+  padding: var(--ruimte-5);
+  animation: fade 160ms ease;
+}
+/* het hidden-attribuut moet winnen van de display:flex hierboven */
+.modal-achtergrond[hidden] { display: none; }
+.modal {
+  background: var(--oppervlak);
+  border-radius: var(--radius-l);
+  border: 1px solid var(--rand);
+  padding: var(--ruimte-5);
+  width: min(560px, 100%);
+  max-height: 82vh;
+  overflow-y: auto;
+  box-shadow: var(--schaduw-3);
+}
+.modal h2 { font-size: var(--fs-lg); text-transform: none; letter-spacing: -0.01em; color: var(--tekst); margin: 0 0 var(--ruimte-4); }
+.modal-acties { display: flex; justify-content: flex-end; margin-top: var(--ruimte-5); }
+.projectlijst { display: flex; flex-direction: column; gap: var(--ruimte-2); margin-top: var(--ruimte-3); }
+.projectregel {
+  display: flex;
+  align-items: center;
+  gap: var(--ruimte-3);
+  border: 1px solid var(--rand);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  background: var(--oppervlak-2);
+}
+.projectregel .naam { font-weight: 650; flex: 1; }
+.projectregel .meta { font-size: var(--fs-xs); color: var(--tekst-3); font-variant-numeric: tabular-nums; }
 
 .toast {
-  position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
-  background: var(--tekst); color: #fff; padding: 11px 18px; border-radius: 999px;
-  font-size: .87rem; font-weight: 600; z-index: 80; box-shadow: 0 8px 24px rgba(0,0,0,.25);
+  position: fixed;
+  bottom: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--tekst);
+  color: var(--oppervlak);
+  padding: 11px 18px;
+  border-radius: 999px;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  z-index: 80;
+  box-shadow: var(--schaduw-3);
+  animation: omhoog 200ms cubic-bezier(0.2, 0.9, 0.3, 1);
+  max-width: 90vw;
+  text-align: center;
 }
+.toast[hidden] { display: none; }
+@keyframes omhoog { from { opacity: 0; transform: translate(-50%, 12px); } to { opacity: 1; transform: translate(-50%, 0); } }
 
-/* ---------------- Responsief ---------------- */
-@media (max-width: 1280px) {
-  .layout { grid-template-columns: 290px minmax(0, 1fr); }
+/* ---------- 9. Responsief ---------- */
+@media (max-width: 1400px) {
+  .layout { grid-template-columns: 300px minmax(0, 1fr) 400px; }
+}
+@media (max-width: 1240px) {
+  .layout { grid-template-columns: 300px minmax(0, 1fr); }
   .offertepaneel { grid-column: 1 / -1; position: static; max-height: none; }
+  .offerte-totaal { width: 100%; max-width: 420px; }
 }
-@media (max-width: 860px) {
-  .layout { grid-template-columns: 1fr; }
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; padding: var(--ruimte-3); }
   .zijde { position: static; max-height: none; }
-  .topbar { position: static; }
+  .topbar { position: static; padding: 10px var(--ruimte-4); }
   .offerte-partijen { grid-template-columns: 1fr; }
-  .maten { grid-template-columns: 1fr 1fr 1fr; }
+  .merk p { display: none; }
+  .status { display: none; }
 }
 
-/* ---------------- Print: alleen de offerte ---------------- */
+/* ---------- 10. Afdrukken: een echt A4-offerte ---------- */
+@page { size: A4 portrait; margin: 14mm 14mm 16mm; }
+
 @media print {
-  @page { margin: 14mm; }
-  body { background: #fff; }
+  :root {
+    --bg: #fff;
+    --oppervlak: #fff;
+    --oppervlak-2: #fff;
+    --oppervlak-3: #f4f4f5;
+    --rand: #d4d4d8;
+    --rand-sterk: #a1a1aa;
+    --tekst: #000;
+    --tekst-2: #3f3f46;
+    --tekst-3: #71717a;
+    --accent: #000;
+    --goud: #000;
+    --groen: #000;
+    --rood: #000;
+  }
+
+  html, body { background: #fff; }
+
+  /* alleen het offertedocument overhouden */
   body > *:not(.layout) { display: none !important; }
-  .layout { display: block; padding: 0; }
+  .layout { display: block; padding: 0; max-width: none; }
   .zijde, .werkvlak { display: none !important; }
-  .offertepaneel { border: none; box-shadow: none; padding: 0; max-height: none; position: static; }
-  .offerte { font-size: 11pt; }
-  table.offerte-tabel { font-size: 9.5pt; }
-  .offerte-totaal { width: 260px; }
-  tr, .offerte-partijen, .offerte-totaal { break-inside: avoid; }
-  .offerte-kop h2 { font-size: 15pt; }
+  .offertepaneel {
+    border: 0;
+    box-shadow: none;
+    padding: 0;
+    max-height: none;
+    position: static;
+    background: #fff;
+  }
+  .offerte { font-size: 10.5pt; color: #000; }
+
+  /* typografie voor papier */
+  .offerte-kop { border-bottom: 1.5pt solid #000; margin-bottom: 10pt; padding-bottom: 6pt; }
+  .offerte-kop h2 { font-size: 17pt; letter-spacing: -0.01em; }
+  .offerte-partijen { grid-template-columns: 1fr 1fr; gap: 8pt; margin-bottom: 12pt; }
+  .offerte-partijen > div { border: 0.5pt solid #d4d4d8; border-radius: 3pt; padding: 6pt 8pt; }
+  .offerte-partijen h4 { font-size: 7.5pt; }
+  table.offerte-tabel { font-size: 9.5pt; margin-bottom: 10pt; }
+  table.offerte-tabel th:nth-child(2) { width: 27mm; }
+  table.offerte-tabel th:nth-child(3) { width: 25mm; }
+  table.offerte-tabel th:nth-child(4) { width: 29mm; }
+  table.offerte-tabel th { border-bottom: 0.75pt solid #a1a1aa; padding-bottom: 4pt; }
+  table.offerte-tabel td { padding: 5pt 6pt 5pt 0; border-bottom: 0.5pt solid #e4e4e7; }
+  table.offerte-tabel tr.ruimte-kop td { background: #f4f4f5 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .offerte-totaal { width: 240pt; font-size: 10pt; border-top: 0.75pt solid #a1a1aa; }
+  .offerte-totaal .eind { border-top: 1.5pt solid #000; color: #000; }
+  .offerte-totaal .eind span:last-child { color: #000; }
+  .offerte-noot { font-size: 8.5pt; border-top: 0.5pt solid #d4d4d8; padding-top: 6pt; }
+  .offerte-voet { display: block; font-size: 8pt; color: #52525b; }
+
+  /* onderbrekingen vermijden */
+  tr, .offerte-partijen, .offerte-totaal, .offerte-kop { break-inside: avoid; page-break-inside: avoid; }
+  thead { display: table-header-group; }
+  h2, h3, h4 { break-after: avoid; page-break-after: avoid; }
 }
 
 </style>
@@ -309,18 +950,25 @@ table.offerte-tabel tr.ruimte-kop td { background: var(--paneel-2); font-weight:
 
 <header class="topbar">
   <div class="merk">
-    <span class="logo">🏗️</span>
+    <span class="logo" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 20h18"></path>
+        <path d="M5 20V9.5L12 4l7 5.5V20"></path>
+        <path d="M9.5 20v-5.5h5V20"></path>
+      </svg>
+    </span>
     <div>
       <h1>Bouwprijscalculator</h1>
       <p>Gyproc · isolatie · afwerking — prijs per m² uit je eigen maten</p>
     </div>
   </div>
   <div class="topbar-acties">
-    <span class="status" id="status" aria-live="polite"></span>
-    <button type="button" class="knop" id="btn-nieuw">🆕 Nieuw</button>
-    <button type="button" class="knop" id="btn-opslaan">💾 Opslaan</button>
-    <button type="button" class="knop" id="btn-openen">📂 Openen</button>
-    <button type="button" class="knop primair" id="btn-print">🖨 Offerte printen</button>
+    <span class="status" id="status" role="status" aria-live="polite"></span>
+    <button type="button" class="knop" id="btn-nieuw" title="Nieuwe offerte beginnen"><svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V7z"/><path d="M14 3v4h4"/><path d="M12 11v6M9 14h6"/></svg> Nieuw</button>
+    <button type="button" class="knop" id="btn-opslaan" title="Offerte opslaan"><svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h12l4 4v12H4z"/><path d="M8 4v6h8V4"/><path d="M8 20v-6h8v6"/></svg> Opslaan</button>
+    <button type="button" class="knop" id="btn-openen" title="Opgeslagen offertes openen"><svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg> Openen</button>
+    <button type="button" class="knop primair" id="btn-print" title="Offerte printen of als pdf opslaan"><svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 9V4h10v5"/><path d="M7 18H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2"/><path d="M7 14h10v6H7z"/></svg> Offerte printen</button>
   </div>
 </header>
 
@@ -328,13 +976,13 @@ table.offerte-tabel tr.ruimte-kop td { background: var(--paneel-2); font-weight:
 
   <!-- ================= LINKERZIJDE: project, instellingen, tarieven ================= -->
   <aside class="paneel zijde" id="zijde">
-    <nav class="tabs" role="tablist">
-      <button class="tab actief" data-tab="project" role="tab">Project</button>
-      <button class="tab" data-tab="instellingen" role="tab">Prijzen</button>
-      <button class="tab" data-tab="tarieven" role="tab">Tarieven</button>
+    <nav class="tabs" role="tablist" aria-label="Onderdelen">
+      <button class="tab actief" data-tab="project" role="tab" aria-selected="true" aria-controls="paneel-project" id="tab-project">Project</button>
+      <button class="tab" data-tab="instellingen" role="tab" aria-selected="false" aria-controls="paneel-instellingen" id="tab-instellingen">Prijzen</button>
+      <button class="tab" data-tab="tarieven" role="tab" aria-selected="false" aria-controls="paneel-tarieven" id="tab-tarieven">Tarieven</button>
     </nav>
 
-    <section class="tabpaneel actief" data-paneel="project">
+    <section class="tabpaneel actief" data-paneel="project" role="tabpanel" id="paneel-project" aria-labelledby="tab-project">
       <h2>Offertegegevens</h2>
       <label class="veld">
         <span>Project / offerte</span>
@@ -350,7 +998,7 @@ table.offerte-tabel tr.ruimte-kop td { background: var(--paneel-2); font-weight:
       </label>
       <div class="rij">
         <label class="veld">
-          <span>Offerte-nummer</span>
+          <span>Offertenummer</span>
           <input type="text" data-project="offerte_nummer" data-fokus="p_num" placeholder="O-2026-001">
         </label>
         <label class="veld">
@@ -368,13 +1016,13 @@ table.offerte-tabel tr.ruimte-kop td { background: var(--paneel-2); font-weight:
                   placeholder="Prijsberekening op basis van de opgegeven maten. Werkzaamheden conform de gangbare normen."></textarea>
       </label>
       <div class="openings-acties" style="margin-top:6px">
-        <button type="button" class="knop klein" id="btn-export">⬇ Exporteer JSON</button>
-        <button type="button" class="knop klein" id="btn-import">⬆ Importeer JSON</button>
+        <button type="button" class="knop klein" id="btn-export"><svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="M7 11l5 5 5-5"/><path d="M4 20h16"/></svg> Exporteer JSON</button>
+        <button type="button" class="knop klein" id="btn-import"><svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3"/><path d="M7 7l5-5 5 5"/><path d="M4 20h16"/></svg> Importeer JSON</button>
         <input type="file" id="import-bestand" accept="application/json" hidden>
       </div>
     </section>
 
-    <section class="tabpaneel" data-paneel="instellingen">
+    <section class="tabpaneel" data-paneel="instellingen" role="tabpanel" id="paneel-instellingen" aria-labelledby="tab-instellingen" hidden>
       <h2>Uurtarief & marges</h2>
       <div class="rij">
         <label class="veld">
@@ -412,7 +1060,7 @@ table.offerte-tabel tr.ruimte-kop td { background: var(--paneel-2); font-weight:
         <em>Tarieven</em>.</p>
     </section>
 
-    <section class="tabpaneel" data-paneel="tarieven">
+    <section class="tabpaneel" data-paneel="tarieven" role="tabpanel" id="paneel-tarieven" aria-labelledby="tab-tarieven" hidden>
       <h2>Prijsboek</h2>
       <p class="hint">Pas de prijzen aan op jouw inkoop. De waarde wordt meteen doorberekend
         in de offerte.</p>
@@ -445,7 +1093,7 @@ table.offerte-tabel tr.ruimte-kop td { background: var(--paneel-2); font-weight:
   </div>
 </div>
 
-<div class="toast" id="toast" hidden></div>
+<div class="toast" id="toast" hidden role="status" aria-live="polite"></div>
 
 <script>
 
@@ -1443,6 +2091,26 @@ const OPSLAG_LIJST = "bouwcalculator-projecten-v1";
 const NR = new Intl.NumberFormat("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const NRL = new Intl.NumberFormat("nl-BE", { maximumFractionDigits: 2 });
 
+/* ---------------- iconen (SVG, niet emoji: rendert overal hetzelfde) ---------------- */
+const ico = (pad, extra = "") =>
+  `<svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ${extra}>${pad}</svg>`;
+
+const ICO = {
+  plus: ico('<path d="M12 5v14M5 12h14"/>'),
+  deur: ico('<path d="M5 21V4a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v17"/><path d="M3 21h18"/><path d="M13 12h.01"/>'),
+  raam: ico('<rect x="4" y="4" width="16" height="16" rx="1"/><path d="M12 4v16M4 12h16"/>'),
+  prullenbak: ico('<path d="M4 7h16M10 11v6M14 11v6"/><path d="M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13"/><path d="M9 7V4h6v3"/>'),
+  document: ico('<path d="M14 3H7a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V7z"/><path d="M14 3v4h4"/><path d="M9 13h6M9 17h4"/>'),
+  kruis: ico('<path d="M6 6l12 12M18 6L6 18"/>'),
+};
+
+function datumTekst(datum) {
+  const d = String(datum || "").trim();
+  const p = d.split("-");
+  return p.length === 3 && p.every((x) => x !== "") ? `${p[2]}-${p[1]}-${p[0]}` : d;
+}
+
 const state = {
   project: null,
   projectId: null,
@@ -1642,7 +2310,7 @@ function renderRuimteChips() {
     <button type="button" class="ruimtechip ${r.id === state.actieveRuimteId ? "actief" : ""}"
             data-actie="ruimte-kiezen" data-id="${esc(r.id)}"
             data-fokus="chip_${esc(r.id)}">${esc(r.naam || "Ruimte")}</button>
-  `).join("") + `<button type="button" class="ruimtechip" data-actie="ruimte-toevoegen">＋ Ruimte</button>`;
+  `).join("") + `<button type="button" class="ruimtechip" data-actie="ruimte-toevoegen">${ICO.plus} Ruimte</button>`;
 }
 
 function renderRuimtekaart(ruimte) {
@@ -1658,7 +2326,7 @@ function renderRuimtekaart(ruimte) {
       <td><input type="number" step="0.05" min="0" value="${esc(o.hoogte)}" data-opening="${i}"
                  data-opening-veld="hoogte" data-fokus="o_${ruimte.id}_${i}_h" style="width:74px"></td>
       <td><button type="button" class="verwijder" data-actie="opening-verwijderen" data-index="${i}"
-                  title="Verwijderen">✕</button></td>
+                  title="Verwijderen" aria-label="Verwijderen">${ICO.kruis}</button></td>
     </tr>`).join("");
 
   return `
@@ -1667,7 +2335,7 @@ function renderRuimtekaart(ruimte) {
                  data-fokus="r_${ruimte.id}_naam"
                  style="font-weight:700;font-size:1rem;border:0;background:transparent;padding:2px 0;width:220px"></h3>
       <span class="klein-muted">lengte × breedte × hoogte (m)</span>
-      <button type="button" class="knop klein gevaar" data-actie="ruimte-verwijderen">🗑 Ruimte weg</button>
+      <button type="button" class="knop klein gevaar" data-actie="ruimte-verwijderen">${ICO.prullenbak} Ruimte weg</button>
     </header>
     <div class="maten">
       <label class="veld"><span>Lengte</span>
@@ -1687,8 +2355,8 @@ function renderRuimtekaart(ruimte) {
         <tbody>${openingen}</tbody></table>`
         : '<p class="klein-muted">Geen openingen. Klik hieronder om een deur of raam toe te voegen.</p>'}
       <div class="openings-acties">
-        <button type="button" class="knop klein" data-actie="opening-toevoegen" data-soort="Deur">＋ Deur</button>
-        <button type="button" class="knop klein" data-actie="opening-toevoegen" data-soort="Raam">＋ Raam</button>
+        <button type="button" class="knop klein" data-actie="opening-toevoegen" data-soort="Deur">${ICO.deur} Deur</button>
+        <button type="button" class="knop klein" data-actie="opening-toevoegen" data-soort="Raam">${ICO.raam} Raam</button>
       </div>
     </div>`;
 }
@@ -1748,8 +2416,8 @@ function renderRegelkaart(regel, vlakken) {
       <select data-pakket data-fokus="r_${regel.id}_pakket">
         ${pakketten.map((p) => `<option value="${esc(p.id)}" ${p.id === regel.pakket_id ? "selected" : ""}>${esc(p.naam)}</option>`).join("")}
       </select>
-      <button type="button" class="knop klein gevaar" data-actie="regel-verwijderen"
-              data-id="${esc(regel.id)}">🗑</button>
+      <button type="button" class="knop klein gevaar ico-only" data-actie="regel-verwijderen"
+              data-id="${esc(regel.id)}" aria-label="Regel verwijderen">${ICO.prullenbak}</button>
     </header>
     <div class="regelopties">
       ${optieVelden}
@@ -1846,10 +2514,12 @@ function renderOfferte() {
   if (!offerte.regels.length) {
     container.innerHTML = `
       <div class="offerte-kop"><h2>Offerte</h2>
-        <div class="meta"><span>${esc(project.offerte_nummer)}</span><span>${esc(project.datum)}</span></div></div>
+        <div class="meta"><span>${esc(project.offerte_nummer || "—")}</span><span>${esc(datumTekst(project.datum))}</span></div></div>
       <div class="leeg-melding">
-        <span class="groot-emoji">📋</span>
-        Nog geen werk gekozen.<br>Voeg een ruimte toe en klik bij een oppervlak op <b>+ werk</b>.
+        <span class="groot-emoji">${ICO.document}</span>
+        Nog geen werk gekozen.<br>
+        Voeg een ruimte toe, klik bij een oppervlak op <b>+ werk</b> en de offerte
+        vult zichzelf aan.
       </div>`;
     return;
   }
@@ -1865,18 +2535,21 @@ function renderOfferte() {
     const regels = perRuimte.get(ruimte.id) || [];
     if (!regels.length) continue;
     rijen.push(`<tr class="ruimte-kop">
-        <td colspan="5">${esc(ruimte.naam)}
+        <td colspan="4">${esc(ruimte.naam)}
           <span class="klein-muted">· ${NRL.format(ruimte.lengte)} × ${NRL.format(ruimte.breedte)} × ${NRL.format(ruimte.hoogte)} m</span>
         </td></tr>`);
     for (const regel of regels) {
+      // Opties die al in de omschrijving staan (zoals bij de detailschuif)
+      // herhalen we niet — anders staat elke optie twee keer in de offerte.
       const opties = Object.entries(regel.opties || {})
         .filter(([, waarde]) => waarde && waarde !== "geen" && waarde !== "1 zijde")
+        .filter(([, waarde]) => !regel.omschrijving.includes(waarde))
         .map(([id, waarde]) => `${id}: ${waarde}`).join(" · ");
       rijen.push(`<tr>
-        <td>${esc(regel.omschrijving)}
+        <td><span class="klein-muted">${NRL.format(regel.aantal)} ${esc(regel.eenheid)}</span>
+          ${esc(regel.omschrijving)}
           ${opties ? `<br><span class="klein-muted">${esc(opties)}</span>` : ""}
           ${regel.notitie ? `<br><span class="klein-muted">${esc(regel.notitie)}</span>` : ""}</td>
-        <td class="num">${NRL.format(regel.aantal)} ${esc(regel.eenheid)}</td>
         <td class="num">${eur(regel.materiaal_kosten)}</td>
         <td class="num">${eur(regel.arbeidskosten)}</td>
         <td class="num"><b>${eur(regel.totaal)}</b></td></tr>`);
@@ -1885,10 +2558,13 @@ function renderOfferte() {
 
   container.innerHTML = `
     <div class="offerte-kop">
-      <h2>Offerte</h2>
+      <div>
+        <h2>Offerte</h2>
+        ${project.naam ? `<p class="offerte-project">${esc(project.naam)}</p>` : ""}
+      </div>
       <div class="meta">
         <span>${esc(project.offerte_nummer || "—")}</span>
-        <span>${esc(project.datum || "")}</span>
+        <span>${esc(datumTekst(project.datum))}</span>
       </div>
     </div>
     <div class="offerte-partijen">
@@ -1902,11 +2578,9 @@ function renderOfferte() {
         ${project.adres ? `<p>${esc(project.adres)}</p>` : ""}
       </div>
     </div>
-    <p class="klein-muted" style="margin-bottom:12px">
-      <b>Project:</b> ${esc(project.naam)}</p>
     <table class="offerte-tabel">
       <thead><tr>
-        <th>Omschrijving</th><th class="num">Aantal</th>
+        <th>Omschrijving</th>
         <th class="num">Materiaal</th><th class="num">Arbeid</th><th class="num">Totaal</th>
       </tr></thead>
       <tbody>${rijen.join("")}</tbody>
@@ -1920,7 +2594,11 @@ function renderOfferte() {
       <div><span>BTW ${NRL.format(totalen.btw_pct)}%</span><span>${eur(totalen.btw)}</span></div>
       <div class="eind"><span>Totaal</span><span>${eur(totalen.totaal)}</span></div>
     </div>
-    ${project.opmerking ? `<p class="offerte-noot">${esc(project.opmerking)}</p>` : ""}`;
+    ${project.opmerking ? `<p class="offerte-noot">${esc(project.opmerking)}</p>` : ""}
+    <p class="offerte-voet">
+      ${esc(project.aannemer || "Aannemer")} · ${esc(project.naam || "Project")} ·
+      ${esc(project.offerte_nummer || "Offerte")} · ${esc(datumTekst(project.datum))}
+    </p>`;
 }
 
 /* ---------------- render ---------------- */
@@ -2040,9 +2718,9 @@ async function openenDialog() {
         <div class="projectregel">
           <span class="naam">${esc(p.naam)}<br><span class="meta">${esc(p.klant || "—")} · ${esc(p.ruimtes)} ruimte(s) · ${esc(p.gewijzigd || "")}</span></span>
           <button type="button" class="knop klein" data-actie="project-laden" data-id="${esc(p.id)}">Openen</button>
-          <button type="button" class="knop klein gevaar" data-actie="project-verwijderen" data-id="${esc(p.id)}">🗑</button>
+          <button type="button" class="knop klein gevaar ico-only" data-actie="project-verwijderen" data-id="${esc(p.id)}" aria-label="Offerte verwijderen">${ICO.prullenbak}</button>
         </div>`).join("")}</div>`
-    : "<p class='hint'>Nog geen opgeslagen offertes. Sla je huidige offerte op met 💾.</p>";
+    : `<p class="hint">Nog geen opgeslagen offertes. Sla je huidige offerte op met de knop <b>Opslaan</b>.</p>`;
 }
 
 function exporteerJson() {
@@ -2311,11 +2989,24 @@ async function laadLokaleEngine() {
 
 async function init() {
   $$(".tab").forEach((tab) => tab.addEventListener("click", () => {
-    $$(".tab").forEach((t) => t.classList.toggle("actief", t === tab));
-    $$(".tabpaneel").forEach((p) => p.classList.toggle("actief", p.dataset.paneel === tab.dataset.tab));
+    $$(".tab").forEach((t) => {
+      const actief = t === tab;
+      t.classList.toggle("actief", actief);
+      t.setAttribute("aria-selected", actief ? "true" : "false");
+    });
+    $$(".tabpaneel").forEach((p) => {
+      const actief = p.dataset.paneel === tab.dataset.tab;
+      p.classList.toggle("actief", actief);
+      p.hidden = !actief;
+    });
   }));
 
   try {
+    // Lokaal geopend bestand (file://) kent geen API — dan direct de
+    // ingesloten rekenkern gebruiken, zonder storende fetch-fouten.
+    if (!/^https?:$/.test(location.protocol)) {
+      throw new Error("lokaal bestand");
+    }
     const antwoord = await fetch("/api/prijsboek");
     state.prijsboek = await antwoord.json();
     state.opslag = state.prijsboek.opslag || "server";
