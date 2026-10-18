@@ -59,6 +59,12 @@ if [ "$alleen_controle" -eq 0 ]; then
 
   # Token: uit de omgeving, anders uit de wrangler-login, anders vragen.
   if [ -z "${CLOUDFLARE_API_TOKEN:-}" ] && [ ! -f "$HOME/.config/.wrangler/config/default.toml" ]; then
+    if [ ! -t 0 ]; then
+      echo "    Geen API-token en geen wrangler-login gevonden." >&2
+      echo "    Zet het token in de omgeving en draai opnieuw:" >&2
+      echo "      CLOUDFLARE_API_TOKEN=<jouw-token> bash bouwcalculator/deploy/nu-publiceren.sh" >&2
+      exit 1
+    fi
     echo "    Geen API-token en geen wrangler-login gevonden."
     echo "    Maak een token aan op https://dash.cloudflare.com/profile/api-tokens"
     echo "    met de rechten 'Edit Cloudflare Workers' ( Workers Scripts: Edit )."
@@ -78,8 +84,14 @@ if [ "$alleen_controle" -eq 0 ]; then
   # 1. Deployen
   # ------------------------------------------------------------
   echo "==> Deployen naar Cloudflare Workers"
-  npx --yes wrangler@4 deploy < /dev/null
-  deploy_rc=$?
+  log="$(mktemp)"
+  npx --yes wrangler@4 deploy < /dev/null 2>&1 | tee "$log"
+  deploy_rc=${PIPESTATUS[0]}
+  # Het URL dat wraangler noemt is de waarheid (bv. bij een ander account).
+  echte_url=$(grep -oE 'https://[a-z0-9.-]+\.workers\.dev' "$log" | head -1)
+  if [ -n "$echte_url" ]; then
+    URL="${echte_url%/}"
+  fi
   if [ "$deploy_rc" -ne 0 ]; then
     echo
     echo "    Deploy gaf een fout (exit $deploy_rc)." >&2
@@ -89,8 +101,10 @@ if [ "$alleen_controle" -eq 0 ]; then
     echo "      • netwerkfout → proxy/VPN of verkeerde tokenregio" >&2
     echo "    Probeer daarna opnieuw:" >&2
     echo "      bash bouwcalculator/deploy/nu-publiceren.sh" >&2
+    rm -f "$log"
     exit "$deploy_rc"
   fi
+  rm -f "$log"
   echo
 fi
 
