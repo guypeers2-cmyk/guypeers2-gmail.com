@@ -5,6 +5,11 @@
 > 🌐 **URL:** <https://patient-sun-c959.guypeers2.workers.dev>
 > Cloudflare Worker · publiceren met **één commando**:
 > `bash bouwcalculator/deploy/nu-publiceren.sh` (vanuit de repo-map!)
+>
+> 🧳 **Direct openen (geen installatie):**
+> <https://cdn.jsdelivr.net/gh/guypeers2-cmyk/guypeers2-gmail.com@v1.0.1/bouwcalculator/bouwcalculator.html>
+> — de hele app in één HTML-bestand, rekent in de browser.
+> Release: <https://github.com/guypeers2-cmyk/guypeers2-gmail.com/releases/tag/v1.0.1>
 
 Een zelfstandige webapp (zonder dependencies, pure Python-stdlib) waarmee een
 bouwer of werknemer vanuit de maten van een ruimte een offerte opstelt:
