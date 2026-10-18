@@ -40,7 +40,7 @@
   window.BouwSleep = {projectDelta,boundedDelta,positieActie};
   const host = document.querySelector('#plan');
   if (!host) return;
-  let drag = null, suppressClickUntil = 0;
+  let drag = null, suppressClickUntil = 0, lastTap = null;
   const copy = v => JSON.parse(JSON.stringify(v));
   const coord = n => Math.round(n*1000)/1000;
   const note = text => {const el=document.querySelector('#plan-sleepstatus'); if(el) el.textContent=text;};
@@ -112,6 +112,7 @@
     renderPlan();
   }
   function commit(d) {
+    lastTap=null;
     bewaarLokaal();
     if (d.isOpening) {
       const kaart=document.querySelector('#ruimtekaart');
@@ -133,20 +134,30 @@
     host.classList.remove('is-slepen');
     if (!d.moved) {
       suppressClickUntil=performance.now()+500;
-      if (cancel) {note('Verplaatsing geannuleerd.');return;}
+      if (cancel) {lastTap=null;note('Verplaatsing geannuleerd.');return;}
       if (d.isOpening) {
         selecteerPlanOpening(d.index);
       } else selecteerPlanRegel(d.model.id);
+      // Pointer capture retargets native dblclick to the host. Recognize stable
+      // double activation from the prepared object, never from an empty canvas.
+      const key=JSON.stringify([d.room.id,d.isOpening?'opening':'regel',d.isOpening?d.index:d.model.id]);
+      const now=performance.now();
+      if(lastTap?.key===key&&now-lastTap.time<450&&Math.hypot(d.startX-lastTap.x,d.startY-lastTap.y)<8){
+        lastTap=null;document.dispatchEvent(new Event('bouw-teken-eigenschappen'));
+      }else lastTap={key,time:now,x:d.startX,y:d.startY};
       return;
     }
+    lastTap=null;
     suppressClickUntil=performance.now()+500;
     if (cancel) {restore(d);note('Verplaatsing geannuleerd.');}
     else commit(d);
   }
+  document.addEventListener('pointerdown',e=>{if(!host.contains(e.target))lastTap=null;},true);
+  document.addEventListener('keydown',()=>{lastTap=null;},true);
   host.addEventListener('pointerdown',e=>{
     if (drag || !e.isPrimary || e.button!==0) return;
     const d=prepare(e.target),point=svgPoint(e);
-    if (!d || !point) return;
+    if (!d || !point) {lastTap=null;return;}
     drag={...d,point,startX:e.clientX,startY:e.clientY,pointerId:e.pointerId,moved:false};
     host.setPointerCapture(e.pointerId);
   });

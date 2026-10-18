@@ -81,3 +81,23 @@ function sluitTekenFocus() {
     renderPlan();host.focus({preventScroll:true});
   },true);
 })();
+
+/* Familiar drawing shortcuts only while focus is inside this drawing. */
+(function(){
+  const host=document.getElementById('plan');
+  document.addEventListener('keydown',e=>{
+    if(e.defaultPrevented||e.isComposing||e.repeat||e.ctrlKey||e.metaKey||e.altKey||!e.target.closest?.('#tekening')||e.target.closest('input,textarea,select')||e.target.isContentEditable)return;
+    const key=e.key.toLowerCase(),tool={v:'select',h:'hand',m:'meet'}[key];
+    if(!tool&&key!=='f')return;
+    e.preventDefault();
+    const button=document.querySelector(tool?`[data-plan-gereedschap="${tool}"]`:'[data-camera="reset"]');
+    button?.click();
+    const selected=planGereedschap==='select'&&[...host.querySelectorAll('[data-plan-drag]')].find(el=>planSelectie?.type==='regel'?el.dataset.planRegel===planSelectie.id:planSelectie?.type==='opening'&&Number(el.dataset.openingIndex)===planSelectie.index);
+    (selected||host).focus({preventScroll:true});
+  });
+  document.addEventListener('bouw-teken-eigenschappen',()=>{
+    if(planGereedschap!=='select'||!planSelectie)return;
+    if(document.getElementById('plan-inspector').hidden)document.getElementById('plan-eigenschappen').click();
+    else document.querySelector('#plan-inspector input,#plan-inspector select')?.focus({preventScroll:true});
+  });
+})();

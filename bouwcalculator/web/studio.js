@@ -34,7 +34,7 @@
     const room=actieveRuimte(), summary=$('#studio-room-summary');
     const floor=room&&vlakkenVoor(room).find(v=>v.sleutel==='vloer');
     const count=room?state.project.regels.filter(w=>w.ruimte_id===room.id).length:0;
-    const ready=calculationReady(), unavailable=/mislukt|kan de rekenkern niet laden/i.test($('#status').textContent);
+    const ready=calculationReady(), unavailable=state.rekenStatus==='error';
     summary.hidden=house||!room;
     summary.textContent=room?`${ready&&floor?NRL.format(floor.bruto)+' m² vloer':unavailable?'Oppervlakte niet beschikbaar':'Oppervlakte wordt berekend'} · ${count} ${count===1?'werkpost':'werkposten'}`:'';
   }
@@ -43,7 +43,7 @@
   const roomDialog=$('#studio-rooms'), roomQuery=$('#studio-room-query');
   let roomOpener=null, restoreRoomFocus=true;
   const normalize = text => String(text).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('nl-BE');
-  function calculationReady() {return !!state.offerte&&!/Berekenen|mislukt|kan de rekenkern niet laden/i.test($('#status').textContent);}
+  function calculationReady() {return !!state.offerte&&state.rekenStatus==='ready';}
   function renderRooms() {
     const rooms=state.project?.ruimtes||[], query=normalize(roomQuery.value.trim());
     const counts=new Map(), amounts=new Map();
@@ -176,9 +176,9 @@
   window.addEventListener('resize',measure,{passive:true});
   window.addEventListener('wheel',()=>{pending=null;sync();},{passive:true});
   window.addEventListener('touchstart',()=>{pending=null;sync();},{passive:true});
-  new MutationObserver(()=>{
+  function feedback(){
     const text=$('#status').textContent,failed=/mislukt|kan de rekenkern niet laden/i.test(text);
-    $('#studio-feedback').hidden=!failed;$('#studio-feedback').textContent=failed?text:'';
+    $('#studio-feedback').hidden=state.rekenStatus!=='error'&&!failed;$('#studio-feedback').textContent=state.rekenStatus==='error'?'Berekening mislukt — open Offerte en kies Opnieuw berekenen.':failed?text:'';
     context();
     if(roomDialog.open){
       const focused=document.activeElement?.closest('[data-room-id]')?.dataset.roomId;
@@ -186,7 +186,9 @@
       if(focused)[...roomDialog.querySelectorAll('[data-room-id]')].find(b=>b.dataset.roomId===focused)?.focus({preventScroll:true});
       $('#studio-room-results').scrollTop=top;
     }
-  }).observe($('#status'),{childList:true,subtree:true,characterData:true});
+  }
+  new MutationObserver(feedback).observe($('#status'),{childList:true,subtree:true,characterData:true});
+  document.addEventListener('bouw-rekenstatus',feedback);
   if(typeof ResizeObserver!=='undefined'){
     const observer=new ResizeObserver(measure);observer.observe($('.topbar'));observer.observe(rail);
   }

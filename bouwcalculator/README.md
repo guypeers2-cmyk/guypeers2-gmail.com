@@ -103,6 +103,123 @@ andere reviews. De app zelf blijft zonder externe dependencies werken.
 projectkorting, laden, gecombineerde filters, conceptvelden, scrollherstel,
 320–1440 px, printisolatie en ongewijzigde projectgegevens/totaal/historie.
 
+## Betrouwbare huisselectie en plaatsing
+
+Kamers buiten het huisplan kunnen nu ook in de huislijst echt geselecteerd en
+rechtstreeks geopend worden. De vorige kamer blijft niet ongemerkt gemarkeerd.
+De selectiestatus, kamergegevens en X/Y-invoer verwijzen naar dezelfde kamer;
+indelen is pas beschikbaar zodra die kamer op het plan staat. De melding
+**buiten plan** opent de plaatsingssectie bij een nog niet geplaatste kamer.
+
+De coördinaten volgen kamerselectie en undo/redo. Handmatig ingevoerde, nog niet
+bevestigde posities blijven bij camerabediening behouden, met **Nog niet toegepast**.
+Een expliciete kamerwissel of vervanging van het project herstelt de werkelijke
+positie. Ongeldige plaatsing verandert geen projectdata. Van het plan halen vraagt
+bevestiging en behoudt de kamer, werkposten en offertebedragen.
+
+Browsercontrole: `tools/huis_placement_review.mjs` (online/offline), inclusief
+ongeldige plaatsing, conceptinvoer, kamerselectie, waarschuwing, bevestiging,
+undo/redo tijdens een snede en 320–1440 px.
+
+## Veiliger bewaren en back-ups
+
+Mislukt automatisch bewaren in de browser (bijvoorbeeld volle of geblokkeerde
+opslag), dan blijft een waarschuwing staan met **JSON-back-up downloaden** en
+**Bewaren opnieuw proberen**. Berekenen of navigeren wist die waarschuwing niet.
+Een JSON-download bevat de huidige offerte; het is geen export van het hele
+archief en de app kan niet bevestigen dat je browser het bestand heeft bewaard.
+De waarschuwing verdwijnt daarom pas na een geslaagde opslagpoging.
+
+Conceptopslag en opgeslagen offertes worden afzonderlijk gecontroleerd. Een
+ongeldig of onleesbaar lokaal offertearchief wordt niet overschreven met een
+nieuwe, lege lijst. Een mislukte lokale verwijderactie meldt geen succes en
+behoudt de offerte. De waarschuwing verschijnt ook op mobiel en bij Tarieven,
+maar nooit in de offerteprint.
+
+Tijdens expliciet opslaan is de opslagknop tijdelijk geblokkeerd. De app slaat
+een vaste momentopname op: wijzigingen tijdens de aanvraag blijven behouden en
+worden als nog niet opgeslagen gemeld. Een vertraagd antwoord voor een vorige
+offerte krijgt nooit het opslag-ID van een nieuw geopende offerte toegewezen.
+Geometrieklonen en undo/redo blijven wel bij hetzelfde document horen.
+
+Regressie: `tools/storage_review.mjs` simuleert volle/geblokkeerde opslag,
+beschadigde archieven, back-upinhoud, herstel, verwijderen, dubbele aanvragen,
+projectwissels, tussentijdse wijzigingen, HTTP-fouten en mobiel/print.
+
+## Actuele berekeningen en printveiligheid
+
+Berekenen heeft een eigen UI-status, los van opslaan. Bij invoer wordt een lopend
+ouder antwoord meteen ongeldig, ook tijdens de korte wachttijd vóór herberekenen.
+In die wachttijd toont het navigatietotaal een ellips; bij een fout een streep.
+Kamerbedragen en vloerinzichten gebruiken dezelfde status. Een opslagmelding kan
+geen rekenfout wissen en een opslagfout maakt een geldige berekening niet ongeldig.
+Bij een nieuwe offerte worden de uitkomsten van het vorige project gewist.
+
+De offerte bevat bij wachten/falen een waarschuwing dat eerdere bedragen niet
+actueel zijn. Bij fouten is **Opnieuw berekenen** beschikbaar. De printknop van de
+app werkt alleen met een actuele berekening; gebruik je de browserprintfunctie toch, dan
+staat de waarschuwing ook op de afdruk. Een normale actuele offerte houdt de
+bestaande printopmaak. Dit is geen wijziging van het prijsmodel.
+
+Regressie: `tools/calculation_review.mjs` test fout/herstel, onafhankelijke
+opslagstatus, vertraagde antwoorden tijdens de debounce, printbewaking en
+ongewijzigde projectgegevens, totalen en historie.
+
+## Opgeslagen offertes terugvinden
+
+**Bestand → Openen** heeft een doorzoekbare lijst: zoek op projectnaam of klant
+(ook zonder accenten) en sorteer op wijzigingsdatum of natuurlijke projectnaam.
+De zoekbalk en sluitknop blijven zichtbaar terwijl de lijst afzonderlijk scrollt.
+Een teller maakt onderscheid tussen een leeg archief en een zoekterm zonder hits.
+De opslaglocatie staat erbij: deze browser of je server.
+
+Het venster is een native dialoog met toetsenbordfocus binnen het venster.
+Pijl omlaag vanuit zoeken focust Openen; Escape sluit ook met een ingevulde
+zoekterm en herstelt de bestandmenu-focus. Openen van een offerte focust juist de
+tekening. Bij wijzigingen sinds de laatste opening of expliciete opslag vraagt
+de app bevestiging vóór vervangen; annuleren laat de huidige offerte intact.
+
+Laadfouten verschijnen in het venster met Opnieuw laden. Na sluiten worden late
+laadreacties genegeerd. Ook serververwijdering controleert nu het echte resultaat,
+in plaats van altijd succes te melden. Zoekterm/sortering blijven bij het
+verversen na verwijderen behouden. De prijs- en geometriekern zijn ongewijzigd.
+
+Regressie: `tools/archive_review.mjs` met 23 offertes, zoeken/sorteren, focus,
+bevestigingen, laad-/verwijderfouten, vertraagde antwoorden en 320–1440 px.
+
+## Lichte en donkere weergave
+
+De app opent standaard **licht**, ook als het apparaat donker is ingesteld.
+Open het **bestandsmenu (mapje rechtsboven) → Weergave** voor **Licht**, **Donker**
+of **Systeem**. Systeem volgt ook wijzigingen van de apparaatinstelling terwijl
+je werkt. Een expliciete lichte/donkere keuze heeft altijd voorrang.
+
+De voorkeur wordt apart in deze browser bewaard, is niet onderdeel van de offerte
+of undo-historie en geldt ook voor de offlineversie. Als bewaren geblokkeerd is,
+blijft de keuze voor deze sessie actief met een melding. Afdrukken/PDF blijven
+wit. Verbeterd tekst- en knopcontrast geldt voor beide schermthema's; het huisplan
+volgt dezelfde keuze. Het bestandsmenu is op lage schermen intern scrollbaar.
+
+Regressie: `tools/appearance_review.mjs` en `tools/huis_theme_review.mjs`.
+
+## Sneller werken in de tekening
+
+Met focus in de kamer-tekening: **V** selecteren, **H** hand/beeld verschuiven,
+**M** meten en **F** passend in beeld. Deze sneltoetsen werken niet tijdens typen
+in invoervelden of met Ctrl/Alt/Cmd. Terug naar Selecteren herstelt de focus op
+het geselecteerde object, zodat de bestaande pijltjestoetsen meteen bruikbaar zijn.
+
+Dubbelklik of dubbeltik op een object of opening opent de eigenschappen bij de
+tekening, in 2D, 3D en vlakaanzicht. Een echte sleepbeweging wordt nooit als deze
+snelle bewerkingsactie geteld. De selectie toont de wereldpositie **X/Y/Z** in
+meter; draaien van de camera verandert die coördinaten niet. Openingen zijn nu
+ook selecteerbaar in de objectlijst, naast hun afzonderlijke verwijderknop.
+Selectiemarkering en toegankelijke pressed/expanded-states blijven gelijklopen.
+
+Regressie: `tools/drawing_ui_review.mjs`, plus de bestaande drag-/navigatiereviews.
+Camera, selectie en eigenschappen openen veranderen geen projectdata of prijzen.
+Bevestigde bewerkingen behouden de bestaande historie en validatie.
+
 ## Snel starten
 
 ```bash

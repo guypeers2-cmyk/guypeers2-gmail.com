@@ -476,3 +476,100 @@ in te delen verschijnen bij een geselecteerde kamer en hebben naast hun pictogra
 een kort zichtbaar label. De stappenbalk stuurt geen projectmutaties aan; bestaande
 veiligheidscontroles voor splitsen blijven ongewijzigd. De thema-browserreview
 controleert deze lege/ingedeelde/beschermde toestanden naast het kleurcontrast.
+
+
+### Selectie buiten het huisplan en X/Y-synchronisatie
+
+De huisselectie bewaart een kamer-ID, ook wanneer die kamer geen `huis_positie`
+heeft. Het SVG markeert uitsluitend geplaatste kamers; selectie van een losse
+kamer laat dus geen oude kamer geselecteerd. Openen werkt voor beide toestanden;
+splitsen vereist nog steeds een echte plaatsing. Focus in de kamerlijst blijft
+behouden terwijl `aria-pressed` meteen synchroniseert.
+
+`syncPlacement()` koppelt de formulierkamer en coördinaten aan deze selectie.
+Een UI-only dirty-vlag bewaart nog niet toegepaste coördinaten bij camerabediening.
+Een kamerwissel of projectvervanging herstelt de opgeslagen positie; bevestigde
+plaatsing en detacheren gebruiken de bestaande geometrievalidatie en historie.
+Na undo van een plaatsing wordt een actieve snede veilig geannuleerd voordat het
+canvas opnieuw wordt opgebouwd. De aanklikbare buiten-planmelding opent de
+plaatsingssectie bij een losse kamer. `huis_placement_review.mjs` dekt de betrokken
+interacties en bewaakt het behoud van kamers, werkposten en prijzen.
+
+
+### Opslagfouten zijn geen vluchtige rekenstatus
+
+`opslagProblemen` bewaart afzonderlijke UI-fouten voor concept en offertearchief.
+Het vaste waarschuwingspaneel staat buiten de hoofdtabpanelen en gebruikt een
+`role="alert"`-tekst, echte back-up- en herstelknoppen en voldoende ruimte onder de
+pagina. Fouttekst wordt alleen bij wijziging vervangen om herhaalde aankondigingen
+bij typen te vermijden. Zwevende tekenacties maken bij deze waarschuwing plaats.
+Succes bij de ene opslagsleutel wist geen fout bij de andere. Een back-upaanvraag
+is geen bewijs dat opslag hersteld is. Print verbergt dit paneel.
+
+Een UI-documentgeneratie verandert uitsluitend bij `laadProject`, niet bij
+geometrieklonen of historie. Expliciet opslaan gebruikt een vaste JSON-snapshot,
+een in-flightslot en de documentgeneratie/ID om late antwoorden veilig te verwerken.
+Nieuwe wijzigingen blijven intact en krijgen geen misleidende succesmelding.
+Het lokale archief wordt vóór herschrijven op lijststructuur gecontroleerd;
+onleesbare/beschadigde inhoud blijft bewaard. Lokale verwijdering geeft expliciet
+succes/fout terug. `storage_review.mjs` test de daadwerkelijke back-upblob en
+kunstmatig vertraagde opslagreacties, zonder gebruikersarchieven aan te raken.
+
+
+### Berekeningsstatus is onafhankelijk van algemene meldingen
+
+`state.rekenStatus` is presentatie-state (`pending`, `ready`, `error`) en wordt via
+`rekenStatus()` en `bouw-rekenstatus` met de studio gesynchroniseerd. De kamerkeuze
+leidt prijsvaliditeit niet langer af uit tekst als Opslaan mislukt/Opgeslagen.
+Herberekenplanning maakt een ouder requestvolgnummer direct ongeldig, vóór de
+220ms-debounce. Alleen het nieuwste antwoord mag uitkomsten publiceren. Laden van
+een andere offerte wist de vorige uitkomst voordat er opnieuw wordt gerekend.
+
+De navigatie toont pending/error zonder een oud numeriek totaal. De offerte
+waarschuwt voor eerdere bedragen en biedt herberekenen; de appprintknop verstuurt
+geen printopdracht zolang de berekening niet actueel is. Native browserprint houdt
+in die situatie een zwart-witte waarschuwing zichtbaar. `calculation_review.mjs`
+simuleert een echte rekenfout, herstel en omgekeerde requestvolgorde; prijsmodel en
+projecthistorie blijven ongewijzigd.
+
+
+De mobiele offertentabel heeft een eigen benoemd, toetsenbordbereikbaar horizontaal
+scrollgebied. Kolommen houden voldoende breedte voor leesbare omschrijvingen en
+bedragen; de hele pagina schuift daardoor niet meer horizontaal mee. Bij printen
+is die overflowbeperking opgeheven, zodat geen kolommen worden afgeknipt.
+
+
+### Offertearchief als toegankelijke werkruimte
+
+`#modal-achtergrond` is nu een native dialoog, met behoud van bestaande IDs en
+hidden-contracten. Zoeken en sorteren gebruiken uitsluitend de opgehaalde metadata;
+zoeken verstuurt geen nieuwe requests en wijzigt geen projectdata. De zoek-/sorteer-
+bediening, teller en footer staan buiten het scrollende resultatenpaneel. Namen en
+klanten worden ge-escaped. Native focus containment, expliciete Escape-afhandeling
+voor search-inputs en afzonderlijk focusherstel bij annuleren/openen voorkomen
+achtergrondbediening en focusverlies.
+
+Requesttickets en documentgeneratie beschermen tegen verlate lijst-/projectreacties
+na sluiten of een projectwissel. Een UI-only referentie-JSON van de laatst geladen
+of expliciet opgeslagen versie ondersteunt de vervangbevestiging, ook bij undo en
+wijzigingen tijdens opslaan. Lokale én serververwijdering tonen fouten in de dialoog;
+verwijderen opent een inmiddels gesloten venster niet opnieuw. De archiefreview
+test deze toestanden zonder archieven van de gebruiker te wijzigen.
+
+
+### Directe tekeningbediening
+
+V/H/M/F zijn beperkt tot focus binnen `#tekening`, zonder modifier-toetsen,
+herhaalde keydown of actieve tekstinvoer. Ze activeren dezelfde bestaande knoppen;
+Selecteren herstelt zo mogelijk SVG-objectfocus voor nauwkeurig nudgen. De SVG's
+en de lijst delen dezelfde selectiefuncties. Openingen krijgen in hun lijst een
+echte selectieknop naast verwijderen. De selectiekaart toont wereld-X/Y/Z en de
+eigenschappenknop publiceert `aria-expanded` en `aria-controls`.
+
+Dubbele objectactivatie wordt in de dragcontroller herkend aan dezelfde ruimte,
+objectidentiteit, korte tijd en kleine schermverplaatsing. Dit is nodig omdat
+pointer capture native dblclick naar de host kan retargeten. Sleepbewegingen,
+annuleren en commits wissen de dubbele-activatieketen. Het UI-event opent de
+bestaande inspector zonder businessmutatie. `drawing_ui_review.mjs` controleert
+alle drie aanzichten, werk/opening, echte touch-dubbeltap, lijstselectie,
+veldveiligheid, focusherstel en ongewijzigde prijs/project/historie.

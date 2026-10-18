@@ -43,8 +43,8 @@ await page.type('#studio-room-query','zolder');assert.equal(await page.$$eval('[
 await page.select('#studio-room-filter','all');assert.deepEqual(await page.$$eval('[data-room-id]',es=>es.map(e=>e.dataset.roomId)),['a']);
 await page.$eval('#studio-room-query',e=>{e.value='';e.dispatchEvent(new Event('input',{bubbles:true}));});
 assert.deepEqual(await page.$$eval('[data-room-id]',es=>es.map(e=>e.dataset.roomId)),['c','b','a']);
-await page.evaluate(()=>status('Berekenen…'));await page.waitForFunction(()=>document.querySelector('.studio-room-price').textContent==='—');
-await page.evaluate(()=>status('Offerte bijgewerkt'));await page.waitForFunction(()=>document.querySelector('.studio-room-price').textContent.includes('€'));
+await page.evaluate(()=>rekenStatus('pending'));await page.waitForFunction(()=>document.querySelector('.studio-room-price').textContent==='—');
+await page.evaluate(()=>rekenStatus('ready'));await page.waitForFunction(()=>document.querySelector('.studio-room-price').textContent.includes('€'));
 await page.click('#studio-rooms-close');await page.waitForFunction(()=>!document.querySelector('#studio-rooms').open);
 await page.click('.studio-room-open');assert.equal(await page.$eval('#studio-room-filter',e=>e.value),'all','new opening resets filters');assert.equal(await page.$eval('#studio-room-sort',e=>e.value),'name','sort retained during session');
 await page.click('[data-room-id="b"]');await page.waitForFunction(()=>state.actieveRuimteId==='b');

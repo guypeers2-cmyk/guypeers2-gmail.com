@@ -1,11 +1,13 @@
 <!doctype html>
-<html lang="nl">
+<html lang="nl" data-theme="light">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#ffffff">
   <meta name="description" content="Bouwprijscalculator — maak een offerte op basis van maten, materiaal en gewerkte uren. Gestart met Gyproc.">
   <title>Bouwprijscalculator — Gyproc, isolatie & afwerking</title>
+  <script src="thema.js"></script>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -32,13 +34,27 @@
   <div class="topbar-acties">
     <span class="status" id="status" role="status" aria-live="polite"></span>
     <button type="button" class="knop compact-icon" id="btn-opslaan" title="Offerte opslaan" aria-label="Offerte opslaan"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 3h13l4 4v14H3V3zM8 3v6h8V3M7 21v-7h10v7"/></svg></button>
-    <details id="bestand-menu" class="bestand-menu"><summary class="knop compact-icon" title="Bestand: nieuw, openen en printen" aria-label="Bestandsmenu"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7V4h7l2 3h9v14H3z"/></svg></summary><div class="bestand-menu-inhoud">
+    <details id="bestand-menu" class="bestand-menu"><summary class="knop compact-icon" title="Bestand en weergave: openen, printen, licht of donker" aria-label="Bestandsmenu"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7V4h7l2 3h9v14H3z"/></svg></summary><div class="bestand-menu-inhoud">
     <button type="button" class="knop" id="btn-nieuw" title="Nieuwe offerte beginnen"><svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V7z"/><path d="M14 3v4h4"/><path d="M12 11v6M9 14h6"/></svg> Nieuw</button>
     <button type="button" class="knop" id="btn-openen" title="Opgeslagen offertes openen"><svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg> Openen</button>
     <button type="button" class="knop primair" id="btn-print" title="Offerte printen of als pdf opslaan"><svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 9V4h10v5"/><path d="M7 18H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2"/><path d="M7 14h10v6H7z"/></svg> Offerte printen</button>
+    <div class="thema-instelling">
+      <label for="thema-keuze">Weergave</label>
+      <select id="thema-keuze" aria-describedby="thema-status">
+        <option value="light">Licht</option>
+        <option value="dark">Donker</option>
+        <option value="auto">Systeem</option>
+      </select>
+      <small id="thema-status" role="status" aria-live="polite">Je keuze wordt op dit apparaat bewaard.</small>
+    </div>
     </div></details>
   </div>
 </header>
+<aside id="opslag-waarschuwing" class="opslag-waarschuwing" aria-label="Opslagprobleem" hidden>
+  <p id="opslag-waarschuwing-tekst" role="alert"></p>
+  <button type="button" class="knop primair" id="opslag-backup">JSON-back-up downloaden</button>
+  <button type="button" class="knop" id="opslag-opnieuw">Bewaren opnieuw proberen</button>
+</aside>
 
 
 <main class="layout" id="calculator-paneel" role="tabpanel" aria-labelledby="tab-calculator">
@@ -158,7 +174,7 @@
       <section id="huis-selectie-info" aria-label="Geselecteerde kamer" aria-live="polite" hidden></section>
       <div class="huis-acties"><button type="button" class="knop primair compact-icon" id="huis-open" title="Geselecteerde kamer openen" aria-label="Geselecteerde kamer openen"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 3H4v18h7M10 12h11m-4-4 4 4-4 4"/></svg><span>Kamer openen</span></button><button type="button" class="knop compact-icon" id="huis-splits" title="Kamer splitsen" aria-label="Kamer splitsen"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="m8 8 13 13M8 16 21 3"/></svg><span>Indelen</span></button></div>
       <details id="huis-splits-invoer"><summary>Scheidingswand precies tekenen</summary><p class="hint">Een snede loopt recht tussen twee kamergrenzen. Kies een X/Y-lijn, of tik in 2D op twee grenspunten. Alleen lege kamers kunnen worden gesplitst; bestaande werkposten/openingen worden nooit weggegooid.</p><form id="huis-splits-form"><label>Richting<select id="huis-split-as"><option value="x">Verticaal: vaste X</option><option value="y">Horizontaal: vaste Y</option><option value="vrij">Vrij: twee grenspunten</option></select></label><label>Positie vanaf kamerbegin (m)<input type="number" min="0" max="1000" step="any" id="huis-split-waarde" value="2" required></label><label>Naam eerste kamer<input id="huis-naam-a" maxlength="100" placeholder="Bijvoorbeeld woonkamer"></label><label>Naam tweede kamer<input id="huis-naam-b" maxlength="100" placeholder="Bijvoorbeeld keuken"></label><button type="button" class="knop" id="huis-snede-start">Twee grenspunten kiezen</button><button type="submit" class="knop primair">Splitsen toepassen</button><button type="button" class="knop" id="huis-snede-stop">Annuleren</button></form></details>
-      <details id="huis-kamers"><summary>Kamers op het huisplan &amp; plaatsing</summary><div id="huis-kamerlijst"></div><form id="huis-plaats-form"><label>Ruimte<select id="huis-plaats-ruimte"></select></label><label>X op huisplan (m)<input type="number" min="0" max="1000" step="any" id="huis-plaats-x" value="0" required></label><label>Y op huisplan (m)<input type="number" min="0" max="1000" step="any" id="huis-plaats-y" value="0" required></label><button type="submit" class="knop">Plaats / verplaats ruimte</button><button type="button" class="knop" id="huis-losmaken">Van huisplan halen (werken blijven)</button></form></details>
+      <details id="huis-kamers"><summary>Kamers op het huisplan &amp; plaatsing</summary><div id="huis-kamerlijst"></div><form id="huis-plaats-form"><label>Ruimte<select id="huis-plaats-ruimte"></select></label><label>X op huisplan (m)<input type="number" min="0" max="1000" step="any" id="huis-plaats-x" value="0" required></label><label>Y op huisplan (m)<input type="number" min="0" max="1000" step="any" id="huis-plaats-y" value="0" required></label><button type="submit" class="knop">Plaats / verplaats ruimte</button><button type="button" class="knop" id="huis-losmaken">Van huisplan halen (werken blijven)</button><p id="huis-plaats-status" class="hint" role="status" aria-live="polite"></p></form></details>
     </section>
     <p id="studio-room-summary" class="studio-room-summary" aria-label="Kameroverzicht" hidden></p>
     <div class="ruimtechips" id="ruimtechips"></div>
@@ -192,11 +208,11 @@
         <button type="button" class="knop klein compact-icon" data-camera="rechts" title="90° rechts draaien" aria-label="90° rechts draaien"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 3 4 4-4 4m4-4h-9a7 7 0 1 0 6 11"/></svg></button>
         <button type="button" class="knop klein compact-icon" data-camera="uit" title="Uitzoomen" aria-label="Uitzoomen"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h16"/></svg></button>
         <button type="button" class="knop klein compact-icon" data-camera="in" title="Inzoomen" aria-label="Inzoomen"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v16M4 12h16"/></svg></button>
-        <button type="button" class="knop klein compact-icon" data-camera="reset" title="Beeld herstellen" aria-label="Beeld herstellen"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/><path d="M8 8h8v8H8z"/></svg></button>
+        <button type="button" class="knop klein compact-icon" data-camera="reset" aria-keyshortcuts="F" title="Beeld herstellen (F)" aria-label="Beeld herstellen"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/><path d="M8 8h8v8H8z"/></svg></button>
         <button type="button" class="knop klein compact-icon" data-camera="maten" aria-pressed="true" title="Maatlijnen tonen of verbergen" aria-label="Maatlijnen tonen of verbergen"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5v14m18-14v14M3 12h18m-5-4 5 4-5 4M8 8l-5 4 5 4"/></svg></button>
-        <button type="button" class="knop klein compact-icon" data-plan-gereedschap="select" aria-pressed="true" title="Selecteren" aria-label="Selecteren"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 3 14 9-7 1-3 7z"/></svg></button>
-        <button type="button" class="knop klein compact-icon" data-plan-gereedschap="hand" aria-pressed="false" title="Beeld verschuiven" aria-label="Beeld verschuiven"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 12V5a2 2 0 0 1 4 0v6-7a2 2 0 0 1 4 0v8-5a2 2 0 0 1 4 0v8c0 5-3 7-7 7-3 0-5-2-7-5l-3-4a2 2 0 0 1 3-2l2 2"/></svg></button>
-        <button type="button" class="knop klein compact-icon" data-plan-gereedschap="meet" aria-pressed="false" title="Afstand meten" aria-label="Afstand meten"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 17 14-14 4 4L7 21zM7 13l2 2m2-6 2 2m2-6 2 2"/></svg></button>
+        <button type="button" class="knop klein compact-icon" data-plan-gereedschap="select" aria-keyshortcuts="V" aria-pressed="true" title="Selecteren" aria-label="Selecteren"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 3 14 9-7 1-3 7z"/></svg></button>
+        <button type="button" class="knop klein compact-icon" data-plan-gereedschap="hand" aria-keyshortcuts="H" aria-pressed="false" title="Beeld verschuiven" aria-label="Beeld verschuiven"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 12V5a2 2 0 0 1 4 0v6-7a2 2 0 0 1 4 0v8-5a2 2 0 0 1 4 0v8c0 5-3 7-7 7-3 0-5-2-7-5l-3-4a2 2 0 0 1 3-2l2 2"/></svg></button>
+        <button type="button" class="knop klein compact-icon" data-plan-gereedschap="meet" aria-keyshortcuts="M" aria-pressed="false" title="Afstand meten" aria-label="Afstand meten"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 17 14-14 4 4L7 21zM7 13l2 2m2-6 2 2m2-6 2 2"/></svg></button>
         <button type="button" class="knop klein compact-icon" id="plan-undo" disabled title="Ongedaan maken (Ctrl/Cmd+Z)" aria-label="Ongedaan maken (Ctrl/Cmd+Z)"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 4-5 5 5 5M4 9h9a7 7 0 0 1 0 14"/></svg></button>
         <button type="button" class="knop klein compact-icon" id="plan-redo" disabled title="Opnieuw uitvoeren (Ctrl/Cmd+Shift+Z)" aria-label="Opnieuw uitvoeren (Ctrl/Cmd+Shift+Z)"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 4 5 5-5 5m5-5h-9a7 7 0 0 0 0 14"/></svg></button>
       </div>
@@ -208,7 +224,7 @@
         <details><summary>Meetpunten precies invoeren</summary><form id="meet-form"><div id="meet-velden" class="meet-velden"></div><button type="submit" class="knop klein">Afstand tonen</button></form></details>
       </section>
       <div class="planhouder" id="plan" tabindex="0" aria-label="Interactieve tekening"></div>
-      <div id="plan-selectie" class="plan-selectie" hidden><span id="plan-selectie-naam"></span><div><button type="button" class="knop klein compact-icon" id="plan-eigenschappen" title="Eigenschappen" aria-label="Eigenschappen"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/><circle cx="9" cy="6" r="2"/><circle cx="15" cy="12" r="2"/><circle cx="9" cy="18" r="2"/></svg></button><details id="plan-acties" class="plan-acties"><summary class="knop klein">Acties ▾</summary><div><button type="button" class="knop klein" id="plan-dupliceer">Dupliceren…</button><button type="button" class="knop klein" id="plan-centreer">Centreren op vlak</button><button type="button" class="knop klein" id="plan-tracelengte" hidden>Tracélengte overnemen…</button></div></details><button type="button" class="plan-vuilbak" id="plan-selectie-verwijder" aria-label="Geselecteerd object verwijderen"></button><button type="button" class="knop klein" id="plan-deselecteer" aria-label="Selectie opheffen">×</button></div><p id="plan-trace-info" class="hint" hidden></p><p id="plan-vorm-melding" class="hint" role="status" hidden></p></div>
+      <div id="plan-selectie" class="plan-selectie" hidden><div class="plan-selectie-context"><span id="plan-selectie-naam"></span><small id="plan-selectie-positie"></small></div><div><button type="button" class="knop klein compact-icon" id="plan-eigenschappen" aria-controls="plan-inspector" aria-expanded="false" title="Eigenschappen" aria-label="Eigenschappen"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/><circle cx="9" cy="6" r="2"/><circle cx="15" cy="12" r="2"/><circle cx="9" cy="18" r="2"/></svg></button><details id="plan-acties" class="plan-acties"><summary class="knop klein">Acties ▾</summary><div><button type="button" class="knop klein" id="plan-dupliceer">Dupliceren…</button><button type="button" class="knop klein" id="plan-centreer">Centreren op vlak</button><button type="button" class="knop klein" id="plan-tracelengte" hidden>Tracélengte overnemen…</button></div></details><button type="button" class="plan-vuilbak" id="plan-selectie-verwijder" aria-label="Geselecteerd object verwijderen"></button><button type="button" class="knop klein" id="plan-deselecteer" aria-label="Selectie opheffen">×</button></div><p id="plan-trace-info" class="hint" hidden></p><p id="plan-vorm-melding" class="hint" role="status" hidden></p></div>
       <section id="plan-inspector" class="plan-inspector" aria-label="Eigenschappen van geselecteerd object" hidden></section>
       <details class="studio-vouw studio-opties" id="tekenopties"><summary>Tekenopties <span>Lagen, raster en sleepvlak</span></summary><div class="studio-vouw-inhoud">
       <div class="plan-lagen" role="group" aria-label="Zichtbare werken">
@@ -228,7 +244,7 @@
       <details class="studio-vouw studio-uitleg"><summary>Hulp bij de tekening</summary><div class="studio-vouw-inhoud">
       <p class="hint plan-voorbehoud">Schematische weergave, geen uitvoeringsplan. Eén symbool staat voor één werkregel (× aantal). Automatische posities zijn voorbeelden; stel de plaatsing in bij de werkregel. Tracés wijzigen geen offertehoeveelheden. Vlakmarkeringen tonen het gekozen werk, geen exacte gedeeltelijke dekking.</p>
       <p class="hint plantip">Klik op een wand om het objectmenu te openen. In 3D kun je draaien om alle wanden te bekijken.</p>
-      <p class="hint">Pijltjes: 5 cm · Shift: 25 cm · Alt: 1 cm. De numerieke plaatsingsvelden staan bij Eigenschappen.</p>
+      <p class="hint">V: selecteren · H: hand · M: meten · F: passend in beeld (met focus in de tekening). Dubbelklik een object voor eigenschappen. Pijltjes: 5 cm · Shift: 25 cm · Alt: 1 cm. De numerieke plaatsingsvelden staan bij Eigenschappen.</p>
       </div></details>
     </div>
 
@@ -248,6 +264,7 @@
 
   <!-- ================= RECHTERZIJDE: de offerte ================= -->
   <details class="paneel offertepaneel studio-vouw" id="offertepaneel"><summary>Offerte bekijken <span>Calculatie, totalen en printvoorbeeld</span></summary><div class="studio-vouw-inhoud">
+    <div id="bereken-melding" class="bereken-melding" role="status" hidden><span id="bereken-melding-tekst"></span><button type="button" class="knop" id="bereken-opnieuw">Opnieuw berekenen</button></div>
     <div id="offerte" class="offerte"></div>
   </div></details>
 
@@ -268,15 +285,19 @@
       <p class="tarief-leeg" id="tarief-geen-resultaten" hidden>Geen tarieven gevonden. Pas je zoekopdracht of filters aan.</p>
     </section>
 
-<div class="modal-achtergrond" id="modal-achtergrond" hidden>
-  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-titel">
+<dialog class="modal-achtergrond" id="modal-achtergrond" aria-labelledby="modal-titel" hidden>
+  <div class="modal">
     <h2 id="modal-titel">Opgeslagen offertes</h2>
+    <p id="modal-opslag" class="hint"></p>
+    <div class="archief-tools"><label for="archief-zoeken">Zoek project of klant<input type="search" id="archief-zoeken" placeholder="Bijvoorbeeld keuken of Janssens" autocomplete="off" aria-controls="modal-inhoud"></label><label for="archief-sorteren">Volgorde<select id="archief-sorteren"><option value="recent">Laatst gewijzigd</option><option value="naam">Projectnaam A–Z</option></select></label></div>
+    <p id="archief-aantal" role="status" aria-live="polite"></p>
+    <p id="archief-feedback" role="alert" hidden></p><button type="button" class="knop" id="archief-opnieuw" hidden>Opnieuw laden</button>
     <div id="modal-inhoud"></div>
     <div class="modal-acties">
       <button type="button" class="knop" id="modal-sluiten">Sluiten</button>
     </div>
   </div>
-</div>
+</dialog>
 
 <div class="toast" id="toast" hidden role="status" aria-live="polite"></div>
 

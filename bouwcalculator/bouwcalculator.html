@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="nl">
+<html lang="nl" data-theme="light">
 <head>
 <!--
   Bouwprijscalculator — één-bestand-versie (standalone).
@@ -11,8 +11,49 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#ffffff">
   <meta name="description" content="Bouwprijscalculator — maak een offerte op basis van maten, materiaal en gewerkte uren. Gestart met Gyproc.">
   <title>Bouwprijscalculator — Gyproc, isolatie & afwerking</title>
+  <script>
+/* Appearance is a browser preference, never project data or undo history.
+ * Loaded before CSS to avoid flashing the wrong palette on startup. */
+(function () {
+  'use strict';
+  const key='bouwcalculator.thema', root=document.documentElement;
+  const system=window.matchMedia('(prefers-color-scheme: dark)');
+  const valid=value=>['light','dark','auto'].includes(value);
+  function read(){try{const value=localStorage.getItem(key);return valid(value)?value:'light';}catch{return 'light';}}
+  let preference=read(), storageFailed=false;
+  function apply(){
+    const dark=preference==='dark'||(preference==='auto'&&system.matches);
+    root.dataset.theme=dark?'dark':'light';
+    root.dataset.themePreference=preference;
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content',dark?'#141b26':'#ffffff');
+    const select=document.getElementById('thema-keuze');
+    if(select)select.value=preference;
+    const status=document.getElementById('thema-status');
+    if(status)status.textContent=storageFailed?'Keuze actief, maar bewaren lukt niet in deze browser.':preference==='auto'?`Volgt je apparaat: ${dark?'donker':'licht'}.`:'Je keuze wordt op dit apparaat bewaard.';
+  }
+  apply();
+  system.addEventListener('change',()=>{if(preference==='auto')apply();});
+  window.addEventListener('storage',event=>{
+    if(event.key!==key&&event.key!==null)return;
+    preference=read();storageFailed=false;apply();
+  });
+  document.addEventListener('DOMContentLoaded',()=>{
+    const select=document.getElementById('thema-keuze');
+    if(!select)return;
+    apply();
+    select.addEventListener('change',()=>{
+      if(!valid(select.value))return;
+      preference=select.value;
+      try{localStorage.setItem(key,preference);storageFailed=false;}catch{storageFailed=true;}
+      apply();
+    });
+  },{once:true});
+})();
+
+</script>
   <style>
 /* ==========================================================
    BOUWPRIJSCALCULATOR — ontwerpsysteem
@@ -37,6 +78,7 @@
 
 /* ---------- 1. Tokens ---------- */
 :root {
+  color-scheme: light;
   /* kleuren — neutraal */
   --bg: #f4f6f8;
   --oppervlak: #ffffff;
@@ -46,7 +88,7 @@
   --rand-sterk: #cfd6e0;
   --tekst: #101828;
   --tekst-2: #475467;
-  --tekst-3: #7b8798;
+  --tekst-3: #5f6e82;
 
   /* kleuren — merk & semantiek */
   --accent: #1d4ed8;
@@ -91,8 +133,9 @@
   --overgang: 140ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
+@media screen {
+  :root[data-theme="dark"] {
+    color-scheme: dark;
     --bg: #0c111a;
     --oppervlak: #141b26;
     --oppervlak-2: #1a2331;
@@ -101,7 +144,7 @@
     --rand-sterk: #33415a;
     --tekst: #e8edf5;
     --tekst-2: #a9b6c8;
-    --tekst-3: #7d8ba0;
+    --tekst-3: #9ba8bb;
 
     --accent: #6b8cff;
     --accent-hover: #8aa3ff;
@@ -1767,19 +1810,19 @@ body.huisstand-actief .object-snelknop,body.huisstand-actief .tekening-snelknop{
  .huis-leeg small{max-width:360px;font-size:.72rem;color:var(--tekst-2)}
  .huis-leeg .knop{min-height:44px;max-width:100%;white-space:normal}
 }
-@media screen and (prefers-color-scheme:dark){
- #huis-plan .huis-buiten{fill:#192738;stroke:#94a3b8}
- #huis-plan .huis-vloer{fill:#243d3b;stroke:#8eae9b}
- #huis-plan .huis-kamer.geselecteerd .huis-vloer,#huis-plan .huis-kamer:focus .huis-vloer{fill:#20553e;stroke:#73d4a0}
- #huis-plan .huis-wand{fill:#658f7c;stroke:#a1c1ae}
- #huis-plan .huis-dak{fill:#87b49c;stroke:#a1c1ae}
- #huis-plan .huis-label,#huis-plan .huis-oppervlak,#huis-plan .huis-maat{fill:#e2f5eb;stroke:#14221b}
- #huis-plan .huis-object{fill:#8fbaff;stroke:#14221b}
- #huis-plan .huis-object line{stroke:#8fbaff}
- #huis-plan .huis-opening{stroke:#efbd7a;fill:#b48d58}
+@media screen{
+ :root[data-theme="dark"] #huis-plan .huis-buiten{fill:#192738;stroke:#94a3b8}
+ :root[data-theme="dark"] #huis-plan .huis-vloer{fill:#243d3b;stroke:#8eae9b}
+ :root[data-theme="dark"] #huis-plan .huis-kamer.geselecteerd .huis-vloer,:root[data-theme="dark"] #huis-plan .huis-kamer:focus .huis-vloer{fill:#20553e;stroke:#73d4a0}
+ :root[data-theme="dark"] #huis-plan .huis-wand{fill:#658f7c;stroke:#a1c1ae}
+ :root[data-theme="dark"] #huis-plan .huis-dak{fill:#87b49c;stroke:#a1c1ae}
+ :root[data-theme="dark"] #huis-plan .huis-label,:root[data-theme="dark"] #huis-plan .huis-oppervlak,:root[data-theme="dark"] #huis-plan .huis-maat{fill:#e2f5eb;stroke:#14221b}
+ :root[data-theme="dark"] #huis-plan .huis-object{fill:#8fbaff;stroke:#14221b}
+ :root[data-theme="dark"] #huis-plan .huis-object line{stroke:#8fbaff}
+ :root[data-theme="dark"] #huis-plan .huis-opening{stroke:#efbd7a;fill:#b48d58}
 }
 @media screen{.huis-leeg p{max-width:430px}}
-@media screen and (prefers-color-scheme:dark){.huis-leeg .knop.primair{color:var(--bg)}}
+@media screen{:root[data-theme="dark"] .knop.primair{color:var(--bg)}}
 
 /* Show the house workflow, not a toolbar full of unavailable actions. */
 @media screen{
@@ -1796,6 +1839,68 @@ body.huisstand-actief .object-snelknop,body.huisstand-actief .tekening-snelknop{
 @media screen and (max-width:600px){.huis-stappen{gap:4px 10px;font-size:.67rem}.huis-stappen li{gap:4px}.huis-stappen li>span{width:18px;height:18px}}
 @media print{.huis-stappen{display:none!important}}
 @media screen and (max-width:600px){.huis-stappen{margin-bottom:6px;flex-wrap:nowrap}.huis-stappen li{white-space:nowrap}}
+@media screen{
+ #huis-statistiek [data-huis-buiten]{font:inherit;font-size:.72rem;border:1px solid var(--goud-rand);background:var(--goud-zacht);color:var(--goud);border-radius:5px;padding:4px 7px;cursor:pointer}
+ #huis-statistiek [data-huis-buiten]:hover{border-color:var(--goud)}
+ .huis-buiten-info{font-size:.75rem;color:var(--goud);margin:5px 0}
+ #huis-plaats-status{flex-basis:100%;margin:3px 0 0}
+ #huis-kamerlijst [aria-pressed="true"]{background:var(--accent-zacht);border-color:var(--accent);color:var(--accent)}
+}
+@media screen and (max-width:600px){#huis-statistiek [data-huis-buiten]{min-height:44px}}
+@media screen{.huis-statistiek{align-items:center}#huis-kamerlijst>.knop{max-width:100%;white-space:normal;overflow-wrap:anywhere;text-align:left}#huis-selectie-info>strong{overflow-wrap:anywhere}}
+@media screen{
+ .opslag-waarschuwing{position:fixed;left:50%;transform:translateX(-50%);bottom:max(12px,env(safe-area-inset-bottom));z-index:90;box-sizing:border-box;width:calc(100% - 24px);max-width:640px;padding:12px;display:flex;flex-wrap:wrap;gap:8px;background:var(--oppervlak);color:var(--tekst);border:1px solid var(--goud);border-radius:10px;box-shadow:var(--schaduw-2)}
+ .opslag-waarschuwing[hidden]{display:none}
+ .opslag-waarschuwing p{flex-basis:100%;font-size:.8rem;line-height:1.5;margin:0}
+ .opslag-waarschuwing .knop{min-height:44px;white-space:normal}
+ body.opslag-probleem{padding-bottom:180px}
+ body.opslag-probleem .object-snelknop,body.opslag-probleem .tekening-snelknop{display:none!important}
+}
+@media print{.opslag-waarschuwing{display:none!important}}
+@media screen{body.opslag-probleem{padding-bottom:240px}}
+.bereken-melding{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;padding:10px 12px;margin:0 0 12px;border:1px solid var(--goud-rand);border-radius:8px;background:var(--goud-zacht);color:var(--goud);font-size:.8rem}
+.bereken-melding[hidden],#bereken-opnieuw[hidden]{display:none}
+@media print{body.reken-onzeker #bereken-melding{display:block!important;border:2px solid black;background:white;color:black;font-weight:bold}#bereken-opnieuw{display:none!important}}
+@media screen{.offerte-tabel-scroll{max-width:100%;overflow-x:auto;overscroll-behavior-x:contain}.offerte-tabel-scroll:focus-visible{outline:2px solid var(--accent);outline-offset:2px}}
+@media print{.offerte-tabel-scroll{overflow:visible}}
+@media screen and (max-width:600px){.offerte-tabel-scroll .offerte-tabel{min-width:430px}}
+/* Saved quotations: native modal focus, fixed search controls, scrollable results. */
+#modal-achtergrond{width:100%;height:100%;max-width:none;max-height:none;margin:0;border:0;background:transparent;backdrop-filter:none;color:var(--tekst)}
+#modal-achtergrond:not([open]){display:none}
+#modal-achtergrond::backdrop{background:#10182888;backdrop-filter:blur(3px)}
+#modal-achtergrond .modal{display:flex;flex-direction:column;box-sizing:border-box;max-height:82dvh}
+#modal-achtergrond h2,#modal-opslag,.archief-tools,#archief-aantal,#archief-feedback,.modal-acties{flex:none}
+#modal-opslag{margin:0 0 10px;font-size:.75rem}
+.archief-tools{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:8px;margin-bottom:8px}
+.archief-tools label{font-size:.75rem;min-width:0;font-weight:600}
+.archief-tools input,.archief-tools select{box-sizing:border-box;width:100%;min-width:0;min-height:44px;margin-top:5px;padding:8px;border:1px solid var(--rand);border-radius:7px;background:var(--oppervlak);color:var(--tekst);font-size:16px}
+#archief-aantal{font-size:.72rem;color:var(--tekst-2);margin:0 0 5px}
+#archief-feedback{font-size:.78rem;color:var(--rood);margin:5px 0 10px}
+#archief-feedback[hidden],#archief-opnieuw[hidden]{display:none}
+#modal-inhoud{min-height:40px;overflow:auto;overscroll-behavior:contain}
+.projectregel .naam{min-width:0;overflow-wrap:anywhere}.projectregel .meta{line-height:1.5}
+@media screen and (max-width:600px){.archief-tools{grid-template-columns:1fr}#modal-achtergrond{padding:12px}.projectregel{gap:8px}.projectregel .naam{flex-basis:100%}}
+@media print{#modal-achtergrond{display:none!important}}
+@media screen{
+ .plan-selectie>.plan-selectie-context{display:block;min-width:0;flex:1 1 160px}
+ #plan-selectie-naam{font-size:.82rem;font-weight:600}
+ .plan-selectie-context>span{display:block;overflow-wrap:anywhere}
+ #plan-selectie-positie{display:block;font-size:.7rem;color:var(--tekst-2);margin-top:3px;font-variant-numeric:tabular-nums}
+ .plan-opening-select{display:block;min-width:0;flex:1;text-align:left;border:1px solid transparent;border-radius:6px;background:transparent;color:var(--tekst);padding:6px;cursor:pointer}
+ .plan-opening-select:hover,.plan-opening-select[aria-pressed="true"],#plan-legenda [aria-pressed="true"]{border-color:var(--accent);background:var(--accent-zacht);color:var(--accent)}
+ .plan-opening-select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+ .plan-opening-select strong{overflow-wrap:anywhere}
+}
+@media screen and (max-width:600px){.plan-opening-select{min-height:44px}}
+
+/* Compact appearance control: no extra top-bar width on small screens. */
+.thema-instelling{display:grid;gap:6px;padding-top:10px;margin-top:4px;border-top:1px solid var(--rand)}
+.thema-instelling label{font-size:.8rem;font-weight:600}
+.thema-instelling select{width:100%;min-height:44px;padding:8px;border:1px solid var(--rand-sterk);border-radius:7px;background:var(--oppervlak-2);color:var(--tekst);font:inherit;font-size:16px}
+.thema-instelling select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.thema-instelling small{font-size:.72rem;color:var(--tekst-2);line-height:1.5;overflow-wrap:anywhere}
+
+@media screen{.bestand-menu-inhoud{max-width:calc(100vw - 24px);max-height:calc(100dvh - 76px);overflow-y:auto;overscroll-behavior:contain}}
 
 </style>
 </head>
@@ -1823,13 +1928,27 @@ body.huisstand-actief .object-snelknop,body.huisstand-actief .tekening-snelknop{
   <div class="topbar-acties">
     <span class="status" id="status" role="status" aria-live="polite"></span>
     <button type="button" class="knop compact-icon" id="btn-opslaan" title="Offerte opslaan" aria-label="Offerte opslaan"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 3h13l4 4v14H3V3zM8 3v6h8V3M7 21v-7h10v7"/></svg></button>
-    <details id="bestand-menu" class="bestand-menu"><summary class="knop compact-icon" title="Bestand: nieuw, openen en printen" aria-label="Bestandsmenu"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7V4h7l2 3h9v14H3z"/></svg></summary><div class="bestand-menu-inhoud">
+    <details id="bestand-menu" class="bestand-menu"><summary class="knop compact-icon" title="Bestand en weergave: openen, printen, licht of donker" aria-label="Bestandsmenu"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7V4h7l2 3h9v14H3z"/></svg></summary><div class="bestand-menu-inhoud">
     <button type="button" class="knop" id="btn-nieuw" title="Nieuwe offerte beginnen"><svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V7z"/><path d="M14 3v4h4"/><path d="M12 11v6M9 14h6"/></svg> Nieuw</button>
     <button type="button" class="knop" id="btn-openen" title="Opgeslagen offertes openen"><svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg> Openen</button>
     <button type="button" class="knop primair" id="btn-print" title="Offerte printen of als pdf opslaan"><svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 9V4h10v5"/><path d="M7 18H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2"/><path d="M7 14h10v6H7z"/></svg> Offerte printen</button>
+    <div class="thema-instelling">
+      <label for="thema-keuze">Weergave</label>
+      <select id="thema-keuze" aria-describedby="thema-status">
+        <option value="light">Licht</option>
+        <option value="dark">Donker</option>
+        <option value="auto">Systeem</option>
+      </select>
+      <small id="thema-status" role="status" aria-live="polite">Je keuze wordt op dit apparaat bewaard.</small>
+    </div>
     </div></details>
   </div>
 </header>
+<aside id="opslag-waarschuwing" class="opslag-waarschuwing" aria-label="Opslagprobleem" hidden>
+  <p id="opslag-waarschuwing-tekst" role="alert"></p>
+  <button type="button" class="knop primair" id="opslag-backup">JSON-back-up downloaden</button>
+  <button type="button" class="knop" id="opslag-opnieuw">Bewaren opnieuw proberen</button>
+</aside>
 
 
 <main class="layout" id="calculator-paneel" role="tabpanel" aria-labelledby="tab-calculator">
@@ -1949,7 +2068,7 @@ body.huisstand-actief .object-snelknop,body.huisstand-actief .tekening-snelknop{
       <section id="huis-selectie-info" aria-label="Geselecteerde kamer" aria-live="polite" hidden></section>
       <div class="huis-acties"><button type="button" class="knop primair compact-icon" id="huis-open" title="Geselecteerde kamer openen" aria-label="Geselecteerde kamer openen"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 3H4v18h7M10 12h11m-4-4 4 4-4 4"/></svg><span>Kamer openen</span></button><button type="button" class="knop compact-icon" id="huis-splits" title="Kamer splitsen" aria-label="Kamer splitsen"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="m8 8 13 13M8 16 21 3"/></svg><span>Indelen</span></button></div>
       <details id="huis-splits-invoer"><summary>Scheidingswand precies tekenen</summary><p class="hint">Een snede loopt recht tussen twee kamergrenzen. Kies een X/Y-lijn, of tik in 2D op twee grenspunten. Alleen lege kamers kunnen worden gesplitst; bestaande werkposten/openingen worden nooit weggegooid.</p><form id="huis-splits-form"><label>Richting<select id="huis-split-as"><option value="x">Verticaal: vaste X</option><option value="y">Horizontaal: vaste Y</option><option value="vrij">Vrij: twee grenspunten</option></select></label><label>Positie vanaf kamerbegin (m)<input type="number" min="0" max="1000" step="any" id="huis-split-waarde" value="2" required></label><label>Naam eerste kamer<input id="huis-naam-a" maxlength="100" placeholder="Bijvoorbeeld woonkamer"></label><label>Naam tweede kamer<input id="huis-naam-b" maxlength="100" placeholder="Bijvoorbeeld keuken"></label><button type="button" class="knop" id="huis-snede-start">Twee grenspunten kiezen</button><button type="submit" class="knop primair">Splitsen toepassen</button><button type="button" class="knop" id="huis-snede-stop">Annuleren</button></form></details>
-      <details id="huis-kamers"><summary>Kamers op het huisplan &amp; plaatsing</summary><div id="huis-kamerlijst"></div><form id="huis-plaats-form"><label>Ruimte<select id="huis-plaats-ruimte"></select></label><label>X op huisplan (m)<input type="number" min="0" max="1000" step="any" id="huis-plaats-x" value="0" required></label><label>Y op huisplan (m)<input type="number" min="0" max="1000" step="any" id="huis-plaats-y" value="0" required></label><button type="submit" class="knop">Plaats / verplaats ruimte</button><button type="button" class="knop" id="huis-losmaken">Van huisplan halen (werken blijven)</button></form></details>
+      <details id="huis-kamers"><summary>Kamers op het huisplan &amp; plaatsing</summary><div id="huis-kamerlijst"></div><form id="huis-plaats-form"><label>Ruimte<select id="huis-plaats-ruimte"></select></label><label>X op huisplan (m)<input type="number" min="0" max="1000" step="any" id="huis-plaats-x" value="0" required></label><label>Y op huisplan (m)<input type="number" min="0" max="1000" step="any" id="huis-plaats-y" value="0" required></label><button type="submit" class="knop">Plaats / verplaats ruimte</button><button type="button" class="knop" id="huis-losmaken">Van huisplan halen (werken blijven)</button><p id="huis-plaats-status" class="hint" role="status" aria-live="polite"></p></form></details>
     </section>
     <p id="studio-room-summary" class="studio-room-summary" aria-label="Kameroverzicht" hidden></p>
     <div class="ruimtechips" id="ruimtechips"></div>
@@ -1983,11 +2102,11 @@ body.huisstand-actief .object-snelknop,body.huisstand-actief .tekening-snelknop{
         <button type="button" class="knop klein compact-icon" data-camera="rechts" title="90° rechts draaien" aria-label="90° rechts draaien"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 3 4 4-4 4m4-4h-9a7 7 0 1 0 6 11"/></svg></button>
         <button type="button" class="knop klein compact-icon" data-camera="uit" title="Uitzoomen" aria-label="Uitzoomen"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h16"/></svg></button>
         <button type="button" class="knop klein compact-icon" data-camera="in" title="Inzoomen" aria-label="Inzoomen"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v16M4 12h16"/></svg></button>
-        <button type="button" class="knop klein compact-icon" data-camera="reset" title="Beeld herstellen" aria-label="Beeld herstellen"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/><path d="M8 8h8v8H8z"/></svg></button>
+        <button type="button" class="knop klein compact-icon" data-camera="reset" aria-keyshortcuts="F" title="Beeld herstellen (F)" aria-label="Beeld herstellen"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/><path d="M8 8h8v8H8z"/></svg></button>
         <button type="button" class="knop klein compact-icon" data-camera="maten" aria-pressed="true" title="Maatlijnen tonen of verbergen" aria-label="Maatlijnen tonen of verbergen"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5v14m18-14v14M3 12h18m-5-4 5 4-5 4M8 8l-5 4 5 4"/></svg></button>
-        <button type="button" class="knop klein compact-icon" data-plan-gereedschap="select" aria-pressed="true" title="Selecteren" aria-label="Selecteren"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 3 14 9-7 1-3 7z"/></svg></button>
-        <button type="button" class="knop klein compact-icon" data-plan-gereedschap="hand" aria-pressed="false" title="Beeld verschuiven" aria-label="Beeld verschuiven"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 12V5a2 2 0 0 1 4 0v6-7a2 2 0 0 1 4 0v8-5a2 2 0 0 1 4 0v8c0 5-3 7-7 7-3 0-5-2-7-5l-3-4a2 2 0 0 1 3-2l2 2"/></svg></button>
-        <button type="button" class="knop klein compact-icon" data-plan-gereedschap="meet" aria-pressed="false" title="Afstand meten" aria-label="Afstand meten"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 17 14-14 4 4L7 21zM7 13l2 2m2-6 2 2m2-6 2 2"/></svg></button>
+        <button type="button" class="knop klein compact-icon" data-plan-gereedschap="select" aria-keyshortcuts="V" aria-pressed="true" title="Selecteren" aria-label="Selecteren"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 3 14 9-7 1-3 7z"/></svg></button>
+        <button type="button" class="knop klein compact-icon" data-plan-gereedschap="hand" aria-keyshortcuts="H" aria-pressed="false" title="Beeld verschuiven" aria-label="Beeld verschuiven"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 12V5a2 2 0 0 1 4 0v6-7a2 2 0 0 1 4 0v8-5a2 2 0 0 1 4 0v8c0 5-3 7-7 7-3 0-5-2-7-5l-3-4a2 2 0 0 1 3-2l2 2"/></svg></button>
+        <button type="button" class="knop klein compact-icon" data-plan-gereedschap="meet" aria-keyshortcuts="M" aria-pressed="false" title="Afstand meten" aria-label="Afstand meten"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 17 14-14 4 4L7 21zM7 13l2 2m2-6 2 2m2-6 2 2"/></svg></button>
         <button type="button" class="knop klein compact-icon" id="plan-undo" disabled title="Ongedaan maken (Ctrl/Cmd+Z)" aria-label="Ongedaan maken (Ctrl/Cmd+Z)"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 4-5 5 5 5M4 9h9a7 7 0 0 1 0 14"/></svg></button>
         <button type="button" class="knop klein compact-icon" id="plan-redo" disabled title="Opnieuw uitvoeren (Ctrl/Cmd+Shift+Z)" aria-label="Opnieuw uitvoeren (Ctrl/Cmd+Shift+Z)"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 4 5 5-5 5m5-5h-9a7 7 0 0 0 0 14"/></svg></button>
       </div>
@@ -1999,7 +2118,7 @@ body.huisstand-actief .object-snelknop,body.huisstand-actief .tekening-snelknop{
         <details><summary>Meetpunten precies invoeren</summary><form id="meet-form"><div id="meet-velden" class="meet-velden"></div><button type="submit" class="knop klein">Afstand tonen</button></form></details>
       </section>
       <div class="planhouder" id="plan" tabindex="0" aria-label="Interactieve tekening"></div>
-      <div id="plan-selectie" class="plan-selectie" hidden><span id="plan-selectie-naam"></span><div><button type="button" class="knop klein compact-icon" id="plan-eigenschappen" title="Eigenschappen" aria-label="Eigenschappen"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/><circle cx="9" cy="6" r="2"/><circle cx="15" cy="12" r="2"/><circle cx="9" cy="18" r="2"/></svg></button><details id="plan-acties" class="plan-acties"><summary class="knop klein">Acties ▾</summary><div><button type="button" class="knop klein" id="plan-dupliceer">Dupliceren…</button><button type="button" class="knop klein" id="plan-centreer">Centreren op vlak</button><button type="button" class="knop klein" id="plan-tracelengte" hidden>Tracélengte overnemen…</button></div></details><button type="button" class="plan-vuilbak" id="plan-selectie-verwijder" aria-label="Geselecteerd object verwijderen"></button><button type="button" class="knop klein" id="plan-deselecteer" aria-label="Selectie opheffen">×</button></div><p id="plan-trace-info" class="hint" hidden></p><p id="plan-vorm-melding" class="hint" role="status" hidden></p></div>
+      <div id="plan-selectie" class="plan-selectie" hidden><div class="plan-selectie-context"><span id="plan-selectie-naam"></span><small id="plan-selectie-positie"></small></div><div><button type="button" class="knop klein compact-icon" id="plan-eigenschappen" aria-controls="plan-inspector" aria-expanded="false" title="Eigenschappen" aria-label="Eigenschappen"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/><circle cx="9" cy="6" r="2"/><circle cx="15" cy="12" r="2"/><circle cx="9" cy="18" r="2"/></svg></button><details id="plan-acties" class="plan-acties"><summary class="knop klein">Acties ▾</summary><div><button type="button" class="knop klein" id="plan-dupliceer">Dupliceren…</button><button type="button" class="knop klein" id="plan-centreer">Centreren op vlak</button><button type="button" class="knop klein" id="plan-tracelengte" hidden>Tracélengte overnemen…</button></div></details><button type="button" class="plan-vuilbak" id="plan-selectie-verwijder" aria-label="Geselecteerd object verwijderen"></button><button type="button" class="knop klein" id="plan-deselecteer" aria-label="Selectie opheffen">×</button></div><p id="plan-trace-info" class="hint" hidden></p><p id="plan-vorm-melding" class="hint" role="status" hidden></p></div>
       <section id="plan-inspector" class="plan-inspector" aria-label="Eigenschappen van geselecteerd object" hidden></section>
       <details class="studio-vouw studio-opties" id="tekenopties"><summary>Tekenopties <span>Lagen, raster en sleepvlak</span></summary><div class="studio-vouw-inhoud">
       <div class="plan-lagen" role="group" aria-label="Zichtbare werken">
@@ -2019,7 +2138,7 @@ body.huisstand-actief .object-snelknop,body.huisstand-actief .tekening-snelknop{
       <details class="studio-vouw studio-uitleg"><summary>Hulp bij de tekening</summary><div class="studio-vouw-inhoud">
       <p class="hint plan-voorbehoud">Schematische weergave, geen uitvoeringsplan. Eén symbool staat voor één werkregel (× aantal). Automatische posities zijn voorbeelden; stel de plaatsing in bij de werkregel. Tracés wijzigen geen offertehoeveelheden. Vlakmarkeringen tonen het gekozen werk, geen exacte gedeeltelijke dekking.</p>
       <p class="hint plantip">Klik op een wand om het objectmenu te openen. In 3D kun je draaien om alle wanden te bekijken.</p>
-      <p class="hint">Pijltjes: 5 cm · Shift: 25 cm · Alt: 1 cm. De numerieke plaatsingsvelden staan bij Eigenschappen.</p>
+      <p class="hint">V: selecteren · H: hand · M: meten · F: passend in beeld (met focus in de tekening). Dubbelklik een object voor eigenschappen. Pijltjes: 5 cm · Shift: 25 cm · Alt: 1 cm. De numerieke plaatsingsvelden staan bij Eigenschappen.</p>
       </div></details>
     </div>
 
@@ -2039,6 +2158,7 @@ body.huisstand-actief .object-snelknop,body.huisstand-actief .tekening-snelknop{
 
   <!-- ================= RECHTERZIJDE: de offerte ================= -->
   <details class="paneel offertepaneel studio-vouw" id="offertepaneel"><summary>Offerte bekijken <span>Calculatie, totalen en printvoorbeeld</span></summary><div class="studio-vouw-inhoud">
+    <div id="bereken-melding" class="bereken-melding" role="status" hidden><span id="bereken-melding-tekst"></span><button type="button" class="knop" id="bereken-opnieuw">Opnieuw berekenen</button></div>
     <div id="offerte" class="offerte"></div>
   </div></details>
 
@@ -2059,15 +2179,19 @@ body.huisstand-actief .object-snelknop,body.huisstand-actief .tekening-snelknop{
       <p class="tarief-leeg" id="tarief-geen-resultaten" hidden>Geen tarieven gevonden. Pas je zoekopdracht of filters aan.</p>
     </section>
 
-<div class="modal-achtergrond" id="modal-achtergrond" hidden>
-  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-titel">
+<dialog class="modal-achtergrond" id="modal-achtergrond" aria-labelledby="modal-titel" hidden>
+  <div class="modal">
     <h2 id="modal-titel">Opgeslagen offertes</h2>
+    <p id="modal-opslag" class="hint"></p>
+    <div class="archief-tools"><label for="archief-zoeken">Zoek project of klant<input type="search" id="archief-zoeken" placeholder="Bijvoorbeeld keuken of Janssens" autocomplete="off" aria-controls="modal-inhoud"></label><label for="archief-sorteren">Volgorde<select id="archief-sorteren"><option value="recent">Laatst gewijzigd</option><option value="naam">Projectnaam A–Z</option></select></label></div>
+    <p id="archief-aantal" role="status" aria-live="polite"></p>
+    <p id="archief-feedback" role="alert" hidden></p><button type="button" class="knop" id="archief-opnieuw" hidden>Opnieuw laden</button>
     <div id="modal-inhoud"></div>
     <div class="modal-acties">
       <button type="button" class="knop" id="modal-sluiten">Sluiten</button>
     </div>
   </div>
-</div>
+</dialog>
 
 <div class="toast" id="toast" hidden role="status" aria-live="polite"></div>
 
@@ -4528,9 +4652,13 @@ const state = {
   prijsboek: null,
   actieveRuimteId: null,
   berekenTimer: null,
+  rekenStatus: "pending",
   opslag: "server",   // "server" (Python-server) of "lokaal" (Worker: alleen browser)
   engine: null,       // lokale rekenkern (fallback als er geen API is)
 };
+
+let projectReferentieJSON='';
+let projectGeneratie=0; // UI document identity survives geometry clones and undo.
 
 /* ---------------- hulpmiddelen ---------------- */
 const esc = (tekst) => String(tekst ?? "").replace(/[&<>"']/g, (c) => (
@@ -4604,7 +4732,11 @@ function laadProject(project, id = null) {
   planSelectie=null;planInspectieOpen=false;
   projectHistorie.reset(project);
   renderHistorie();
+  projectGeneratie++;
   state.project = project;
+  projectReferentieJSON=JSON.stringify(project);
+  state.offerte = null;
+  rekenStatus("pending");
   state.projectId = id;
   state.actieveRuimteId = project.ruimtes.length ? project.ruimtes[0].id : null;
   syncSidebar();
@@ -4625,6 +4757,17 @@ function historieStap(richting) {
   syncSidebar();bewaarLokaal(false);render();bereken();
   $('#plan-sleepstatus').textContent=richting==='undo'?'Wijziging ongedaan gemaakt.':'Wijziging opnieuw uitgevoerd.';
 }
+const opslagProblemen=new Set();
+function opslagProbleem(soort,mislukt){
+  if(mislukt)opslagProblemen.add(soort);else opslagProblemen.delete(soort);
+  const banner=$('#opslag-waarschuwing');if(!banner)return;
+  banner.hidden=opslagProblemen.size===0;
+  document.body.classList.toggle('opslag-probleem',!banner.hidden);
+  const text=opslagProblemen.has('archief')
+    ?'Opslaan in deze browser is mislukt. Download een JSON-back-up voordat je deze pagina sluit.'
+    :'Automatisch bewaren in deze browser is mislukt. Download een JSON-back-up voordat je deze pagina sluit.';
+  if($('#opslag-waarschuwing-tekst').textContent!==text)$('#opslag-waarschuwing-tekst').textContent=text;
+}
 function bewaarLokaal(record=true) {
   if(record && state.project) {
     const el=document.activeElement;
@@ -4634,7 +4777,9 @@ function bewaarLokaal(record=true) {
   renderHistorie();
   try {
     localStorage.setItem(OPSLAG_SLEUTEL, JSON.stringify({ project: state.project, id: state.projectId }));
-  } catch (_) { /* opslag vol of niet beschikbaar */ }
+    opslagProbleem('concept',false);
+    return true;
+  } catch (_) { opslagProbleem('concept',true);return false; }
 }
 
 function wijzig(actie) {
@@ -4644,7 +4789,22 @@ function wijzig(actie) {
   bereken();
 }
 
+function rekenStatus(fase){
+  state.rekenStatus=fase;
+  const ready=fase==='ready',error=fase==='error';
+  document.body.classList.toggle('reken-onzeker',!ready);
+  $('#bereken-melding').hidden=ready;
+  $('#bereken-melding-tekst').textContent=error?'Berekening mislukt. Getoonde bedragen zijn niet actueel; verstuur deze offerte nog niet.':'Berekening wordt bijgewerkt. Eerdere bedragen zijn nog niet actueel.';
+  $('#bereken-opnieuw').hidden=!error;
+  $('#offerte').setAttribute('aria-busy',String(fase==='pending'));
+  if(!ready)$('#studio-totaal').textContent=error?'—':'…';
+  $('#studio-totaal').title=ready?'Totaal inclusief btw':error?'Bedrag niet actueel: bereken opnieuw':'Bedrag wordt bijgewerkt';
+  document.dispatchEvent(new Event('bouw-rekenstatus'));
+}
+$('#bereken-opnieuw').addEventListener('click',()=>bereken());
 function planBerekening() {
+  ++berekenVolgnummer; // Invalidate an older response immediately, not after debounce.
+  rekenStatus('pending');
   clearTimeout(state.berekenTimer);
   state.berekenTimer = setTimeout(bereken, 220);
 }
@@ -4654,6 +4814,7 @@ async function bereken() {
   const volgnummer=++berekenVolgnummer;
   clearTimeout(state.berekenTimer);
   if (!state.project) return;
+  rekenStatus("pending");
   status("Berekenen…");
   try {
     if (state.engine) {
@@ -4670,6 +4831,7 @@ async function bereken() {
       if(volgnummer!==berekenVolgnummer)return;
       state.offerte = resultaat;
     }
+    rekenStatus("ready");
     const focus = bewaarFocus();
     renderOfferte();
     renderOppervlakken();
@@ -4682,7 +4844,8 @@ async function bereken() {
     status(waarschuwingen.length ? "⚠ " + waarschuwingen[0] : "Offerte bijgewerkt");
   } catch (fout) {
     if(volgnummer!==berekenVolgnummer)return;
-    status("Berekening mislukt — is de server gestart?");
+    rekenStatus("error");
+    status("Berekening mislukt — controleer de verbinding en probeer opnieuw.");
     console.error(fout);
   }
 }
@@ -5069,7 +5232,7 @@ function renderOfferte() {
   if (!offerte) { container.innerHTML = ""; return; }
   const project = state.project;
   const totalen = offerte.totalen;
-  if ($("#studio-totaal")) $("#studio-totaal").textContent = eur(totalen.totaal);
+  if ($("#studio-totaal")) $("#studio-totaal").textContent = state.rekenStatus==='ready'?eur(totalen.totaal):state.rekenStatus==='error'?'—':'…';
 
   if (!offerte.regels.length) {
     container.innerHTML = `
@@ -5138,13 +5301,13 @@ function renderOfferte() {
         ${project.adres ? `<p>${esc(project.adres)}</p>` : ""}
       </div>
     </div>
-    <table class="offerte-tabel">
+    <div class="offerte-tabel-scroll" role="region" aria-label="Offerteposten; horizontaal verschuifbaar op kleine schermen" tabindex="0"><table class="offerte-tabel">
       <thead><tr>
         <th>Omschrijving</th>
         <th class="num">Materiaal</th><th class="num">Arbeid</th><th class="num">Totaal</th>
       </tr></thead>
       <tbody>${rijen.join("")}</tbody>
-    </table>
+    </table></div>
     <div class="offerte-totaal">
       <div><span>Materiaal</span><span>${eur(totalen.materiaal)}</span></div>
       <div><span>Arbeid (${NRL.format(totalen.uren)} u)</span><span>${eur(totalen.arbeid)}</span></div>
@@ -5244,7 +5407,7 @@ function renderPlan() {
   if (legenda) legenda.innerHTML = planLegenda(planWeergave === "aanzicht" ? regels.filter(r=>r.oppervlak===planVlak) : regels) || '<p class="vlak-leeg">Nog geen zichtbare werken op dit vlak. Voeg hieronder een werkregel toe of schakel een laag in.</p>';
   $("#plan-openingen").innerHTML = (ruimte.openingen || []).map((o,index)=> {
     if(planWeergave === "aanzicht" && o.muur !== planVlak) return "";
-    return `<div class="plan-opening-rij"><span><strong>${esc(o.naam)}</strong><small>Opening · wand ${esc(o.muur)}</small></span><button type="button" class="plan-vuilbak" data-plan-opening-verwijder="${index}" aria-label="${esc(o.naam)} op wand ${esc(o.muur)} verwijderen" title="Opening verwijderen">${vuilbakIcoon}</button></div>`;
+    return `<div class="plan-opening-rij"><button type="button" class="plan-opening-select" data-plan-opening-select="${index}" aria-pressed="false"><strong>${esc(o.naam)}</strong><small>Opening · wand ${esc(o.muur)}</small></button><button type="button" class="plan-vuilbak" data-plan-opening-verwijder="${index}" aria-label="${esc(o.naam)} op wand ${esc(o.muur)} verwijderen" title="Opening verwijderen">${vuilbakIcoon}</button></div>`;
   }).join("");
   $("#vlak-bediening").hidden = planWeergave !== "aanzicht";
   $("#sleepvlak-keuze").hidden = planWeergave !== "isometrie";
@@ -5305,12 +5468,19 @@ function regelToevoegen(oppervlak, soort) {
 }
 
 /* --- opslag: op de server (Python) of alleen in de browser (Worker) --- */
-function lokaleProjecten() {
-  try { return JSON.parse(localStorage.getItem(OPSLAG_LIJST) || "[]"); } catch (_) { return []; }
+function lokaleProjecten(strict=false) {
+  try {
+    const raw=localStorage.getItem(OPSLAG_LIJST),list=raw===null?[]:JSON.parse(raw);
+    if(!Array.isArray(list)||!list.every(p=>p&&typeof p==='object'&&!Array.isArray(p)&&p.id!==undefined))throw Error('Ongeldig offertearchief');
+    return list;
+  } catch (fout) {
+    opslagProbleem('archief',true);
+    if(strict)throw fout;
+    return [];
+  }
 }
 
 function lokaalOpslaan(project, id) {
-  const lijst = lokaleProjecten();
   const projectId = id || `${(project.naam || "offerte").toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${Date.now()}`;
   const entry = {
     id: projectId, naam: project.naam, klant: project.klant, datum: project.datum,
@@ -5318,84 +5488,144 @@ function lokaalOpslaan(project, id) {
     gewijzigd: new Date().toISOString().slice(0, 16).replace("T", " "),
     project,
   };
-  const overig = lijst.filter((p) => p.id !== projectId);
   try {
+    const overig=lokaleProjecten(true).filter(p=>p.id!==projectId);
     localStorage.setItem(OPSLAG_LIJST, JSON.stringify([entry, ...overig].slice(0, 50)));
   } catch (_) {
     // Geen opslag beschikbaar (privacymodus, iframe, gekopieerd bestand).
-    status("Opslaan kan hier niet — deze browser blokkeert de opslag.");
+    opslagProbleem('archief',true);
+    status("Opslaan kan hier niet — opslag vol of niet beschikbaar.");
     return null;
   }
+  opslagProbleem('archief',false);
   return projectId;
 }
 
 function lokaalVerwijderen(id) {
   try {
-    localStorage.setItem(OPSLAG_LIJST, JSON.stringify(lokaleProjecten().filter((p) => p.id !== id)));
-  } catch (_) { /* opslag niet beschikbaar */ }
+    localStorage.setItem(OPSLAG_LIJST, JSON.stringify(lokaleProjecten(true).filter((p) => String(p.id) !== String(id))));
+    return true;
+  } catch (_) { return false; }
 }
 
+let opslaanBezig=false;
 async function opslaan() {
-  if (!state.project) return;
+  if (!state.project||opslaanBezig) return;
+  opslaanBezig=true;
+  const button=$('#btn-opslaan');button.disabled=true;button.setAttribute('aria-busy','true');
+  const origineel=projectGeneratie,id=state.projectId,snapshot=JSON.parse(JSON.stringify(state.project));
+  const dezelfdeOfferte=()=>projectGeneratie===origineel&&state.projectId===id;
   status("Opslaan…");
-  if (state.opslag === "lokaal") {
-    const nieuwId = lokaalOpslaan(state.project, state.projectId);
-    if (!nieuwId) {
-      toast("Kon niet opslaan — deze browser blokkeert de opslag");
-      return;
-    }
-    state.projectId = nieuwId;
-    bewaarLokaal();
-    status("Opgeslagen in deze browser");
-    toast("Offerte opgeslagen in deze browser");
-    return;
-  }
   try {
-    const antwoord = await fetch("/api/projecten/opslaan", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ project: state.project, id: state.projectId }),
-    });
-    const data = await antwoord.json();
-    if (data.fout) throw new Error(data.fout);
-    state.projectId = data.id;
-    bewaarLokaal();
-    status("Opgeslagen");
-    toast(`Offerte opgeslagen (${data.id})`);
-  } catch (fout) {
-    status("Opslaan mislukt");
-    toast("Opslaan mislukt — is de server gestart?");
-  }
-}
-
-async function openenDialog() {
-  const inhoud = $("#modal-inhoud");
-  inhoud.innerHTML = "<p class='hint'>Bezig met laden…</p>";
-  $("#modal-achtergrond").hidden = false;
-
-  let projecten = [];
-  if (state.opslag === "lokaal") {
-    projecten = lokaleProjecten();
-  } else {
-    try {
-      const antwoord = await fetch("/api/projecten");
-      const data = await antwoord.json();
-      projecten = data.projecten || [];
-    } catch (fout) {
-      inhoud.innerHTML = "<p class='hint'>Laden mislukt — is de server gestart?</p>";
-      return;
+    let nieuwId;
+    if (state.opslag === "lokaal") {
+      nieuwId=lokaalOpslaan(snapshot,id);
+      if(!nieuwId){toast("Kon niet opslaan — download een JSON-back-up");return;}
+    } else {
+      const antwoord=await fetch("/api/projecten/opslaan",{
+        method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({project:snapshot,id}),
+      });
+      if(!antwoord.ok)throw Error('serverfout');
+      const data=await antwoord.json();
+      if(data.fout||!data.id)throw Error(data.fout||'Geen opslag-ID');
+      nieuwId=data.id;
     }
-  }
-
-  inhoud.innerHTML = projecten.length
-    ? `<div class="projectlijst">${projecten.map((p) => `
-        <div class="projectregel">
-          <span class="naam">${esc(p.naam)}<br><span class="meta">${esc(p.klant || "—")} · ${esc(p.ruimtes)} ruimte(s) · ${esc(p.gewijzigd || "")}</span></span>
-          <button type="button" class="knop klein" data-actie="project-laden" data-id="${esc(p.id)}">Openen</button>
-          <button type="button" class="knop klein gevaar ico-only" data-actie="project-verwijderen" data-id="${esc(p.id)}" aria-label="Offerte verwijderen">${ICO.prullenbak}</button>
-        </div>`).join("")}</div>`
-    : `<p class="hint">Nog geen opgeslagen offertes. Sla je huidige offerte op met de knop <b>Opslaan</b>.</p>`;
+    // A late response must never attach the old document's ID to a new project.
+    if(!dezelfdeOfferte()){toast("Vorige offerte opgeslagen; je huidige offerte is niet gewijzigd");return;}
+    const gewijzigd=JSON.stringify(state.project)!==JSON.stringify(snapshot);
+    state.projectId=nieuwId;projectReferentieJSON=JSON.stringify(snapshot);bewaarLokaal(false);
+    if(gewijzigd){status("Versie opgeslagen; nieuwere wijzigingen nog niet opgeslagen");toast("Versie opgeslagen — sla je nieuwere wijzigingen ook op");}
+    else {status(state.opslag==='lokaal'?"Opgeslagen in deze browser":"Opgeslagen");toast(state.opslag==='lokaal'?"Offerte opgeslagen in deze browser":"Offerte opgeslagen");}
+  } catch (_) {
+    if(dezelfdeOfferte()){status("Opslaan mislukt");toast("Opslaan mislukt — controleer de verbinding en probeer opnieuw");}
+    else toast("Vorige offerte kon niet worden opgeslagen");
+  } finally {opslaanBezig=false;button.disabled=false;button.removeAttribute('aria-busy');}
 }
+$('#opslag-backup').addEventListener('click',exporteerJson);
+$('#opslag-opnieuw').addEventListener('click',()=>{
+  if(!state.project)return;
+  if(opslagProblemen.has('archief')){
+    const id=lokaalOpslaan(state.project,state.projectId);if(id){state.projectId=id;projectReferentieJSON=JSON.stringify(state.project);}
+  }
+  bewaarLokaal(false);
+  if(!opslagProblemen.size){status('Bewaren in deze browser werkt weer');toast('Bewaren in deze browser werkt weer');}
+});
+
+let archiefProjecten=[],archiefRequest=0,archiefOpenRequest=0,archiefOpener=null,archiefRestoreFocus=true;
+const archiefNorm=s=>String(s??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('nl-BE');
+function archiefFout(tekst){$('#archief-feedback').textContent=tekst;$('#archief-feedback').hidden=!tekst;}
+function sluitOpenenDialog(restore=true){
+  archiefRestoreFocus=restore;
+  ++archiefRequest;++archiefOpenRequest;
+  $('#modal-achtergrond').close();$('#modal-achtergrond').hidden=true;
+}
+function renderArchief(){
+  const query=archiefNorm($('#archief-zoeken').value.trim());
+  const lijst=archiefProjecten.filter(p=>archiefNorm(`${p.naam||''} ${p.klant||''}`).includes(query));
+  if($('#archief-sorteren').value==='naam')lijst.sort((a,b)=>String(a.naam||'').localeCompare(String(b.naam||''),'nl-BE',{numeric:true,sensitivity:'base'}));
+  else lijst.sort((a,b)=>String(b.gewijzigd||'').localeCompare(String(a.gewijzigd||'')));
+  const focused=document.activeElement?.closest('[data-actie]'),focusId=focused?.dataset.id,focusAction=focused?.dataset.actie;
+  $('#archief-aantal').textContent=`${lijst.length} van ${archiefProjecten.length} offertes`;
+  $('#modal-inhoud').innerHTML=lijst.length?`<div class="projectlijst">${lijst.map(p=>`<div class="projectregel"><span class="naam">${esc(p.naam||'Naamloze offerte')}<br><span class="meta">${esc(p.klant||'Geen klant')} · ${esc(p.ruimtes??0)} ruimte(s) · ${esc(String(p.gewijzigd||'').replace('T',' '))}</span></span><button type="button" class="knop klein" data-actie="project-laden" data-id="${esc(p.id)}" aria-label="Open ${esc(p.naam||'offerte')}">Openen</button><button type="button" class="knop klein gevaar ico-only" data-actie="project-verwijderen" data-id="${esc(p.id)}" aria-label="Verwijder ${esc(p.naam||'offerte')}">${ICO.prullenbak}</button></div>`).join('')}</div>`:`<p class="hint">${query?'Geen offertes gevonden. Pas je zoekterm aan.':'Nog geen opgeslagen offertes. Bewaar eerst je huidige offerte met Opslaan.'}</p>`;
+  if(focusId&&$('#modal-achtergrond').open){
+    const next=[...$('#modal-inhoud').querySelectorAll('[data-actie]')].find(b=>b.dataset.id===focusId&&b.dataset.actie===focusAction);
+    (next||$('#archief-zoeken')).focus({preventScroll:true});
+  }
+}
+async function openenDialog(){
+  const modal=$('#modal-achtergrond'),ticket=++archiefRequest;
+  if(!modal.open){
+    archiefOpener=document.activeElement?.closest('#bestand-menu')?$('#bestand-menu summary'):document.activeElement;
+    archiefRestoreFocus=true;archiefProjecten=[];$('#modal-inhoud').textContent='';
+    $('#archief-zoeken').value='';modal.hidden=false;modal.showModal();$('#archief-zoeken').focus();
+  }
+  archiefFout('');$('#archief-opnieuw').hidden=true;$('#archief-aantal').textContent='Offertes laden…';
+  $('#modal-opslag').textContent=state.opslag==='lokaal'?'Bewaard in deze browser. Niet automatisch beschikbaar op andere apparaten.':'Bewaard op je server.';
+  $('#modal-inhoud').setAttribute('aria-busy','true');
+  try{
+    let projecten;
+    if(state.opslag==='lokaal')projecten=lokaleProjecten(true);
+    else{
+      const antwoord=await fetch('/api/projecten');if(!antwoord.ok)throw Error('serverfout');
+      const data=await antwoord.json();if(data.fout||!Array.isArray(data.projecten))throw Error('Ongeldige projectlijst');projecten=data.projecten;
+    }
+    if(ticket!==archiefRequest||!modal.open)return;
+    archiefProjecten=projecten;renderArchief();
+  }catch(_){
+    if(ticket!==archiefRequest||!modal.open)return;
+    archiefProjecten=[];$('#modal-inhoud').textContent='';$('#archief-aantal').textContent='';
+    archiefFout('Opgeslagen offertes konden niet worden geladen. Probeer opnieuw; je huidige offerte blijft behouden.');$('#archief-opnieuw').hidden=false;
+  }finally{if(ticket===archiefRequest)$('#modal-inhoud').setAttribute('aria-busy','false');}
+}
+async function openArchiefProject(id){
+  if(JSON.stringify(state.project)!==projectReferentieJSON&&!confirm('Je huidige offerte heeft wijzigingen sinds openen of opslaan. Toch vervangen? Sla op of download eerst een JSON-back-up als je deze wijzigingen wilt bewaren.'))return;
+  const ticket=++archiefOpenRequest,generatie=projectGeneratie;
+  archiefFout('');
+  try{
+    let project,projectId=id;
+    if(state.opslag==='lokaal'){
+      const entry=lokaleProjecten(true).find(p=>String(p.id)===id);if(!entry?.project)throw Error('Niet gevonden');
+      project=entry.project;projectId=entry.id;
+    }else{
+      const response=await fetch(`/api/projecten/${encodeURIComponent(id)}`);if(!response.ok)throw Error('serverfout');
+      const data=await response.json();if(data.fout||!data.project)throw Error('Niet gevonden');project=data.project;
+    }
+    if(ticket!==archiefOpenRequest||!$('#modal-achtergrond').open||generatie!==projectGeneratie)return;
+    laadProject(project,projectId);sluitOpenenDialog(false);window.BouwHuis?.setLevel(project.huis?'huis':'ruimte');studioOpen('tekening');toast('Offerte geopend');
+  }catch(_){if(ticket===archiefOpenRequest&&$('#modal-achtergrond').open)archiefFout('Deze offerte kon niet worden geopend. Je huidige offerte is niet gewijzigd.');}
+}
+$('#archief-zoeken').addEventListener('input',renderArchief);
+$('#archief-sorteren').addEventListener('change',renderArchief);
+$('#archief-opnieuw').addEventListener('click',openenDialog);
+$('#modal-achtergrond').addEventListener('keydown',e=>{
+  if(e.key==='Escape'){e.preventDefault();e.stopPropagation();sluitOpenenDialog();}
+  else if(e.key==='ArrowDown'&&e.target.id==='archief-zoeken'){e.preventDefault();$('#modal-inhoud [data-actie="project-laden"]')?.focus();}
+});
+$('#modal-achtergrond').addEventListener('close',()=>{
+  if($('#modal-achtergrond').open)return;
+  $('#modal-achtergrond').hidden=true;++archiefRequest;++archiefOpenRequest;
+  if(archiefRestoreFocus&&archiefOpener?.isConnected&&archiefOpener.getClientRects().length)archiefOpener.focus({preventScroll:true});
+});
 
 function exporteerJson() {
   const blob = new Blob([JSON.stringify(state.project, null, 2)], { type: "application/json" });
@@ -5420,13 +5650,13 @@ function importeerJson(tekst) {
 /* ---------------- events ---------------- */
 function selecteerPlanRegel(id) {
   $("#plan-acties").open=false;
-  planInspectieOpen=false;
+  if(planSelectie?.type!=='regel'||planSelectie.id!==id)planInspectieOpen=false;
   planSelectie = {type:'regel',id};
   renderPlanSelectie();
 }
 function selecteerPlanOpening(index) {
   $("#plan-acties").open=false;
-  planInspectieOpen=false;
+  if(planSelectie?.type!=='opening'||planSelectie.index!==index||planSelectie.ruimteId!==actieveRuimte()?.id)planInspectieOpen=false;
   planSelectie = {type:'opening',index,ruimteId:actieveRuimte()?.id};
   renderPlanSelectie();
 }
@@ -5464,6 +5694,11 @@ function renderPlanSelectie() {
     melding.hidden=!buiten;melding.textContent='⚠ Buiten de contour of boven het plafond, of de opening past niet. Controleer de plaatsing. De tekening kan maten begrenzen; de meetstaat gebruikt de opgegeven maten.';
   }
   renderPlanInspector(regel,opening);
+  $('#plan-eigenschappen').setAttribute('aria-expanded',String(!$('#plan-inspector').hidden));
+  const geometry=traceregel?BouwPlan.werkGeometrie(traceregel,room):opening?BouwPlan.openingGeometrie(room,planSelectie.index):null;
+  $('#plan-selectie-positie').textContent=geometry?`X ${NR.format(geometry.a[0])} · Y ${NR.format(geometry.a[1])} · Z ${NR.format(geometry.a[2])} m`:'';
+  $$('#plan-openingen [data-plan-opening-select]').forEach(b=>b.setAttribute('aria-pressed',String(!!opening&&Number(b.dataset.planOpeningSelect)===planSelectie.index)));
+  $$('#plan-legenda [data-plan-regel]').forEach(b=>b.setAttribute('aria-pressed',String(!!regel&&b.dataset.planRegel===regel.id)));
   $$('#plan [data-opening-index]').forEach(el=>el.classList.toggle('plan-geselecteerd',!!opening && Number(el.dataset.openingIndex)===planSelectie.index));
   $$('#plan [data-plan-regel]').forEach(el=>el.classList.toggle('plan-geselecteerd',!!regel && el.dataset.planRegel===regel.id));
   const verwijder=$("#plan-selectie-verwijder");
@@ -5494,6 +5729,8 @@ function studioOpen(id, opties) {
 document.addEventListener("click", (e) => {
   const nav=e.target.closest('[data-studio-doel]');
   if(nav){studioOpen(nav.dataset.studioDoel, {exclusive:true});return;}
+  const openingKeuze=e.target.closest('[data-plan-opening-select]');
+  if(openingKeuze){selecteerPlanOpening(Number(openingKeuze.dataset.planOpeningSelect));return;}
   if(e.target.closest('#plan-deselecteer')){planSelectie=null;renderPlanSelectie();return;}
   if(e.target.closest('#plan-undo')){historieStap('undo');return;}
   if(e.target.closest('#plan-redo')){historieStap('redo');return;}
@@ -5659,33 +5896,18 @@ document.addEventListener("click", (e) => {
         if (regel) regel.hoeveelheid = null;
       });
     } else if (actie === "project-laden") {
-      if (state.opslag === "lokaal") {
-        const gevonden = lokaleProjecten().find((p) => p.id === knop.dataset.id);
-        if (gevonden?.project) {
-          laadProject(gevonden.project, gevonden.id);
-          $("#modal-achtergrond").hidden = true;
-          toast("Offerte geopend");
-        }
-      } else {
-        fetch(`/api/projecten/${knop.dataset.id}`).then((r) => r.json()).then((data) => {
-          if (data.project) {
-            laadProject(data.project, knop.dataset.id);
-            $("#modal-achtergrond").hidden = true;
-            toast("Offerte geopend");
-          }
-        });
-      }
+      openArchiefProject(knop.dataset.id);
     } else if (actie === "project-verwijderen") {
       if (!confirm("Deze offerte definitief verwijderen?")) return;
-      if (state.opslag === "lokaal") {
-        lokaalVerwijderen(knop.dataset.id);
-        openenDialog();
-        toast("Offerte verwijderd");
-      } else {
-        fetch("/api/projecten/verwijder", {
-          method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id: knop.dataset.id }),
-        }).then(() => { openenDialog(); toast("Offerte verwijderd"); });
+      const request=archiefRequest;
+      const afgerond=()=>{if($('#modal-achtergrond').open&&request===archiefRequest){openenDialog();toast('Offerte verwijderd');}};
+      if(state.opslag==='lokaal'){
+        if(lokaalVerwijderen(knop.dataset.id))afgerond();
+        else {archiefFout('Verwijderen mislukt — de offerte is behouden');toast('Verwijderen mislukt — de offerte is behouden');}
+      }else{
+        fetch('/api/projecten/verwijder',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:knop.dataset.id})})
+          .then(async r=>{if(!r.ok)throw Error('serverfout');const d=await r.json();if(d.fout||!d.verwijderd)throw Error('Niet verwijderd');afgerond();})
+          .catch(()=>{if($('#modal-achtergrond').open&&request===archiefRequest)archiefFout('Verwijderen mislukt — probeer opnieuw.');});
       }
     }
     return;
@@ -5700,9 +5922,10 @@ document.addEventListener("click", (e) => {
   } else if (e.target.id === "btn-openen") {
     openenDialog();
   } else if (e.target.id === "btn-print") {
+    if(state.rekenStatus!=='ready'){toast('Bereken de offerte eerst opnieuw voordat je print');studioOpen('offertepaneel');return;}
     window.print();
   } else if (e.target.id === "modal-sluiten" || e.target.id === "modal-achtergrond") {
-    $("#modal-achtergrond").hidden = true;
+    sluitOpenenDialog();
   } else if (e.target.id === "btn-export") {
     exporteerJson();
   } else if (e.target.id === "btn-import") {
@@ -5990,6 +6213,7 @@ async function init() {
       state.prijsboek = engine.prijsboek();
       state.opslag = "lokaal";
     } else {
+      rekenStatus("error");
       status("Kan de rekenkern niet laden.");
       state.prijsboek = { tarieven: [], pakketten: [] };
     }
@@ -6272,7 +6496,7 @@ document.addEventListener('submit',e=>{
   window.BouwSleep = {projectDelta,boundedDelta,positieActie};
   const host = document.querySelector('#plan');
   if (!host) return;
-  let drag = null, suppressClickUntil = 0;
+  let drag = null, suppressClickUntil = 0, lastTap = null;
   const copy = v => JSON.parse(JSON.stringify(v));
   const coord = n => Math.round(n*1000)/1000;
   const note = text => {const el=document.querySelector('#plan-sleepstatus'); if(el) el.textContent=text;};
@@ -6344,6 +6568,7 @@ document.addEventListener('submit',e=>{
     renderPlan();
   }
   function commit(d) {
+    lastTap=null;
     bewaarLokaal();
     if (d.isOpening) {
       const kaart=document.querySelector('#ruimtekaart');
@@ -6365,20 +6590,30 @@ document.addEventListener('submit',e=>{
     host.classList.remove('is-slepen');
     if (!d.moved) {
       suppressClickUntil=performance.now()+500;
-      if (cancel) {note('Verplaatsing geannuleerd.');return;}
+      if (cancel) {lastTap=null;note('Verplaatsing geannuleerd.');return;}
       if (d.isOpening) {
         selecteerPlanOpening(d.index);
       } else selecteerPlanRegel(d.model.id);
+      // Pointer capture retargets native dblclick to the host. Recognize stable
+      // double activation from the prepared object, never from an empty canvas.
+      const key=JSON.stringify([d.room.id,d.isOpening?'opening':'regel',d.isOpening?d.index:d.model.id]);
+      const now=performance.now();
+      if(lastTap?.key===key&&now-lastTap.time<450&&Math.hypot(d.startX-lastTap.x,d.startY-lastTap.y)<8){
+        lastTap=null;document.dispatchEvent(new Event('bouw-teken-eigenschappen'));
+      }else lastTap={key,time:now,x:d.startX,y:d.startY};
       return;
     }
+    lastTap=null;
     suppressClickUntil=performance.now()+500;
     if (cancel) {restore(d);note('Verplaatsing geannuleerd.');}
     else commit(d);
   }
+  document.addEventListener('pointerdown',e=>{if(!host.contains(e.target))lastTap=null;},true);
+  document.addEventListener('keydown',()=>{lastTap=null;},true);
   host.addEventListener('pointerdown',e=>{
     if (drag || !e.isPrimary || e.button!==0) return;
     const d=prepare(e.target),point=svgPoint(e);
-    if (!d || !point) return;
+    if (!d || !point) {lastTap=null;return;}
     drag={...d,point,startX:e.clientX,startY:e.clientY,pointerId:e.pointerId,moved:false};
     host.setPointerCapture(e.pointerId);
   });
@@ -6513,6 +6748,26 @@ function sluitTekenFocus() {
     planCamera.panY=begrens(planCamera.panY+(e.key==='ArrowDown'?stap:e.key==='ArrowUp'?-stap:0),560);
     renderPlan();host.focus({preventScroll:true});
   },true);
+})();
+
+/* Familiar drawing shortcuts only while focus is inside this drawing. */
+(function(){
+  const host=document.getElementById('plan');
+  document.addEventListener('keydown',e=>{
+    if(e.defaultPrevented||e.isComposing||e.repeat||e.ctrlKey||e.metaKey||e.altKey||!e.target.closest?.('#tekening')||e.target.closest('input,textarea,select')||e.target.isContentEditable)return;
+    const key=e.key.toLowerCase(),tool={v:'select',h:'hand',m:'meet'}[key];
+    if(!tool&&key!=='f')return;
+    e.preventDefault();
+    const button=document.querySelector(tool?`[data-plan-gereedschap="${tool}"]`:'[data-camera="reset"]');
+    button?.click();
+    const selected=planGereedschap==='select'&&[...host.querySelectorAll('[data-plan-drag]')].find(el=>planSelectie?.type==='regel'?el.dataset.planRegel===planSelectie.id:planSelectie?.type==='opening'&&Number(el.dataset.openingIndex)===planSelectie.index);
+    (selected||host).focus({preventScroll:true});
+  });
+  document.addEventListener('bouw-teken-eigenschappen',()=>{
+    if(planGereedschap!=='select'||!planSelectie)return;
+    if(document.getElementById('plan-inspector').hidden)document.getElementById('plan-eigenschappen').click();
+    else document.querySelector('#plan-inspector input,#plan-inspector select')?.focus({preventScroll:true});
+  });
 })();
 
 </script>
@@ -6826,7 +7081,8 @@ function sluitTekenFocus() {
   let niveau='ruimte',view='2d',snede=null,gekozen=null,gereedschap='select',pan=null,suppress=0;
   const camera=BouwHuisCamera.maak(),host=$('#huis-plan');
   const V=()=>window.BouwVorm;
-  const selected=()=>state.project?.ruimtes.find(r=>r.id===gekozen&&r.huis_positie);
+  const selected=()=>state.project?.ruimtes.find(r=>r.id===gekozen);
+  let placementRoom=null,placementDirty=false,placementProject=null;
   const empty=r=>!(r.openingen||[]).length&&!state.project.regels.some(x=>x.ruimte_id===r.id)&&!Object.keys(r.wand_helling||{}).length;
   const message=s=>$('#huis-melding').textContent=s;
   function svg(project,mode='2d',selection=null,magnify=1,options={}){
@@ -6859,7 +7115,8 @@ function sluitTekenFocus() {
   }
   function render(redraw=true){
     if(!state.project||!V())return;
-    if(!selected()){gekozen=state.project.ruimtes.find(r=>r.huis_positie)?.id||null;snede=null;redraw=true;}
+    if(!selected()){gekozen=(state.project.ruimtes.find(r=>r.huis_positie)||(state.project.huis?state.project.ruimtes[0]:null))?.id||null;snede=null;redraw=true;}
+    if(snede&&(!selected()?.huis_positie||snede.room!==gekozen))snede=null;
     document.body.classList.toggle('huisstand-actief',niveau==='huis');
     $('#werkvlak').classList.toggle('huisstand',niveau==='huis');$('#huis-paneel').hidden=niveau!=='huis';
     document.querySelectorAll('[data-ontwerpniveau]').forEach(b=>{const on=b.dataset.ontwerpniveau===niveau;b.setAttribute('aria-pressed',on);b.classList.toggle('actief',on);});
@@ -6878,9 +7135,9 @@ function sluitTekenFocus() {
     // Progressive disclosure: camera/placement controls need an actual contour.
     $('#huis-paneel').querySelectorAll('[data-huis-ready]').forEach(el=>el.hidden=!h);
     $('#huis-draaien').hidden=!h||view!=='3d';
-    $('#huis-splits-invoer').hidden=!h;
     $('#huis-kamers').hidden=!h;
-    $('.huis-acties').hidden=!selected();
+    $('.huis-acties').hidden=!h||!selected();
+    $('#huis-splits-invoer').hidden=!h||!selected()?.huis_positie;
     const history=projectHistorie.kanUndo()||projectHistorie.kanRedo();
     $('#huis-undo').hidden=$('#huis-redo').hidden=!h&&!history;
     const stage=!h?1:(rs.length>1||(selected()&&!empty(selected()))?3:2);
@@ -6890,20 +7147,35 @@ function sluitTekenFocus() {
     });
     const chip=(value,label)=>`<span title="${esc(label)}" aria-label="${esc(label)}">${esc(value)}</span>`;
     const area=h?Math.abs(V().area(V().points(h))):0;
-    $('#huis-statistiek').innerHTML=h?chip(`${NR.format(area)} m²`,'Woningoppervlakte')+chip(`▱ ${rs.length}`,'Kamers op het huisplan')+chip(`${NR.format(Math.max(0,area-total))} m²`,'Nog niet ingedeelde oppervlakte')+(apart?chip(`⚠ ${apart} buiten plan`,'Bestaande kamers buiten huisplan; hun werken tellen wel mee in de offerte'):''):'⌂ Eén verdieping · m';
-    $('#huis-open').disabled=$('#huis-splits').disabled=!selected();
+    $('#huis-statistiek').innerHTML=h?chip(`${NR.format(area)} m²`,'Woningoppervlakte')+chip(`▱ ${rs.length}`,'Kamers op het huisplan')+chip(`${NR.format(Math.max(0,area-total))} m²`,'Nog niet ingedeelde oppervlakte')+(apart?`<button type="button" data-huis-buiten title="Kamers buiten het huisplan bekijken en plaatsen">⚠ ${apart} buiten plan</button>`:''):'⌂ Eén verdieping · m';
+    $('#huis-open').disabled=!selected();$('#huis-splits').disabled=!selected()?.huis_positie;
     if(!$('#huis-kamerlijst').contains(document.activeElement))$('#huis-kamerlijst').innerHTML=state.project.ruimtes.map(r=>`<button type="button" class="knop" data-huis-kies="${esc(r.id)}" aria-pressed="${r.id===gekozen}">${esc(r.naam)} · ${r.huis_positie?`X ${NRL.format(r.huis_positie.x)}, Y ${NRL.format(r.huis_positie.y)}`:'buiten huisplan'}</button>`).join('');
+    $('#huis-kamerlijst').querySelectorAll('[data-huis-kies]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.huisKies===gekozen)));
     window.BouwStudio?.sync();
-    const el=$('#huis-plaats-ruimte'),old=el.value;el.innerHTML=state.project.ruimtes.map(r=>`<option value="${esc(r.id)}">${esc(r.naam)}</option>`).join('');if(state.project.ruimtes.some(r=>r.id===old))el.value=old;
+    syncPlacement();
   }
+  function syncPlacement(){
+    if(placementProject!==state.project){placementDirty=false;placementRoom=null;placementProject=state.project;}
+    const r=selected(),el=$('#huis-plaats-ruimte');
+    const html=state.project.ruimtes.map(r=>`<option value="${esc(r.id)}">${esc(r.naam)}</option>`).join('');
+    if(el.innerHTML!==html)el.innerHTML=html;
+    if(r)el.value=r.id;
+    if(placementRoom!==r?.id||!placementDirty){
+      placementRoom=r?.id||null;placementDirty=false;
+      $('#huis-plaats-x').value=r?.huis_positie?.x??0;$('#huis-plaats-y').value=r?.huis_positie?.y??0;
+    }
+    $('#huis-losmaken').disabled=!r?.huis_positie;
+    $('#huis-plaats-status').textContent=placementDirty?'Nog niet toegepast. Kies Plaats / verplaats ruimte om te bevestigen.':r?.huis_positie?'Positie vanaf de linkerbovenhoek van het huisplan, in meter.':'Deze kamer staat buiten het huisplan. Werken blijven meetellen in de offerte.';
+  }
+  ['#huis-plaats-x','#huis-plaats-y'].forEach(id=>$(id).addEventListener('input',()=>{placementDirty=true;syncPlacement();}));
   function renderCanvas(){
     const cam=camera.lees();host.innerHTML=svg(state.project,view,gekozen,cam.zoom,cam);
   }
   function renderSelectie(){
-    const r=selected(),panel=$('#huis-selectie-info');panel.hidden=!r;
+    const r=selected(),panel=$('#huis-selectie-info');panel.hidden=!r||!state.project.huis;
     if(!r){panel.innerHTML='';return;}
     const vs=V().surfaces(r),opp=id=>NR.format(vs.find(v=>v.sleutel===id).netto),count=state.project.regels.filter(w=>w.ruimte_id===r.id).length;
-    panel.innerHTML=`<strong>${esc(r.naam)}</strong><dl><div><dt title="Vloeroppervlakte"><span aria-hidden="true">▱</span><span class="compact-sr">Vloer</span></dt><dd>${opp('vloer')} m²</dd></div><div><dt title="Plafondoppervlakte"><span aria-hidden="true">▱↑</span><span class="compact-sr">Plafond</span></dt><dd>${opp('plafond')} m²</dd></div><div><dt title="Netto wandoppervlakte"><span aria-hidden="true">▥</span><span class="compact-sr">Netto wanden</span></dt><dd>${NR.format(vs.filter(v=>v.soort==='muur').reduce((n,v)=>n+v.netto,0))} m²</dd></div><div><dt title="Aantal werkposten"><span aria-hidden="true">☷</span><span class="compact-sr">Werkposten</span></dt><dd>${count}</dd></div></dl>${empty(r)?'':'<p class="hint">Indeling beschermd: werken, openingen of wandhelling.</p>'}`;
+    panel.innerHTML=`<strong>${esc(r.naam)}</strong>${r.huis_positie?'':'<p class="huis-buiten-info">Buiten huisplan · open de kamer om werken te bewerken, of plaats ze hieronder.</p>'}<dl><div><dt title="Vloeroppervlakte"><span aria-hidden="true">▱</span><span class="compact-sr">Vloer</span></dt><dd>${opp('vloer')} m²</dd></div><div><dt title="Plafondoppervlakte"><span aria-hidden="true">▱↑</span><span class="compact-sr">Plafond</span></dt><dd>${opp('plafond')} m²</dd></div><div><dt title="Netto wandoppervlakte"><span aria-hidden="true">▥</span><span class="compact-sr">Netto wanden</span></dt><dd>${NR.format(vs.filter(v=>v.soort==='muur').reduce((n,v)=>n+v.netto,0))} m²</dd></div><div><dt title="Aantal werkposten"><span aria-hidden="true">☷</span><span class="compact-sr">Werkposten</span></dt><dd>${count}</dd></div></dl>${empty(r)?'':'<p class="hint">Indeling beschermd: werken, openingen of wandhelling.</p>'}`;
   }
   function openSelected(){
     const r=selected();if(!r)return;
@@ -6912,7 +7184,7 @@ function sluitTekenFocus() {
   }
   function setLevel(n){
     eindePan(true);suppress=0;const changed=niveau!==n;
-    if(changed&&n==='huis'&&actieveRuimte()?.huis_positie)gekozen=state.actieveRuimteId;
+    if(changed&&n==='huis'&&actieveRuimte())gekozen=state.actieveRuimteId;
     if(changed&&n==='ruimte'&&selected()){
       state.actieveRuimteId=selected().id;planSelectie=null;planInspectieOpen=false;
       Object.assign(planCamera,{zoom:1,panX:0,panY:0});window.BouwMeten?.reset();
@@ -6922,11 +7194,11 @@ function sluitTekenFocus() {
   function choose(id){
     const r=state.project.ruimtes.find(r=>r.id===id);if(!r)return;
     const unchanged=gekozen===id&&!!r.huis_positie&&!snede;
-    gekozen=r.huis_positie?id:gekozen;
+    gekozen=id;placementDirty=false;
     $('#huis-plaats-ruimte').value=id;$('#huis-plaats-x').value=r.huis_positie?.x||0;$('#huis-plaats-y').value=r.huis_positie?.y||0;
     snede=null;render(!unchanged);message(`${r.naam} geselecteerd${r.huis_positie?'':'; nog niet op het huisplan'}.`);
   }
-  function splitRoom(){const r=selected();if(!r)throw Error('Selecteer eerst een kamer op het huisplan.');if(!empty(r))throw Error('Splits eerst de indeling vóór je werken, openingen of schuine wanden toevoegt. Deze kamer bevat die al; er wordt niets verwijderd.');return r;}
+  function splitRoom(){const r=selected();if(!r?.huis_positie)throw Error('Selecteer eerst een kamer op het huisplan.');if(!empty(r))throw Error('Splits eerst de indeling vóór je werken, openingen of schuine wanden toevoegt. Deze kamer bevat die al; er wordt niets verwijderd.');return r;}
   function startCut(){try{const r=splitRoom();eindePan(true);gereedschap='select';view='2d';snede={room:r.id,punten:[]};$('#huis-split-as').value='vrij';$('#huis-split-waarde').disabled=true;$('#huis-splits-invoer').open=true;render();message('Tik op twee punten van de geselecteerde kamergrens. De punten klikken op de dichtstbijzijnde wand. Druk daarna op Splitsen toepassen.');}catch(e){message(e.message);}}
   $('#huis-tekenen').addEventListener('click',()=>{
     if(!V())return;const old=state.project.huis;
@@ -6948,6 +7220,7 @@ function sluitTekenFocus() {
     const zm=e.target.closest('[data-huis-zoom]');if(zm){eindePan(true);if(zm.dataset.huisZoom==='reset')camera.passend();else camera.zoom(camera.lees().zoom+(zm.dataset.huisZoom==='in'?.25:-.25));render();}
     const turn=e.target.closest('[data-huis-draai]');if(turn){eindePan(true);camera.draai(Number(turn.dataset.huisDraai));render();}
     const tool=e.target.closest('[data-huis-tool]');if(tool){eindePan(true);suppress=0;gereedschap=tool.dataset.huisTool;snede=null;render();}
+    if(e.target.closest('[data-huis-buiten]')){const r=state.project.ruimtes.find(r=>!r.huis_positie);if(r){choose(r.id);$('#huis-kamers').open=true;$('#huis-kamers').scrollIntoView({block:'nearest',behavior:'instant'});$('#huis-kamers summary').focus({preventScroll:true});}}
     const room=e.target.closest('[data-huis-kies]');if(room)choose(room.dataset.huisKies);
     if(e.target.closest('[data-actie="ruimte-kiezen"]'))setLevel('ruimte');
   });
@@ -7030,8 +7303,8 @@ function sluitTekenFocus() {
     }catch(error){message(error.message);}
   });
   $('#huis-plaats-ruimte').addEventListener('change',()=>choose($('#huis-plaats-ruimte').value));
-  $('#huis-plaats-form').addEventListener('submit',e=>{e.preventDefault();try{if(!state.project.huis)throw Error('Teken eerst de huiscontour.');const id=$('#huis-plaats-ruimte').value,p=V().position({x:$('#huis-plaats-x').value,y:$('#huis-plaats-y').value}),candidate=clone(state.project),r=candidate.ruimtes.find(r=>r.id===id);r.huis_positie=p;V().layout(candidate);gekozen=id;wijzig(()=>{state.project=candidate;});message('Ruimte geplaatst. Werken en openingen zijn behouden.');}catch(error){message(error.message);}});
-  $('#huis-losmaken').addEventListener('click',()=>{const r=state.project.ruimtes.find(r=>r.id===$('#huis-plaats-ruimte').value);if(!r?.huis_positie)return;if(!confirm(`${r.naam} alleen van het huisplan halen? De kamer en alle werkposten blijven behouden in de offerte.`))return;wijzig(()=>{r.huis_positie=null;});message('Ruimte staat nu buiten het huisplan; de offerte is behouden.');});
+  $('#huis-plaats-form').addEventListener('submit',e=>{e.preventDefault();try{if(!state.project.huis)throw Error('Teken eerst de huiscontour.');const id=$('#huis-plaats-ruimte').value,p=V().position({x:$('#huis-plaats-x').value,y:$('#huis-plaats-y').value}),candidate=clone(state.project),r=candidate.ruimtes.find(r=>r.id===id);r.huis_positie=p;V().layout(candidate);gekozen=id;placementDirty=false;wijzig(()=>{state.project=candidate;});message('Ruimte geplaatst. Werken en openingen zijn behouden.');}catch(error){message(error.message);}});
+  $('#huis-losmaken').addEventListener('click',()=>{const r=state.project.ruimtes.find(r=>r.id===$('#huis-plaats-ruimte').value);if(!r?.huis_positie)return;if(!confirm(`${r.naam} alleen van het huisplan halen? De kamer en alle werkposten blijven behouden in de offerte.`))return;placementDirty=false;wijzig(()=>{r.huis_positie=null;});message('Ruimte staat nu buiten het huisplan; de offerte is behouden.');});
   $('#huis-undo').addEventListener('click',()=>historieStap('undo'));$('#huis-redo').addEventListener('click',()=>historieStap('redo'));
   window.BouwHuis={render,svg,setLevel,renderSelectie,getLevel:()=>niveau};render();
 })();
@@ -7074,7 +7347,7 @@ function sluitTekenFocus() {
     const room=actieveRuimte(), summary=$('#studio-room-summary');
     const floor=room&&vlakkenVoor(room).find(v=>v.sleutel==='vloer');
     const count=room?state.project.regels.filter(w=>w.ruimte_id===room.id).length:0;
-    const ready=calculationReady(), unavailable=/mislukt|kan de rekenkern niet laden/i.test($('#status').textContent);
+    const ready=calculationReady(), unavailable=state.rekenStatus==='error';
     summary.hidden=house||!room;
     summary.textContent=room?`${ready&&floor?NRL.format(floor.bruto)+' m² vloer':unavailable?'Oppervlakte niet beschikbaar':'Oppervlakte wordt berekend'} · ${count} ${count===1?'werkpost':'werkposten'}`:'';
   }
@@ -7083,7 +7356,7 @@ function sluitTekenFocus() {
   const roomDialog=$('#studio-rooms'), roomQuery=$('#studio-room-query');
   let roomOpener=null, restoreRoomFocus=true;
   const normalize = text => String(text).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('nl-BE');
-  function calculationReady() {return !!state.offerte&&!/Berekenen|mislukt|kan de rekenkern niet laden/i.test($('#status').textContent);}
+  function calculationReady() {return !!state.offerte&&state.rekenStatus==='ready';}
   function renderRooms() {
     const rooms=state.project?.ruimtes||[], query=normalize(roomQuery.value.trim());
     const counts=new Map(), amounts=new Map();
@@ -7216,9 +7489,9 @@ function sluitTekenFocus() {
   window.addEventListener('resize',measure,{passive:true});
   window.addEventListener('wheel',()=>{pending=null;sync();},{passive:true});
   window.addEventListener('touchstart',()=>{pending=null;sync();},{passive:true});
-  new MutationObserver(()=>{
+  function feedback(){
     const text=$('#status').textContent,failed=/mislukt|kan de rekenkern niet laden/i.test(text);
-    $('#studio-feedback').hidden=!failed;$('#studio-feedback').textContent=failed?text:'';
+    $('#studio-feedback').hidden=state.rekenStatus!=='error'&&!failed;$('#studio-feedback').textContent=state.rekenStatus==='error'?'Berekening mislukt — open Offerte en kies Opnieuw berekenen.':failed?text:'';
     context();
     if(roomDialog.open){
       const focused=document.activeElement?.closest('[data-room-id]')?.dataset.roomId;
@@ -7226,7 +7499,9 @@ function sluitTekenFocus() {
       if(focused)[...roomDialog.querySelectorAll('[data-room-id]')].find(b=>b.dataset.roomId===focused)?.focus({preventScroll:true});
       $('#studio-room-results').scrollTop=top;
     }
-  }).observe($('#status'),{childList:true,subtree:true,characterData:true});
+  }
+  new MutationObserver(feedback).observe($('#status'),{childList:true,subtree:true,characterData:true});
+  document.addEventListener('bouw-rekenstatus',feedback);
   if(typeof ResizeObserver!=='undefined'){
     const observer=new ResizeObserver(measure);observer.observe($('.topbar'));observer.observe(rail);
   }

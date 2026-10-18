@@ -20,6 +20,7 @@ try{
 await page.goto(process.env.APP_URL||'http://localhost:8096/',{waitUntil:'networkidle2'});await page.waitForFunction(()=>!!state.offerte);
 await page.evaluate(()=>{laadProject(nieuwProject());window.BouwHuis.setLevel('huis');});await page.waitForFunction(()=>document.querySelector('.huis-leeg'));
 const original=await page.evaluate(()=>JSON.stringify(state.project));
+await page.select('#thema-keuze','auto');
 assert.equal(await page.$eval('#huis-stappen [aria-current="step"]',e=>e.dataset.huisStap),'1');
 assert(await page.$$eval('#huis-paneel [data-huis-ready]',es=>es.every(e=>e.hidden&&getComputedStyle(e).display==='none')),'unused camera controls hidden without a contour');
 for(const s of ['.huis-acties','#huis-splits-invoer','#huis-kamers'])assert.equal(await page.$eval(s,e=>e.hidden),true,'only useful actions in empty state');

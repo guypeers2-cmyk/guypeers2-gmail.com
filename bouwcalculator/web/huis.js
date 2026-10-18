@@ -5,7 +5,8 @@
   let niveau='ruimte',view='2d',snede=null,gekozen=null,gereedschap='select',pan=null,suppress=0;
   const camera=BouwHuisCamera.maak(),host=$('#huis-plan');
   const V=()=>window.BouwVorm;
-  const selected=()=>state.project?.ruimtes.find(r=>r.id===gekozen&&r.huis_positie);
+  const selected=()=>state.project?.ruimtes.find(r=>r.id===gekozen);
+  let placementRoom=null,placementDirty=false,placementProject=null;
   const empty=r=>!(r.openingen||[]).length&&!state.project.regels.some(x=>x.ruimte_id===r.id)&&!Object.keys(r.wand_helling||{}).length;
   const message=s=>$('#huis-melding').textContent=s;
   function svg(project,mode='2d',selection=null,magnify=1,options={}){
@@ -38,7 +39,8 @@
   }
   function render(redraw=true){
     if(!state.project||!V())return;
-    if(!selected()){gekozen=state.project.ruimtes.find(r=>r.huis_positie)?.id||null;snede=null;redraw=true;}
+    if(!selected()){gekozen=(state.project.ruimtes.find(r=>r.huis_positie)||(state.project.huis?state.project.ruimtes[0]:null))?.id||null;snede=null;redraw=true;}
+    if(snede&&(!selected()?.huis_positie||snede.room!==gekozen))snede=null;
     document.body.classList.toggle('huisstand-actief',niveau==='huis');
     $('#werkvlak').classList.toggle('huisstand',niveau==='huis');$('#huis-paneel').hidden=niveau!=='huis';
     document.querySelectorAll('[data-ontwerpniveau]').forEach(b=>{const on=b.dataset.ontwerpniveau===niveau;b.setAttribute('aria-pressed',on);b.classList.toggle('actief',on);});
@@ -57,9 +59,9 @@
     // Progressive disclosure: camera/placement controls need an actual contour.
     $('#huis-paneel').querySelectorAll('[data-huis-ready]').forEach(el=>el.hidden=!h);
     $('#huis-draaien').hidden=!h||view!=='3d';
-    $('#huis-splits-invoer').hidden=!h;
     $('#huis-kamers').hidden=!h;
-    $('.huis-acties').hidden=!selected();
+    $('.huis-acties').hidden=!h||!selected();
+    $('#huis-splits-invoer').hidden=!h||!selected()?.huis_positie;
     const history=projectHistorie.kanUndo()||projectHistorie.kanRedo();
     $('#huis-undo').hidden=$('#huis-redo').hidden=!h&&!history;
     const stage=!h?1:(rs.length>1||(selected()&&!empty(selected()))?3:2);
@@ -69,20 +71,35 @@
     });
     const chip=(value,label)=>`<span title="${esc(label)}" aria-label="${esc(label)}">${esc(value)}</span>`;
     const area=h?Math.abs(V().area(V().points(h))):0;
-    $('#huis-statistiek').innerHTML=h?chip(`${NR.format(area)} m²`,'Woningoppervlakte')+chip(`▱ ${rs.length}`,'Kamers op het huisplan')+chip(`${NR.format(Math.max(0,area-total))} m²`,'Nog niet ingedeelde oppervlakte')+(apart?chip(`⚠ ${apart} buiten plan`,'Bestaande kamers buiten huisplan; hun werken tellen wel mee in de offerte'):''):'⌂ Eén verdieping · m';
-    $('#huis-open').disabled=$('#huis-splits').disabled=!selected();
+    $('#huis-statistiek').innerHTML=h?chip(`${NR.format(area)} m²`,'Woningoppervlakte')+chip(`▱ ${rs.length}`,'Kamers op het huisplan')+chip(`${NR.format(Math.max(0,area-total))} m²`,'Nog niet ingedeelde oppervlakte')+(apart?`<button type="button" data-huis-buiten title="Kamers buiten het huisplan bekijken en plaatsen">⚠ ${apart} buiten plan</button>`:''):'⌂ Eén verdieping · m';
+    $('#huis-open').disabled=!selected();$('#huis-splits').disabled=!selected()?.huis_positie;
     if(!$('#huis-kamerlijst').contains(document.activeElement))$('#huis-kamerlijst').innerHTML=state.project.ruimtes.map(r=>`<button type="button" class="knop" data-huis-kies="${esc(r.id)}" aria-pressed="${r.id===gekozen}">${esc(r.naam)} · ${r.huis_positie?`X ${NRL.format(r.huis_positie.x)}, Y ${NRL.format(r.huis_positie.y)}`:'buiten huisplan'}</button>`).join('');
+    $('#huis-kamerlijst').querySelectorAll('[data-huis-kies]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.huisKies===gekozen)));
     window.BouwStudio?.sync();
-    const el=$('#huis-plaats-ruimte'),old=el.value;el.innerHTML=state.project.ruimtes.map(r=>`<option value="${esc(r.id)}">${esc(r.naam)}</option>`).join('');if(state.project.ruimtes.some(r=>r.id===old))el.value=old;
+    syncPlacement();
   }
+  function syncPlacement(){
+    if(placementProject!==state.project){placementDirty=false;placementRoom=null;placementProject=state.project;}
+    const r=selected(),el=$('#huis-plaats-ruimte');
+    const html=state.project.ruimtes.map(r=>`<option value="${esc(r.id)}">${esc(r.naam)}</option>`).join('');
+    if(el.innerHTML!==html)el.innerHTML=html;
+    if(r)el.value=r.id;
+    if(placementRoom!==r?.id||!placementDirty){
+      placementRoom=r?.id||null;placementDirty=false;
+      $('#huis-plaats-x').value=r?.huis_positie?.x??0;$('#huis-plaats-y').value=r?.huis_positie?.y??0;
+    }
+    $('#huis-losmaken').disabled=!r?.huis_positie;
+    $('#huis-plaats-status').textContent=placementDirty?'Nog niet toegepast. Kies Plaats / verplaats ruimte om te bevestigen.':r?.huis_positie?'Positie vanaf de linkerbovenhoek van het huisplan, in meter.':'Deze kamer staat buiten het huisplan. Werken blijven meetellen in de offerte.';
+  }
+  ['#huis-plaats-x','#huis-plaats-y'].forEach(id=>$(id).addEventListener('input',()=>{placementDirty=true;syncPlacement();}));
   function renderCanvas(){
     const cam=camera.lees();host.innerHTML=svg(state.project,view,gekozen,cam.zoom,cam);
   }
   function renderSelectie(){
-    const r=selected(),panel=$('#huis-selectie-info');panel.hidden=!r;
+    const r=selected(),panel=$('#huis-selectie-info');panel.hidden=!r||!state.project.huis;
     if(!r){panel.innerHTML='';return;}
     const vs=V().surfaces(r),opp=id=>NR.format(vs.find(v=>v.sleutel===id).netto),count=state.project.regels.filter(w=>w.ruimte_id===r.id).length;
-    panel.innerHTML=`<strong>${esc(r.naam)}</strong><dl><div><dt title="Vloeroppervlakte"><span aria-hidden="true">▱</span><span class="compact-sr">Vloer</span></dt><dd>${opp('vloer')} m²</dd></div><div><dt title="Plafondoppervlakte"><span aria-hidden="true">▱↑</span><span class="compact-sr">Plafond</span></dt><dd>${opp('plafond')} m²</dd></div><div><dt title="Netto wandoppervlakte"><span aria-hidden="true">▥</span><span class="compact-sr">Netto wanden</span></dt><dd>${NR.format(vs.filter(v=>v.soort==='muur').reduce((n,v)=>n+v.netto,0))} m²</dd></div><div><dt title="Aantal werkposten"><span aria-hidden="true">☷</span><span class="compact-sr">Werkposten</span></dt><dd>${count}</dd></div></dl>${empty(r)?'':'<p class="hint">Indeling beschermd: werken, openingen of wandhelling.</p>'}`;
+    panel.innerHTML=`<strong>${esc(r.naam)}</strong>${r.huis_positie?'':'<p class="huis-buiten-info">Buiten huisplan · open de kamer om werken te bewerken, of plaats ze hieronder.</p>'}<dl><div><dt title="Vloeroppervlakte"><span aria-hidden="true">▱</span><span class="compact-sr">Vloer</span></dt><dd>${opp('vloer')} m²</dd></div><div><dt title="Plafondoppervlakte"><span aria-hidden="true">▱↑</span><span class="compact-sr">Plafond</span></dt><dd>${opp('plafond')} m²</dd></div><div><dt title="Netto wandoppervlakte"><span aria-hidden="true">▥</span><span class="compact-sr">Netto wanden</span></dt><dd>${NR.format(vs.filter(v=>v.soort==='muur').reduce((n,v)=>n+v.netto,0))} m²</dd></div><div><dt title="Aantal werkposten"><span aria-hidden="true">☷</span><span class="compact-sr">Werkposten</span></dt><dd>${count}</dd></div></dl>${empty(r)?'':'<p class="hint">Indeling beschermd: werken, openingen of wandhelling.</p>'}`;
   }
   function openSelected(){
     const r=selected();if(!r)return;
@@ -91,7 +108,7 @@
   }
   function setLevel(n){
     eindePan(true);suppress=0;const changed=niveau!==n;
-    if(changed&&n==='huis'&&actieveRuimte()?.huis_positie)gekozen=state.actieveRuimteId;
+    if(changed&&n==='huis'&&actieveRuimte())gekozen=state.actieveRuimteId;
     if(changed&&n==='ruimte'&&selected()){
       state.actieveRuimteId=selected().id;planSelectie=null;planInspectieOpen=false;
       Object.assign(planCamera,{zoom:1,panX:0,panY:0});window.BouwMeten?.reset();
@@ -101,11 +118,11 @@
   function choose(id){
     const r=state.project.ruimtes.find(r=>r.id===id);if(!r)return;
     const unchanged=gekozen===id&&!!r.huis_positie&&!snede;
-    gekozen=r.huis_positie?id:gekozen;
+    gekozen=id;placementDirty=false;
     $('#huis-plaats-ruimte').value=id;$('#huis-plaats-x').value=r.huis_positie?.x||0;$('#huis-plaats-y').value=r.huis_positie?.y||0;
     snede=null;render(!unchanged);message(`${r.naam} geselecteerd${r.huis_positie?'':'; nog niet op het huisplan'}.`);
   }
-  function splitRoom(){const r=selected();if(!r)throw Error('Selecteer eerst een kamer op het huisplan.');if(!empty(r))throw Error('Splits eerst de indeling vóór je werken, openingen of schuine wanden toevoegt. Deze kamer bevat die al; er wordt niets verwijderd.');return r;}
+  function splitRoom(){const r=selected();if(!r?.huis_positie)throw Error('Selecteer eerst een kamer op het huisplan.');if(!empty(r))throw Error('Splits eerst de indeling vóór je werken, openingen of schuine wanden toevoegt. Deze kamer bevat die al; er wordt niets verwijderd.');return r;}
   function startCut(){try{const r=splitRoom();eindePan(true);gereedschap='select';view='2d';snede={room:r.id,punten:[]};$('#huis-split-as').value='vrij';$('#huis-split-waarde').disabled=true;$('#huis-splits-invoer').open=true;render();message('Tik op twee punten van de geselecteerde kamergrens. De punten klikken op de dichtstbijzijnde wand. Druk daarna op Splitsen toepassen.');}catch(e){message(e.message);}}
   $('#huis-tekenen').addEventListener('click',()=>{
     if(!V())return;const old=state.project.huis;
@@ -127,6 +144,7 @@
     const zm=e.target.closest('[data-huis-zoom]');if(zm){eindePan(true);if(zm.dataset.huisZoom==='reset')camera.passend();else camera.zoom(camera.lees().zoom+(zm.dataset.huisZoom==='in'?.25:-.25));render();}
     const turn=e.target.closest('[data-huis-draai]');if(turn){eindePan(true);camera.draai(Number(turn.dataset.huisDraai));render();}
     const tool=e.target.closest('[data-huis-tool]');if(tool){eindePan(true);suppress=0;gereedschap=tool.dataset.huisTool;snede=null;render();}
+    if(e.target.closest('[data-huis-buiten]')){const r=state.project.ruimtes.find(r=>!r.huis_positie);if(r){choose(r.id);$('#huis-kamers').open=true;$('#huis-kamers').scrollIntoView({block:'nearest',behavior:'instant'});$('#huis-kamers summary').focus({preventScroll:true});}}
     const room=e.target.closest('[data-huis-kies]');if(room)choose(room.dataset.huisKies);
     if(e.target.closest('[data-actie="ruimte-kiezen"]'))setLevel('ruimte');
   });
@@ -209,8 +227,8 @@
     }catch(error){message(error.message);}
   });
   $('#huis-plaats-ruimte').addEventListener('change',()=>choose($('#huis-plaats-ruimte').value));
-  $('#huis-plaats-form').addEventListener('submit',e=>{e.preventDefault();try{if(!state.project.huis)throw Error('Teken eerst de huiscontour.');const id=$('#huis-plaats-ruimte').value,p=V().position({x:$('#huis-plaats-x').value,y:$('#huis-plaats-y').value}),candidate=clone(state.project),r=candidate.ruimtes.find(r=>r.id===id);r.huis_positie=p;V().layout(candidate);gekozen=id;wijzig(()=>{state.project=candidate;});message('Ruimte geplaatst. Werken en openingen zijn behouden.');}catch(error){message(error.message);}});
-  $('#huis-losmaken').addEventListener('click',()=>{const r=state.project.ruimtes.find(r=>r.id===$('#huis-plaats-ruimte').value);if(!r?.huis_positie)return;if(!confirm(`${r.naam} alleen van het huisplan halen? De kamer en alle werkposten blijven behouden in de offerte.`))return;wijzig(()=>{r.huis_positie=null;});message('Ruimte staat nu buiten het huisplan; de offerte is behouden.');});
+  $('#huis-plaats-form').addEventListener('submit',e=>{e.preventDefault();try{if(!state.project.huis)throw Error('Teken eerst de huiscontour.');const id=$('#huis-plaats-ruimte').value,p=V().position({x:$('#huis-plaats-x').value,y:$('#huis-plaats-y').value}),candidate=clone(state.project),r=candidate.ruimtes.find(r=>r.id===id);r.huis_positie=p;V().layout(candidate);gekozen=id;placementDirty=false;wijzig(()=>{state.project=candidate;});message('Ruimte geplaatst. Werken en openingen zijn behouden.');}catch(error){message(error.message);}});
+  $('#huis-losmaken').addEventListener('click',()=>{const r=state.project.ruimtes.find(r=>r.id===$('#huis-plaats-ruimte').value);if(!r?.huis_positie)return;if(!confirm(`${r.naam} alleen van het huisplan halen? De kamer en alle werkposten blijven behouden in de offerte.`))return;placementDirty=false;wijzig(()=>{r.huis_positie=null;});message('Ruimte staat nu buiten het huisplan; de offerte is behouden.');});
   $('#huis-undo').addEventListener('click',()=>historieStap('undo'));$('#huis-redo').addEventListener('click',()=>historieStap('redo'));
   window.BouwHuis={render,svg,setLevel,renderSelectie,getLevel:()=>niveau};render();
 })();

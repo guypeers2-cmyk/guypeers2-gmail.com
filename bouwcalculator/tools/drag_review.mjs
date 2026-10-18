@@ -93,7 +93,9 @@ for(let hoek=0;hoek<4;hoek++){
  v=await rule('sock');
  assert(Math.abs(v.x-before.x-.2)<.025,`3D X angle ${hoek}`);
  assert(Math.abs(v.z-before.z-.2)<.025,`3D Z angle ${hoek}`);
+ await page.$eval('[data-camera="rechts"]',e=>e.scrollIntoView({block:'center',behavior:'instant'}));
  await page.click('[data-camera="rechts"]');
+ assert.equal(await page.evaluate(()=>planCamera.hoek),(hoek+1)%4,'rotation control activated above sticky navigation');
 }
 // Windows can move along a wall and vertically; doors keep their floor level.
 await dragBy('#plan [data-plan-drag="opening"][data-opening-index="1"] .iso-glas',[-.3,0,.2]);

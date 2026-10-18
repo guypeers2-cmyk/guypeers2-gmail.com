@@ -64,6 +64,60 @@ class StudioUITest(unittest.TestCase):
             self.assertEqual(trigger['aria-expanded'], 'false')
         self.assertEqual(by_id['studio-room-query'][1]['type'], 'search')
 
+    def test_opslagwaarschuwing_heeft_backup_en_herstelactie(self):
+        nodes = {d['id']: (tag, d) for tag, d, _ in self.page().nodes if d.get('id')}
+        self.assertIn('hidden', nodes['opslag-waarschuwing'][1])
+        self.assertEqual(nodes['opslag-waarschuwing-tekst'][1]['role'], 'alert')
+        for key in ['opslag-backup', 'opslag-opnieuw']:
+            self.assertEqual(nodes[key][0], 'button')
+            self.assertEqual(nodes[key][1]['type'], 'button')
+
+    def test_rekenfeedback_heeft_expliciete_herstelactie(self):
+        nodes = {d['id']: (tag, d) for tag, d, _ in self.page().nodes if d.get('id')}
+        self.assertIn('hidden', nodes['bereken-melding'][1])
+        self.assertEqual(nodes['bereken-melding'][1]['role'], 'status')
+        self.assertEqual(nodes['bereken-opnieuw'][0], 'button')
+        self.assertEqual(nodes['bereken-opnieuw'][1]['type'], 'button')
+
+    def test_archief_heeft_native_dialoog_en_benoemde_zoekvelden(self):
+        page = self.page()
+        nodes = {d['id']: (tag, d) for tag, d, _ in page.nodes if d.get('id')}
+        tag, dialog = nodes['modal-achtergrond']
+        self.assertEqual(tag, 'dialog')
+        self.assertEqual(dialog['aria-labelledby'], 'modal-titel')
+        self.assertIn('hidden', dialog)
+        self.assertEqual(nodes['archief-zoeken'][1]['type'], 'search')
+        self.assertEqual(nodes['archief-zoeken'][1]['aria-controls'], 'modal-inhoud')
+        self.assertTrue(any(t == 'label' and d.get('for') == 'archief-zoeken' for t, d, _ in page.nodes))
+        self.assertEqual(nodes['archief-opnieuw'][1]['type'], 'button')
+
+    def test_tekenbediening_heeft_sneltoetsen_en_inspectorrelatie(self):
+        nodes = self.page().nodes
+        tools = {d['data-plan-gereedschap']: d for _, d, _ in nodes if d.get('data-plan-gereedschap')}
+        for tool, key in [('select', 'V'), ('hand', 'H'), ('meet', 'M')]:
+            self.assertEqual(tools[tool]['aria-keyshortcuts'], key)
+        fit = next(d for _, d, _ in nodes if d.get('data-camera') == 'reset')
+        self.assertEqual(fit['aria-keyshortcuts'], 'F')
+        properties = next(d for _, d, _ in nodes if d.get('id') == 'plan-eigenschappen')
+        self.assertEqual(properties['aria-controls'], 'plan-inspector')
+        self.assertEqual(properties['aria-expanded'], 'false')
+
+    def test_thema_is_een_benoemde_browserinstelling(self):
+        page = self.page()
+        html = next(d for t, d, _ in page.nodes if t == 'html')
+        self.assertEqual(html['data-theme'], 'light')
+        select = next(d for t, d, _ in page.nodes if d.get('id') == 'thema-keuze')
+        self.assertEqual(select['aria-describedby'], 'thema-status')
+        self.assertTrue(any(t == 'label' and d.get('for') == 'thema-keuze' for t, d, _ in page.nodes))
+        start = next(i for i, (_, d, _) in enumerate(page.nodes) if d.get('id') == 'thema-keuze')
+        options = [d['value'] for t, d, _ in page.nodes[start+1:start+4] if t == 'option']
+        self.assertEqual(options, ['light', 'dark', 'auto'])
+        source = (WEB/'index.html').read_text()
+        self.assertLess(source.index('src="thema.js"'), source.index('href="styles.css"'))
+        standalone = (WEB/'bouwcalculator-standalone.html').read_text()
+        self.assertNotIn('src="thema.js"', standalone)
+        self.assertIn("const key='bouwcalculator.thema'", standalone)
+
     def test_online_en_offline_module_ingesloten(self):
         source = (WEB/'index.html').read_text()
         standalone = (WEB/'bouwcalculator-standalone.html').read_text()

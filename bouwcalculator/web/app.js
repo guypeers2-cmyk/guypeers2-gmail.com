@@ -43,9 +43,13 @@ const state = {
   prijsboek: null,
   actieveRuimteId: null,
   berekenTimer: null,
+  rekenStatus: "pending",
   opslag: "server",   // "server" (Python-server) of "lokaal" (Worker: alleen browser)
   engine: null,       // lokale rekenkern (fallback als er geen API is)
 };
+
+let projectReferentieJSON='';
+let projectGeneratie=0; // UI document identity survives geometry clones and undo.
 
 /* ---------------- hulpmiddelen ---------------- */
 const esc = (tekst) => String(tekst ?? "").replace(/[&<>"']/g, (c) => (
@@ -119,7 +123,11 @@ function laadProject(project, id = null) {
   planSelectie=null;planInspectieOpen=false;
   projectHistorie.reset(project);
   renderHistorie();
+  projectGeneratie++;
   state.project = project;
+  projectReferentieJSON=JSON.stringify(project);
+  state.offerte = null;
+  rekenStatus("pending");
   state.projectId = id;
   state.actieveRuimteId = project.ruimtes.length ? project.ruimtes[0].id : null;
   syncSidebar();
@@ -140,6 +148,17 @@ function historieStap(richting) {
   syncSidebar();bewaarLokaal(false);render();bereken();
   $('#plan-sleepstatus').textContent=richting==='undo'?'Wijziging ongedaan gemaakt.':'Wijziging opnieuw uitgevoerd.';
 }
+const opslagProblemen=new Set();
+function opslagProbleem(soort,mislukt){
+  if(mislukt)opslagProblemen.add(soort);else opslagProblemen.delete(soort);
+  const banner=$('#opslag-waarschuwing');if(!banner)return;
+  banner.hidden=opslagProblemen.size===0;
+  document.body.classList.toggle('opslag-probleem',!banner.hidden);
+  const text=opslagProblemen.has('archief')
+    ?'Opslaan in deze browser is mislukt. Download een JSON-back-up voordat je deze pagina sluit.'
+    :'Automatisch bewaren in deze browser is mislukt. Download een JSON-back-up voordat je deze pagina sluit.';
+  if($('#opslag-waarschuwing-tekst').textContent!==text)$('#opslag-waarschuwing-tekst').textContent=text;
+}
 function bewaarLokaal(record=true) {
   if(record && state.project) {
     const el=document.activeElement;
@@ -149,7 +168,9 @@ function bewaarLokaal(record=true) {
   renderHistorie();
   try {
     localStorage.setItem(OPSLAG_SLEUTEL, JSON.stringify({ project: state.project, id: state.projectId }));
-  } catch (_) { /* opslag vol of niet beschikbaar */ }
+    opslagProbleem('concept',false);
+    return true;
+  } catch (_) { opslagProbleem('concept',true);return false; }
 }
 
 function wijzig(actie) {
@@ -159,7 +180,22 @@ function wijzig(actie) {
   bereken();
 }
 
+function rekenStatus(fase){
+  state.rekenStatus=fase;
+  const ready=fase==='ready',error=fase==='error';
+  document.body.classList.toggle('reken-onzeker',!ready);
+  $('#bereken-melding').hidden=ready;
+  $('#bereken-melding-tekst').textContent=error?'Berekening mislukt. Getoonde bedragen zijn niet actueel; verstuur deze offerte nog niet.':'Berekening wordt bijgewerkt. Eerdere bedragen zijn nog niet actueel.';
+  $('#bereken-opnieuw').hidden=!error;
+  $('#offerte').setAttribute('aria-busy',String(fase==='pending'));
+  if(!ready)$('#studio-totaal').textContent=error?'—':'…';
+  $('#studio-totaal').title=ready?'Totaal inclusief btw':error?'Bedrag niet actueel: bereken opnieuw':'Bedrag wordt bijgewerkt';
+  document.dispatchEvent(new Event('bouw-rekenstatus'));
+}
+$('#bereken-opnieuw').addEventListener('click',()=>bereken());
 function planBerekening() {
+  ++berekenVolgnummer; // Invalidate an older response immediately, not after debounce.
+  rekenStatus('pending');
   clearTimeout(state.berekenTimer);
   state.berekenTimer = setTimeout(bereken, 220);
 }
@@ -169,6 +205,7 @@ async function bereken() {
   const volgnummer=++berekenVolgnummer;
   clearTimeout(state.berekenTimer);
   if (!state.project) return;
+  rekenStatus("pending");
   status("Berekenen…");
   try {
     if (state.engine) {
@@ -185,6 +222,7 @@ async function bereken() {
       if(volgnummer!==berekenVolgnummer)return;
       state.offerte = resultaat;
     }
+    rekenStatus("ready");
     const focus = bewaarFocus();
     renderOfferte();
     renderOppervlakken();
@@ -197,7 +235,8 @@ async function bereken() {
     status(waarschuwingen.length ? "⚠ " + waarschuwingen[0] : "Offerte bijgewerkt");
   } catch (fout) {
     if(volgnummer!==berekenVolgnummer)return;
-    status("Berekening mislukt — is de server gestart?");
+    rekenStatus("error");
+    status("Berekening mislukt — controleer de verbinding en probeer opnieuw.");
     console.error(fout);
   }
 }
@@ -584,7 +623,7 @@ function renderOfferte() {
   if (!offerte) { container.innerHTML = ""; return; }
   const project = state.project;
   const totalen = offerte.totalen;
-  if ($("#studio-totaal")) $("#studio-totaal").textContent = eur(totalen.totaal);
+  if ($("#studio-totaal")) $("#studio-totaal").textContent = state.rekenStatus==='ready'?eur(totalen.totaal):state.rekenStatus==='error'?'—':'…';
 
   if (!offerte.regels.length) {
     container.innerHTML = `
@@ -653,13 +692,13 @@ function renderOfferte() {
         ${project.adres ? `<p>${esc(project.adres)}</p>` : ""}
       </div>
     </div>
-    <table class="offerte-tabel">
+    <div class="offerte-tabel-scroll" role="region" aria-label="Offerteposten; horizontaal verschuifbaar op kleine schermen" tabindex="0"><table class="offerte-tabel">
       <thead><tr>
         <th>Omschrijving</th>
         <th class="num">Materiaal</th><th class="num">Arbeid</th><th class="num">Totaal</th>
       </tr></thead>
       <tbody>${rijen.join("")}</tbody>
-    </table>
+    </table></div>
     <div class="offerte-totaal">
       <div><span>Materiaal</span><span>${eur(totalen.materiaal)}</span></div>
       <div><span>Arbeid (${NRL.format(totalen.uren)} u)</span><span>${eur(totalen.arbeid)}</span></div>
@@ -759,7 +798,7 @@ function renderPlan() {
   if (legenda) legenda.innerHTML = planLegenda(planWeergave === "aanzicht" ? regels.filter(r=>r.oppervlak===planVlak) : regels) || '<p class="vlak-leeg">Nog geen zichtbare werken op dit vlak. Voeg hieronder een werkregel toe of schakel een laag in.</p>';
   $("#plan-openingen").innerHTML = (ruimte.openingen || []).map((o,index)=> {
     if(planWeergave === "aanzicht" && o.muur !== planVlak) return "";
-    return `<div class="plan-opening-rij"><span><strong>${esc(o.naam)}</strong><small>Opening · wand ${esc(o.muur)}</small></span><button type="button" class="plan-vuilbak" data-plan-opening-verwijder="${index}" aria-label="${esc(o.naam)} op wand ${esc(o.muur)} verwijderen" title="Opening verwijderen">${vuilbakIcoon}</button></div>`;
+    return `<div class="plan-opening-rij"><button type="button" class="plan-opening-select" data-plan-opening-select="${index}" aria-pressed="false"><strong>${esc(o.naam)}</strong><small>Opening · wand ${esc(o.muur)}</small></button><button type="button" class="plan-vuilbak" data-plan-opening-verwijder="${index}" aria-label="${esc(o.naam)} op wand ${esc(o.muur)} verwijderen" title="Opening verwijderen">${vuilbakIcoon}</button></div>`;
   }).join("");
   $("#vlak-bediening").hidden = planWeergave !== "aanzicht";
   $("#sleepvlak-keuze").hidden = planWeergave !== "isometrie";
@@ -820,12 +859,19 @@ function regelToevoegen(oppervlak, soort) {
 }
 
 /* --- opslag: op de server (Python) of alleen in de browser (Worker) --- */
-function lokaleProjecten() {
-  try { return JSON.parse(localStorage.getItem(OPSLAG_LIJST) || "[]"); } catch (_) { return []; }
+function lokaleProjecten(strict=false) {
+  try {
+    const raw=localStorage.getItem(OPSLAG_LIJST),list=raw===null?[]:JSON.parse(raw);
+    if(!Array.isArray(list)||!list.every(p=>p&&typeof p==='object'&&!Array.isArray(p)&&p.id!==undefined))throw Error('Ongeldig offertearchief');
+    return list;
+  } catch (fout) {
+    opslagProbleem('archief',true);
+    if(strict)throw fout;
+    return [];
+  }
 }
 
 function lokaalOpslaan(project, id) {
-  const lijst = lokaleProjecten();
   const projectId = id || `${(project.naam || "offerte").toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${Date.now()}`;
   const entry = {
     id: projectId, naam: project.naam, klant: project.klant, datum: project.datum,
@@ -833,84 +879,144 @@ function lokaalOpslaan(project, id) {
     gewijzigd: new Date().toISOString().slice(0, 16).replace("T", " "),
     project,
   };
-  const overig = lijst.filter((p) => p.id !== projectId);
   try {
+    const overig=lokaleProjecten(true).filter(p=>p.id!==projectId);
     localStorage.setItem(OPSLAG_LIJST, JSON.stringify([entry, ...overig].slice(0, 50)));
   } catch (_) {
     // Geen opslag beschikbaar (privacymodus, iframe, gekopieerd bestand).
-    status("Opslaan kan hier niet — deze browser blokkeert de opslag.");
+    opslagProbleem('archief',true);
+    status("Opslaan kan hier niet — opslag vol of niet beschikbaar.");
     return null;
   }
+  opslagProbleem('archief',false);
   return projectId;
 }
 
 function lokaalVerwijderen(id) {
   try {
-    localStorage.setItem(OPSLAG_LIJST, JSON.stringify(lokaleProjecten().filter((p) => p.id !== id)));
-  } catch (_) { /* opslag niet beschikbaar */ }
+    localStorage.setItem(OPSLAG_LIJST, JSON.stringify(lokaleProjecten(true).filter((p) => String(p.id) !== String(id))));
+    return true;
+  } catch (_) { return false; }
 }
 
+let opslaanBezig=false;
 async function opslaan() {
-  if (!state.project) return;
+  if (!state.project||opslaanBezig) return;
+  opslaanBezig=true;
+  const button=$('#btn-opslaan');button.disabled=true;button.setAttribute('aria-busy','true');
+  const origineel=projectGeneratie,id=state.projectId,snapshot=JSON.parse(JSON.stringify(state.project));
+  const dezelfdeOfferte=()=>projectGeneratie===origineel&&state.projectId===id;
   status("Opslaan…");
-  if (state.opslag === "lokaal") {
-    const nieuwId = lokaalOpslaan(state.project, state.projectId);
-    if (!nieuwId) {
-      toast("Kon niet opslaan — deze browser blokkeert de opslag");
-      return;
-    }
-    state.projectId = nieuwId;
-    bewaarLokaal();
-    status("Opgeslagen in deze browser");
-    toast("Offerte opgeslagen in deze browser");
-    return;
-  }
   try {
-    const antwoord = await fetch("/api/projecten/opslaan", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ project: state.project, id: state.projectId }),
-    });
-    const data = await antwoord.json();
-    if (data.fout) throw new Error(data.fout);
-    state.projectId = data.id;
-    bewaarLokaal();
-    status("Opgeslagen");
-    toast(`Offerte opgeslagen (${data.id})`);
-  } catch (fout) {
-    status("Opslaan mislukt");
-    toast("Opslaan mislukt — is de server gestart?");
-  }
-}
-
-async function openenDialog() {
-  const inhoud = $("#modal-inhoud");
-  inhoud.innerHTML = "<p class='hint'>Bezig met laden…</p>";
-  $("#modal-achtergrond").hidden = false;
-
-  let projecten = [];
-  if (state.opslag === "lokaal") {
-    projecten = lokaleProjecten();
-  } else {
-    try {
-      const antwoord = await fetch("/api/projecten");
-      const data = await antwoord.json();
-      projecten = data.projecten || [];
-    } catch (fout) {
-      inhoud.innerHTML = "<p class='hint'>Laden mislukt — is de server gestart?</p>";
-      return;
+    let nieuwId;
+    if (state.opslag === "lokaal") {
+      nieuwId=lokaalOpslaan(snapshot,id);
+      if(!nieuwId){toast("Kon niet opslaan — download een JSON-back-up");return;}
+    } else {
+      const antwoord=await fetch("/api/projecten/opslaan",{
+        method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({project:snapshot,id}),
+      });
+      if(!antwoord.ok)throw Error('serverfout');
+      const data=await antwoord.json();
+      if(data.fout||!data.id)throw Error(data.fout||'Geen opslag-ID');
+      nieuwId=data.id;
     }
-  }
-
-  inhoud.innerHTML = projecten.length
-    ? `<div class="projectlijst">${projecten.map((p) => `
-        <div class="projectregel">
-          <span class="naam">${esc(p.naam)}<br><span class="meta">${esc(p.klant || "—")} · ${esc(p.ruimtes)} ruimte(s) · ${esc(p.gewijzigd || "")}</span></span>
-          <button type="button" class="knop klein" data-actie="project-laden" data-id="${esc(p.id)}">Openen</button>
-          <button type="button" class="knop klein gevaar ico-only" data-actie="project-verwijderen" data-id="${esc(p.id)}" aria-label="Offerte verwijderen">${ICO.prullenbak}</button>
-        </div>`).join("")}</div>`
-    : `<p class="hint">Nog geen opgeslagen offertes. Sla je huidige offerte op met de knop <b>Opslaan</b>.</p>`;
+    // A late response must never attach the old document's ID to a new project.
+    if(!dezelfdeOfferte()){toast("Vorige offerte opgeslagen; je huidige offerte is niet gewijzigd");return;}
+    const gewijzigd=JSON.stringify(state.project)!==JSON.stringify(snapshot);
+    state.projectId=nieuwId;projectReferentieJSON=JSON.stringify(snapshot);bewaarLokaal(false);
+    if(gewijzigd){status("Versie opgeslagen; nieuwere wijzigingen nog niet opgeslagen");toast("Versie opgeslagen — sla je nieuwere wijzigingen ook op");}
+    else {status(state.opslag==='lokaal'?"Opgeslagen in deze browser":"Opgeslagen");toast(state.opslag==='lokaal'?"Offerte opgeslagen in deze browser":"Offerte opgeslagen");}
+  } catch (_) {
+    if(dezelfdeOfferte()){status("Opslaan mislukt");toast("Opslaan mislukt — controleer de verbinding en probeer opnieuw");}
+    else toast("Vorige offerte kon niet worden opgeslagen");
+  } finally {opslaanBezig=false;button.disabled=false;button.removeAttribute('aria-busy');}
 }
+$('#opslag-backup').addEventListener('click',exporteerJson);
+$('#opslag-opnieuw').addEventListener('click',()=>{
+  if(!state.project)return;
+  if(opslagProblemen.has('archief')){
+    const id=lokaalOpslaan(state.project,state.projectId);if(id){state.projectId=id;projectReferentieJSON=JSON.stringify(state.project);}
+  }
+  bewaarLokaal(false);
+  if(!opslagProblemen.size){status('Bewaren in deze browser werkt weer');toast('Bewaren in deze browser werkt weer');}
+});
+
+let archiefProjecten=[],archiefRequest=0,archiefOpenRequest=0,archiefOpener=null,archiefRestoreFocus=true;
+const archiefNorm=s=>String(s??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('nl-BE');
+function archiefFout(tekst){$('#archief-feedback').textContent=tekst;$('#archief-feedback').hidden=!tekst;}
+function sluitOpenenDialog(restore=true){
+  archiefRestoreFocus=restore;
+  ++archiefRequest;++archiefOpenRequest;
+  $('#modal-achtergrond').close();$('#modal-achtergrond').hidden=true;
+}
+function renderArchief(){
+  const query=archiefNorm($('#archief-zoeken').value.trim());
+  const lijst=archiefProjecten.filter(p=>archiefNorm(`${p.naam||''} ${p.klant||''}`).includes(query));
+  if($('#archief-sorteren').value==='naam')lijst.sort((a,b)=>String(a.naam||'').localeCompare(String(b.naam||''),'nl-BE',{numeric:true,sensitivity:'base'}));
+  else lijst.sort((a,b)=>String(b.gewijzigd||'').localeCompare(String(a.gewijzigd||'')));
+  const focused=document.activeElement?.closest('[data-actie]'),focusId=focused?.dataset.id,focusAction=focused?.dataset.actie;
+  $('#archief-aantal').textContent=`${lijst.length} van ${archiefProjecten.length} offertes`;
+  $('#modal-inhoud').innerHTML=lijst.length?`<div class="projectlijst">${lijst.map(p=>`<div class="projectregel"><span class="naam">${esc(p.naam||'Naamloze offerte')}<br><span class="meta">${esc(p.klant||'Geen klant')} · ${esc(p.ruimtes??0)} ruimte(s) · ${esc(String(p.gewijzigd||'').replace('T',' '))}</span></span><button type="button" class="knop klein" data-actie="project-laden" data-id="${esc(p.id)}" aria-label="Open ${esc(p.naam||'offerte')}">Openen</button><button type="button" class="knop klein gevaar ico-only" data-actie="project-verwijderen" data-id="${esc(p.id)}" aria-label="Verwijder ${esc(p.naam||'offerte')}">${ICO.prullenbak}</button></div>`).join('')}</div>`:`<p class="hint">${query?'Geen offertes gevonden. Pas je zoekterm aan.':'Nog geen opgeslagen offertes. Bewaar eerst je huidige offerte met Opslaan.'}</p>`;
+  if(focusId&&$('#modal-achtergrond').open){
+    const next=[...$('#modal-inhoud').querySelectorAll('[data-actie]')].find(b=>b.dataset.id===focusId&&b.dataset.actie===focusAction);
+    (next||$('#archief-zoeken')).focus({preventScroll:true});
+  }
+}
+async function openenDialog(){
+  const modal=$('#modal-achtergrond'),ticket=++archiefRequest;
+  if(!modal.open){
+    archiefOpener=document.activeElement?.closest('#bestand-menu')?$('#bestand-menu summary'):document.activeElement;
+    archiefRestoreFocus=true;archiefProjecten=[];$('#modal-inhoud').textContent='';
+    $('#archief-zoeken').value='';modal.hidden=false;modal.showModal();$('#archief-zoeken').focus();
+  }
+  archiefFout('');$('#archief-opnieuw').hidden=true;$('#archief-aantal').textContent='Offertes laden…';
+  $('#modal-opslag').textContent=state.opslag==='lokaal'?'Bewaard in deze browser. Niet automatisch beschikbaar op andere apparaten.':'Bewaard op je server.';
+  $('#modal-inhoud').setAttribute('aria-busy','true');
+  try{
+    let projecten;
+    if(state.opslag==='lokaal')projecten=lokaleProjecten(true);
+    else{
+      const antwoord=await fetch('/api/projecten');if(!antwoord.ok)throw Error('serverfout');
+      const data=await antwoord.json();if(data.fout||!Array.isArray(data.projecten))throw Error('Ongeldige projectlijst');projecten=data.projecten;
+    }
+    if(ticket!==archiefRequest||!modal.open)return;
+    archiefProjecten=projecten;renderArchief();
+  }catch(_){
+    if(ticket!==archiefRequest||!modal.open)return;
+    archiefProjecten=[];$('#modal-inhoud').textContent='';$('#archief-aantal').textContent='';
+    archiefFout('Opgeslagen offertes konden niet worden geladen. Probeer opnieuw; je huidige offerte blijft behouden.');$('#archief-opnieuw').hidden=false;
+  }finally{if(ticket===archiefRequest)$('#modal-inhoud').setAttribute('aria-busy','false');}
+}
+async function openArchiefProject(id){
+  if(JSON.stringify(state.project)!==projectReferentieJSON&&!confirm('Je huidige offerte heeft wijzigingen sinds openen of opslaan. Toch vervangen? Sla op of download eerst een JSON-back-up als je deze wijzigingen wilt bewaren.'))return;
+  const ticket=++archiefOpenRequest,generatie=projectGeneratie;
+  archiefFout('');
+  try{
+    let project,projectId=id;
+    if(state.opslag==='lokaal'){
+      const entry=lokaleProjecten(true).find(p=>String(p.id)===id);if(!entry?.project)throw Error('Niet gevonden');
+      project=entry.project;projectId=entry.id;
+    }else{
+      const response=await fetch(`/api/projecten/${encodeURIComponent(id)}`);if(!response.ok)throw Error('serverfout');
+      const data=await response.json();if(data.fout||!data.project)throw Error('Niet gevonden');project=data.project;
+    }
+    if(ticket!==archiefOpenRequest||!$('#modal-achtergrond').open||generatie!==projectGeneratie)return;
+    laadProject(project,projectId);sluitOpenenDialog(false);window.BouwHuis?.setLevel(project.huis?'huis':'ruimte');studioOpen('tekening');toast('Offerte geopend');
+  }catch(_){if(ticket===archiefOpenRequest&&$('#modal-achtergrond').open)archiefFout('Deze offerte kon niet worden geopend. Je huidige offerte is niet gewijzigd.');}
+}
+$('#archief-zoeken').addEventListener('input',renderArchief);
+$('#archief-sorteren').addEventListener('change',renderArchief);
+$('#archief-opnieuw').addEventListener('click',openenDialog);
+$('#modal-achtergrond').addEventListener('keydown',e=>{
+  if(e.key==='Escape'){e.preventDefault();e.stopPropagation();sluitOpenenDialog();}
+  else if(e.key==='ArrowDown'&&e.target.id==='archief-zoeken'){e.preventDefault();$('#modal-inhoud [data-actie="project-laden"]')?.focus();}
+});
+$('#modal-achtergrond').addEventListener('close',()=>{
+  if($('#modal-achtergrond').open)return;
+  $('#modal-achtergrond').hidden=true;++archiefRequest;++archiefOpenRequest;
+  if(archiefRestoreFocus&&archiefOpener?.isConnected&&archiefOpener.getClientRects().length)archiefOpener.focus({preventScroll:true});
+});
 
 function exporteerJson() {
   const blob = new Blob([JSON.stringify(state.project, null, 2)], { type: "application/json" });
@@ -935,13 +1041,13 @@ function importeerJson(tekst) {
 /* ---------------- events ---------------- */
 function selecteerPlanRegel(id) {
   $("#plan-acties").open=false;
-  planInspectieOpen=false;
+  if(planSelectie?.type!=='regel'||planSelectie.id!==id)planInspectieOpen=false;
   planSelectie = {type:'regel',id};
   renderPlanSelectie();
 }
 function selecteerPlanOpening(index) {
   $("#plan-acties").open=false;
-  planInspectieOpen=false;
+  if(planSelectie?.type!=='opening'||planSelectie.index!==index||planSelectie.ruimteId!==actieveRuimte()?.id)planInspectieOpen=false;
   planSelectie = {type:'opening',index,ruimteId:actieveRuimte()?.id};
   renderPlanSelectie();
 }
@@ -979,6 +1085,11 @@ function renderPlanSelectie() {
     melding.hidden=!buiten;melding.textContent='⚠ Buiten de contour of boven het plafond, of de opening past niet. Controleer de plaatsing. De tekening kan maten begrenzen; de meetstaat gebruikt de opgegeven maten.';
   }
   renderPlanInspector(regel,opening);
+  $('#plan-eigenschappen').setAttribute('aria-expanded',String(!$('#plan-inspector').hidden));
+  const geometry=traceregel?BouwPlan.werkGeometrie(traceregel,room):opening?BouwPlan.openingGeometrie(room,planSelectie.index):null;
+  $('#plan-selectie-positie').textContent=geometry?`X ${NR.format(geometry.a[0])} · Y ${NR.format(geometry.a[1])} · Z ${NR.format(geometry.a[2])} m`:'';
+  $$('#plan-openingen [data-plan-opening-select]').forEach(b=>b.setAttribute('aria-pressed',String(!!opening&&Number(b.dataset.planOpeningSelect)===planSelectie.index)));
+  $$('#plan-legenda [data-plan-regel]').forEach(b=>b.setAttribute('aria-pressed',String(!!regel&&b.dataset.planRegel===regel.id)));
   $$('#plan [data-opening-index]').forEach(el=>el.classList.toggle('plan-geselecteerd',!!opening && Number(el.dataset.openingIndex)===planSelectie.index));
   $$('#plan [data-plan-regel]').forEach(el=>el.classList.toggle('plan-geselecteerd',!!regel && el.dataset.planRegel===regel.id));
   const verwijder=$("#plan-selectie-verwijder");
@@ -1009,6 +1120,8 @@ function studioOpen(id, opties) {
 document.addEventListener("click", (e) => {
   const nav=e.target.closest('[data-studio-doel]');
   if(nav){studioOpen(nav.dataset.studioDoel, {exclusive:true});return;}
+  const openingKeuze=e.target.closest('[data-plan-opening-select]');
+  if(openingKeuze){selecteerPlanOpening(Number(openingKeuze.dataset.planOpeningSelect));return;}
   if(e.target.closest('#plan-deselecteer')){planSelectie=null;renderPlanSelectie();return;}
   if(e.target.closest('#plan-undo')){historieStap('undo');return;}
   if(e.target.closest('#plan-redo')){historieStap('redo');return;}
@@ -1174,33 +1287,18 @@ document.addEventListener("click", (e) => {
         if (regel) regel.hoeveelheid = null;
       });
     } else if (actie === "project-laden") {
-      if (state.opslag === "lokaal") {
-        const gevonden = lokaleProjecten().find((p) => p.id === knop.dataset.id);
-        if (gevonden?.project) {
-          laadProject(gevonden.project, gevonden.id);
-          $("#modal-achtergrond").hidden = true;
-          toast("Offerte geopend");
-        }
-      } else {
-        fetch(`/api/projecten/${knop.dataset.id}`).then((r) => r.json()).then((data) => {
-          if (data.project) {
-            laadProject(data.project, knop.dataset.id);
-            $("#modal-achtergrond").hidden = true;
-            toast("Offerte geopend");
-          }
-        });
-      }
+      openArchiefProject(knop.dataset.id);
     } else if (actie === "project-verwijderen") {
       if (!confirm("Deze offerte definitief verwijderen?")) return;
-      if (state.opslag === "lokaal") {
-        lokaalVerwijderen(knop.dataset.id);
-        openenDialog();
-        toast("Offerte verwijderd");
-      } else {
-        fetch("/api/projecten/verwijder", {
-          method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id: knop.dataset.id }),
-        }).then(() => { openenDialog(); toast("Offerte verwijderd"); });
+      const request=archiefRequest;
+      const afgerond=()=>{if($('#modal-achtergrond').open&&request===archiefRequest){openenDialog();toast('Offerte verwijderd');}};
+      if(state.opslag==='lokaal'){
+        if(lokaalVerwijderen(knop.dataset.id))afgerond();
+        else {archiefFout('Verwijderen mislukt — de offerte is behouden');toast('Verwijderen mislukt — de offerte is behouden');}
+      }else{
+        fetch('/api/projecten/verwijder',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:knop.dataset.id})})
+          .then(async r=>{if(!r.ok)throw Error('serverfout');const d=await r.json();if(d.fout||!d.verwijderd)throw Error('Niet verwijderd');afgerond();})
+          .catch(()=>{if($('#modal-achtergrond').open&&request===archiefRequest)archiefFout('Verwijderen mislukt — probeer opnieuw.');});
       }
     }
     return;
@@ -1215,9 +1313,10 @@ document.addEventListener("click", (e) => {
   } else if (e.target.id === "btn-openen") {
     openenDialog();
   } else if (e.target.id === "btn-print") {
+    if(state.rekenStatus!=='ready'){toast('Bereken de offerte eerst opnieuw voordat je print');studioOpen('offertepaneel');return;}
     window.print();
   } else if (e.target.id === "modal-sluiten" || e.target.id === "modal-achtergrond") {
-    $("#modal-achtergrond").hidden = true;
+    sluitOpenenDialog();
   } else if (e.target.id === "btn-export") {
     exporteerJson();
   } else if (e.target.id === "btn-import") {
@@ -1510,6 +1609,7 @@ async function init() {
       state.prijsboek = engine.prijsboek();
       state.opslag = "lokaal";
     } else {
+      rekenStatus("error");
       status("Kan de rekenkern niet laden.");
       state.prijsboek = { tarieven: [], pakketten: [] };
     }
