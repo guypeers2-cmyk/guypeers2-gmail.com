@@ -112,9 +112,15 @@ class Ctx:
     uurtarief: float = 45.0
 
 
+def money(waarde: float, decimalen: int = 2) -> float:
+    """Afronden op de cent (half weg van nul) — identiek aan de JS-port."""
+    factor = 10 ** decimalen
+    return math.copysign(math.floor(abs(waarde) * factor + 0.5) / factor, waarde)
+
+
 def _materiaal(omschrijving: str, aantal: float, sleutel: str, tarieven: Tarieven,
                eenheid: Optional[str] = None, decimaal: int = 2) -> Dict[str, Any]:
-    aantal = round(float(aantal), decimaal)
+    aantal = money(float(aantal), decimaal)
     eenheidsprijs = tarieven.prijs(sleutel)
     return {
         "omschrijving": omschrijving,
@@ -122,7 +128,7 @@ def _materiaal(omschrijving: str, aantal: float, sleutel: str, tarieven: Tarieve
         "eenheid": eenheid or tarieven.eenheid(sleutel),
         "prijs_sleutel": sleutel,
         "eenheidsprijs": eenheidsprijs,
-        "totaal": round(aantal * eenheidsprijs, 2),
+        "totaal": money(aantal * eenheidsprijs),
         "soort": "materiaal",
     }
 
@@ -130,13 +136,13 @@ def _materiaal(omschrijving: str, aantal: float, sleutel: str, tarieven: Tarieve
 def _taak(sleutel: str, hoeveelheid: float, tarieven: Tarieven,
           uurtarief: float) -> Dict[str, Any]:
     uren_per_m2 = tarieven.prijs(sleutel)
-    uren = round(uren_per_m2 * hoeveelheid, 2)
+    uren = money(uren_per_m2 * hoeveelheid)
     return {
         "omschrijving": tarieven.naam(sleutel),
         "uren_per_m2": uren_per_m2,
-        "uren": uren,
+        "uren": money(uren),
         "tarief": uurtarief,
-        "totaal": round(uren * uurtarief, 2),
+        "totaal": money(uren * uurtarief),
         "soort": "taak",
     }
 
@@ -355,10 +361,10 @@ def bereken_regel(regel: Werkregel, vlak: Dict[str, Any], project: Project,
               uurtarief=project.uurtarief)
     materiaal, taken = berekenaar(ctx)
 
-    materiaal_kosten = round(sum(l["totaal"] for l in materiaal), 2)
-    uren = round(sum(t["uren"] for t in taken), 2)
-    arbeidskosten = round(sum(t["totaal"] for t in taken), 2)
-    marge = round(materiaal_kosten * project.marge_pct / 100.0, 2)
+    materiaal_kosten = money(sum(l["totaal"] for l in materiaal))
+    uren = money(sum(t["uren"] for t in taken))
+    arbeidskosten = money(sum(t["totaal"] for t in taken))
+    marge = money(materiaal_kosten * project.marge_pct / 100.0)
 
     omschrijving = pakket["naam"]
     if vlak.get("naam"):
@@ -380,15 +386,15 @@ def bereken_regel(regel: Werkregel, vlak: Dict[str, Any], project: Project,
         "oppervlak_naam": vlak["naam"],
         "omschrijving": omschrijving,
         "opties": opties,
-        "aantal": round(aantal, 2),
+        "aantal": money(aantal),
         "eenheid": pakket.get("eenheid", "m2"),
         "materiaal": materiaal,
         "taken": taken,
-        "uren": uren,
+        "uren": money(uren),
         "materiaal_kosten": materiaal_kosten,
         "arbeidskosten": arbeidskosten,
         "marge": marge,
-        "totaal": round(materiaal_kosten + arbeidskosten + marge, 2),
+        "totaal": money(materiaal_kosten + arbeidskosten + marge),
         "notitie": regel.notitie,
     }
 
@@ -440,8 +446,8 @@ def referentie_tarieven() -> Dict[str, float]:
         materiaal, taken = BEREKENERS[pakket_id](ctx)
         materiaal_kosten = sum(l["totaal"] for l in materiaal)
         arbeidskosten = sum(t["totaal"] for t in taken)
-        referentie[f"m2_{pakket_id}_materiaal"] = round(materiaal_kosten / vlak["netto"], 2)
-        referentie[f"m2_{pakket_id}_arbeid"] = round(arbeidskosten / vlak["netto"], 2)
+        referentie[f"m2_{pakket_id}_materiaal"] = money(materiaal_kosten / vlak["netto"])
+        referentie[f"m2_{pakket_id}_arbeid"] = money(arbeidskosten / vlak["netto"])
     return referentie
 
 

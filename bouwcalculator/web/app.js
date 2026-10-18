@@ -12,6 +12,7 @@ const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => Array.from(document.querySelectorAll(sel));
 
 const OPSLAG_SLEUTEL = "bouwcalculator-project-v1";
+const OPSLAG_LIJST = "bouwcalculator-projecten-v1";
 const NR = new Intl.NumberFormat("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const NRL = new Intl.NumberFormat("nl-BE", { maximumFractionDigits: 2 });
 
@@ -22,6 +23,7 @@ const state = {
   prijsboek: null,
   actieveRuimteId: null,
   berekenTimer: null,
+  opslag: "server",   // "server" (Python-server) of "lokaal" (Worker: alleen browser)
 };
 
 /* ---------------- hulpmiddelen ---------------- */
@@ -517,9 +519,39 @@ function regelToevoegen(oppervlak, soort) {
   });
 }
 
+/* --- opslag: op de server (Python) of alleen in de browser (Worker) --- */
+function lokaleProjecten() {
+  try { return JSON.parse(localStorage.getItem(OPSLAG_LIJST) || "[]"); } catch (_) { return []; }
+}
+
+function lokaalOpslaan(project, id) {
+  const lijst = lokaleProjecten();
+  const projectId = id || `${(project.naam || "offerte").toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${Date.now()}`;
+  const entry = {
+    id: projectId, naam: project.naam, klant: project.klant, datum: project.datum,
+    ruimtes: (project.ruimtes || []).length, regels: (project.regels || []).length,
+    gewijzigd: new Date().toISOString().slice(0, 16).replace("T", " "),
+    project,
+  };
+  const overig = lijst.filter((p) => p.id !== projectId);
+  localStorage.setItem(OPSLAG_LIJST, JSON.stringify([entry, ...overig].slice(0, 50)));
+  return projectId;
+}
+
+function lokaalVerwijderen(id) {
+  localStorage.setItem(OPSLAG_LIJST, JSON.stringify(lokaleProjecten().filter((p) => p.id !== id)));
+}
+
 async function opslaan() {
   if (!state.project) return;
   status("Opslaan…");
+  if (state.opslag === "lokaal") {
+    state.projectId = lokaalOpslaan(state.project, state.projectId);
+    bewaarLokaal();
+    status("Opgeslagen in deze browser");
+    toast("Offerte opgeslagen in deze browser");
+    return;
+  }
   try {
     const antwoord = await fetch("/api/projecten/opslaan", {
       method: "POST",
@@ -542,21 +574,29 @@ async function openenDialog() {
   const inhoud = $("#modal-inhoud");
   inhoud.innerHTML = "<p class='hint'>Bezig met laden…</p>";
   $("#modal-achtergrond").hidden = false;
-  try {
-    const antwoord = await fetch("/api/projecten");
-    const data = await antwoord.json();
-    const projecten = data.projecten || [];
-    inhoud.innerHTML = projecten.length
-      ? `<div class="projectlijst">${projecten.map((p) => `
-          <div class="projectregel">
-            <span class="naam">${esc(p.naam)}<br><span class="meta">${esc(p.klant || "—")} · ${esc(p.ruimtes)} ruimte(s) · ${esc(p.gewijzigd)}</span></span>
-            <button type="button" class="knop klein" data-actie="project-laden" data-id="${esc(p.id)}">Openen</button>
-            <button type="button" class="knop klein gevaar" data-actie="project-verwijderen" data-id="${esc(p.id)}">🗑</button>
-          </div>`).join("")}</div>`
-      : "<p class='hint'>Nog geen opgeslagen offertes. Sla je huidige offerte op met 💾.</p>";
-  } catch (fout) {
-    inhoud.innerHTML = "<p class='hint'>Laden mislukt — is de server gestart?</p>";
+
+  let projecten = [];
+  if (state.opslag === "lokaal") {
+    projecten = lokaleProjecten();
+  } else {
+    try {
+      const antwoord = await fetch("/api/projecten");
+      const data = await antwoord.json();
+      projecten = data.projecten || [];
+    } catch (fout) {
+      inhoud.innerHTML = "<p class='hint'>Laden mislukt — is de server gestart?</p>";
+      return;
+    }
   }
+
+  inhoud.innerHTML = projecten.length
+    ? `<div class="projectlijst">${projecten.map((p) => `
+        <div class="projectregel">
+          <span class="naam">${esc(p.naam)}<br><span class="meta">${esc(p.klant || "—")} · ${esc(p.ruimtes)} ruimte(s) · ${esc(p.gewijzigd || "")}</span></span>
+          <button type="button" class="knop klein" data-actie="project-laden" data-id="${esc(p.id)}">Openen</button>
+          <button type="button" class="knop klein gevaar" data-actie="project-verwijderen" data-id="${esc(p.id)}">🗑</button>
+        </div>`).join("")}</div>`
+    : "<p class='hint'>Nog geen opgeslagen offertes. Sla je huidige offerte op met 💾.</p>";
 }
 
 function exporteerJson() {
@@ -632,19 +672,34 @@ document.addEventListener("click", (e) => {
         if (regel) regel.hoeveelheid = null;
       });
     } else if (actie === "project-laden") {
-      fetch(`/api/projecten/${knop.dataset.id}`).then((r) => r.json()).then((data) => {
-        if (data.project) {
-          laadProject(data.project, knop.dataset.id);
+      if (state.opslag === "lokaal") {
+        const gevonden = lokaleProjecten().find((p) => p.id === knop.dataset.id);
+        if (gevonden?.project) {
+          laadProject(gevonden.project, gevonden.id);
           $("#modal-achtergrond").hidden = true;
           toast("Offerte geopend");
         }
-      });
+      } else {
+        fetch(`/api/projecten/${knop.dataset.id}`).then((r) => r.json()).then((data) => {
+          if (data.project) {
+            laadProject(data.project, knop.dataset.id);
+            $("#modal-achtergrond").hidden = true;
+            toast("Offerte geopend");
+          }
+        });
+      }
     } else if (actie === "project-verwijderen") {
       if (!confirm("Deze offerte definitief verwijderen?")) return;
-      fetch("/api/projecten/verwijder", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: knop.dataset.id }),
-      }).then(() => { openenDialog(); toast("Offerte verwijderd"); });
+      if (state.opslag === "lokaal") {
+        lokaalVerwijderen(knop.dataset.id);
+        openenDialog();
+        toast("Offerte verwijderd");
+      } else {
+        fetch("/api/projecten/verwijder", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: knop.dataset.id }),
+        }).then(() => { openenDialog(); toast("Offerte verwijderd"); });
+      }
     }
     return;
   }
@@ -807,6 +862,7 @@ async function init() {
   try {
     const antwoord = await fetch("/api/prijsboek");
     state.prijsboek = await antwoord.json();
+    state.opslag = state.prijsboek.opslag || "server";
   } catch (fout) {
     status("Kan de server niet bereiken — start hem met: python3 bouwcalculator/server.py");
     state.prijsboek = { tarieven: [], pakketten: [] };

@@ -16,6 +16,7 @@ from .bereken import (
     ruimte_oppervlakken,
     vind_vlak,
 )
+from .bereken import money
 from .model import Project, ZIJDE_NAMEN
 from .tarieven import PAKKETTEN, PAKKET_OP_ID, Tarieven
 
@@ -29,10 +30,10 @@ def _bereken_m2(regel, vlak: Dict[str, Any], project: Project,
     prijs_materiaal = tarieven.prijs(sleutel_materiaal)
     prijs_arbeid = tarieven.prijs(sleutel_arbeid)
 
-    materiaal_kosten = round(aantal * prijs_materiaal, 2)
-    arbeidskosten = round(aantal * prijs_arbeid, 2)
-    uren = round(arbeidskosten / project.uurtarief, 2) if project.uurtarief else 0.0
-    marge = round(materiaal_kosten * project.marge_pct / 100.0, 2)
+    materiaal_kosten = money(aantal * prijs_materiaal)
+    arbeidskosten = money(aantal * prijs_arbeid)
+    uren = money(arbeidskosten / project.uurtarief) if project.uurtarief else 0.0
+    marge = money(materiaal_kosten * project.marge_pct / 100.0)
 
     omschrijving = f"{pakket['naam']} — {vlak['naam']} (snelle m²-prijs)"
     return {
@@ -44,11 +45,11 @@ def _bereken_m2(regel, vlak: Dict[str, Any], project: Project,
         "oppervlak_naam": vlak["naam"],
         "omschrijving": omschrijving,
         "opties": dict(regel.opties),
-        "aantal": round(aantal, 2),
+        "aantal": money(aantal),
         "eenheid": pakket.get("eenheid", "m2"),
         "materiaal": [{
             "omschrijving": f"Materiaal — {prijs_materiaal:.2f} €/m²",
-            "aantal": round(aantal, 2),
+            "aantal": money(aantal),
             "eenheid": "m2",
             "prijs_sleutel": sleutel_materiaal,
             "eenheidsprijs": prijs_materiaal,
@@ -57,7 +58,7 @@ def _bereken_m2(regel, vlak: Dict[str, Any], project: Project,
         }],
         "taken": [{
             "omschrijving": f"Arbeid — {prijs_arbeid:.2f} €/m²",
-            "uren_per_m2": round(prijs_arbeid / project.uurtarief, 3) if project.uurtarief else 0.0,
+            "uren_per_m2": money(prijs_arbeid / project.uurtarief, 3) if project.uurtarief else 0.0,
             "uren": uren,
             "tarief": project.uurtarief,
             "totaal": arbeidskosten,
@@ -67,7 +68,7 @@ def _bereken_m2(regel, vlak: Dict[str, Any], project: Project,
         "materiaal_kosten": materiaal_kosten,
         "arbeidskosten": arbeidskosten,
         "marge": marge,
-        "totaal": round(materiaal_kosten + arbeidskosten + marge, 2),
+        "totaal": money(materiaal_kosten + arbeidskosten + marge),
         "notitie": regel.notitie,
     }
 
@@ -91,7 +92,7 @@ def bereken_offerte(project_data: Dict[str, Any]) -> Dict[str, Any]:
             "hoogte": ruimte.hoogte,
             "openingen": [o.naar_dict() for o in ruimte.openingen],
             "vlakken": vlakken,
-            "wandoppervlak": round(sum(v["netto"] for v in vlakken if v["soort"] == "muur"), 2),
+            "wandoppervlak": money(sum(v["netto"] for v in vlakken if v["soort"] == "muur")),
         })
 
     regels: List[Dict[str, Any]] = []
@@ -117,15 +118,15 @@ def bereken_offerte(project_data: Dict[str, Any]) -> Dict[str, Any]:
         else:
             regels.append(bereken_regel(regel, vlak, project, tarieven))
 
-    materiaal = round(sum(r["materiaal_kosten"] for r in regels), 2)
-    arbeid = round(sum(r["arbeidskosten"] for r in regels), 2)
-    uren = round(sum(r["uren"] for r in regels), 2)
-    marge = round(sum(r["marge"] for r in regels), 2)
-    subtotaal = round(materiaal + arbeid + marge, 2)
-    korting = round(subtotaal * project.korting_pct / 100.0, 2)
-    netto = round(subtotaal - korting, 2)
-    btw = round(netto * project.btw_pct / 100.0, 2)
-    totaal = round(netto + btw, 2)
+    materiaal = money(sum(r["materiaal_kosten"] for r in regels))
+    arbeid = money(sum(r["arbeidskosten"] for r in regels))
+    uren = money(sum(r["uren"] for r in regels))
+    marge = money(sum(r["marge"] for r in regels))
+    subtotaal = money(materiaal + arbeid + marge)
+    korting = money(subtotaal * project.korting_pct / 100.0)
+    netto = money(subtotaal - korting)
+    btw = money(netto * project.btw_pct / 100.0)
+    totaal = money(netto + btw)
 
     # Totalen per ruimte (voor de offerte per kamer).
     per_ruimte: Dict[str, Dict[str, Any]] = {}
@@ -139,7 +140,7 @@ def bereken_offerte(project_data: Dict[str, Any]) -> Dict[str, Any]:
         rij["totaal"] += regel["totaal"]
     for ruimte_id, rij in per_ruimte.items():
         for sleutel, waarde in list(rij.items()):
-            rij[sleutel] = round(waarde, 2)
+            rij[sleutel] = money(waarde)
 
     return {
         "project": project.naar_dict(),

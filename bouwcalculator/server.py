@@ -59,6 +59,7 @@ class BouwHandler(BaseHTTPRequestHandler):
                 "pakketten": PAKKETTEN,
                 "referentie": referentie,
                 "versie": "1.0.0",
+                "opslag": "server",
             })
         elif pad == "/api/projecten":
             self._json({"projecten": opslag.lijst()})
