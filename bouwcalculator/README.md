@@ -2,15 +2,17 @@
 
 **Prijzen berekenen voor bouwwerk op basis van maten — gestart met Gyproc.**
 
+![De Bouwprijscalculator](docs/screenshot.png)
+
 > 🌐 **Direct openen (geverifieerd werkend):**
-> <https://htmlpreview.github.io/?https://github.com/guypeers2-cmyk/guypeers2-gmail.com/blob/v1.0.2/bouwcalculator/bouwcalculator.html>
+> <https://htmlpreview.github.io/?https://github.com/guypeers2-cmyk/guypeers2-gmail.com/blob/v2.0.0/bouwcalculator/bouwcalculator.html>
 >
 > 🏗️ **Zelf hosten (de beste optie):**
 > **https://patient-sun-c959.guypeers2.workers.dev** — Cloudflare Worker · één commando:
 > `bash bouwcalculator/deploy/nu-publiceren.sh` (vanuit de repo-map!)
 > of GitHub Pages (één klik): <https://guypeers2-cmyk.github.io/guypeers2-gmail.com/>
 >
-> ⬇️ Release: <https://github.com/guypeers2-cmyk/guypeers2-gmail.com/releases/tag/v1.0.2>
+> ⬇️ Release: <https://github.com/guypeers2-cmyk/guypeers2-gmail.com/releases/tag/v2.0.0>
 
 Een zelfstandige webapp (zonder dependencies, pure Python-stdlib) waarmee een
 bouwer of werknemer vanuit de maten van een ruimte een offerte opstelt:
