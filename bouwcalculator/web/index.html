@@ -176,10 +176,17 @@
         <button type="button" class="knop klein" data-camera="maten" aria-pressed="true">Maten</button>
         <button type="button" class="knop klein" data-plan-gereedschap="select" aria-pressed="true">Selecteren</button>
         <button type="button" class="knop klein" data-plan-gereedschap="hand" aria-pressed="false">Hand</button>
+        <button type="button" class="knop klein" data-plan-gereedschap="meet" aria-pressed="false">Meten</button>
         <button type="button" class="knop klein" id="plan-undo" disabled aria-label="Ongedaan maken" title="Ongedaan maken (Ctrl/Cmd+Z)"><span aria-hidden="true">↶</span><span class="historie-woord">Ongedaan</span></button>
         <button type="button" class="knop klein" id="plan-redo" disabled aria-label="Opnieuw uitvoeren" title="Opnieuw uitvoeren (Ctrl/Cmd+Shift+Z)"><span aria-hidden="true">↷</span><span class="historie-woord">Opnieuw</span></button>
       </div>
       <p class="hint" id="plan-sleepstatus" role="status" aria-live="polite">Sleep om te positioneren · klik om te selecteren.</p>
+      <section id="meet-paneel" class="meet-paneel" aria-label="Afstand meten" hidden>
+        <header><strong>Afstand meten</strong><output id="meet-afstand" aria-live="polite">—</output><button type="button" class="knop klein" id="meet-wis">Wissen</button></header>
+        <p id="meet-instructie">Wijs twee punten aan of sleep van begin naar einde. Alleen een controlemaat, geen offertehoeveelheid.</p>
+        <label id="meet-vlak-label">3D-meetvlak<select id="meet-vlak"><option value="xy">Vloer X/Y</option><option value="xz">Wand noord X/Z</option><option value="yz">Wand west Y/Z</option></select></label>
+        <details><summary>Meetpunten precies invoeren</summary><form id="meet-form"><div id="meet-velden" class="meet-velden"></div><button type="submit" class="knop klein">Afstand tonen</button></form></details>
+      </section>
       <div class="planhouder" id="plan" tabindex="0" aria-label="Interactieve tekening"></div>
       <div id="plan-selectie" class="plan-selectie" hidden><span id="plan-selectie-naam"></span><div><button type="button" class="knop klein" id="plan-eigenschappen">Eigenschappen</button><button type="button" class="plan-vuilbak" id="plan-selectie-verwijder" aria-label="Geselecteerd object verwijderen"></button><button type="button" class="knop klein" id="plan-deselecteer" aria-label="Selectie opheffen">×</button></div></div>
       <section id="plan-inspector" class="plan-inspector" aria-label="Eigenschappen van geselecteerd object" hidden></section>
@@ -275,5 +282,6 @@
 <script src="app.js"></script>
 <script src="slepen.js"></script>
 <script src="navigatie.js"></script>
+<script src="meten.js"></script>
 </body>
 </html>

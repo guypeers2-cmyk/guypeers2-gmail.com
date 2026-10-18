@@ -108,6 +108,7 @@ function nieuwProject() {
 
 const projectHistorie = window.BouwHistorie.maak();
 function laadProject(project, id = null) {
+  window.BouwMeten?.reset();
   planSelectie=null;planInspectieOpen=false;
   projectHistorie.reset(project);
   renderHistorie();
@@ -713,6 +714,7 @@ function renderPlan() {
     $('#plan-selectie').hidden=true;$('#plan-inspector').hidden=true;
     $('#plan-legenda').innerHTML='';$('#plan-openingen').innerHTML='';
     $('#plan-objecten-aantal').textContent='Geen actieve ruimte';
+    window.BouwMeten?.render();
     return;
   }
 
@@ -755,6 +757,7 @@ function renderPlan() {
   const minKnop = $('[data-camera="uit"]'), maxKnop = $('[data-camera="in"]');
   if (minKnop) minKnop.disabled = planCamera.zoom <= 0.75;
   if (maxKnop) maxKnop.disabled = planCamera.zoom >= 3;
+  window.BouwMeten?.render();
 }
 
 function render() {

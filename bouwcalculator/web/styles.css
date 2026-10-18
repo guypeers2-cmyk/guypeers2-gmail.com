@@ -1397,3 +1397,24 @@ body.teken-focus-actief { overflow: hidden; }
   .object-menu-start .object-toevoegen-woord,.historie-woord { display: none; }
   #plan-undo,#plan-redo { min-width: 44px; padding: 8px; }
 }
+#plan.meet-actief,#plan.meet-actief * { cursor: crosshair !important; }
+.meet-paneel { margin: 8px 0; padding: 12px; border: 1px solid var(--accent-rand); border-radius: 10px; background: var(--accent-zacht); }
+.meet-paneel[hidden],#meet-vlak-label[hidden] { display: none !important; }
+.meet-paneel header { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.meet-paneel header strong { font-size: .85rem; }
+.meet-paneel output { margin-left: auto; font-size: 1.15rem; font-weight: 700; color: var(--accent); }
+.meet-paneel p,.meet-paneel label,.meet-paneel summary { font-size: .75rem; }
+.meet-paneel p { color: var(--tekst-2); margin: 8px 0; min-height: 3em; }
+.meet-paneel summary { cursor: pointer; padding: 8px 0; min-height: 36px; }
+.meet-paneel select,.meet-paneel input { min-height: 44px; width: 100%; }
+.meet-velden { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 10px; margin: 8px 0; }
+.meet-velden label { display: flex; flex-direction: column; gap: 5px; }
+.meet-overlay { pointer-events: none; }
+.meet-overlay line { stroke: #0f766e; stroke-width: 2; stroke-dasharray: 6 3; vector-effect: non-scaling-stroke; }
+.meet-overlay circle { fill: var(--oppervlak); stroke: #0f766e; stroke-width: 2; vector-effect: non-scaling-stroke; }
+.meet-overlay text { fill: #0f766e; stroke: var(--oppervlak); stroke-width: 4; paint-order: stroke; font-size: 17px; font-weight: 700; }
+@media (max-width:600px) { .meet-velden { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media print { .meet-paneel,.meet-overlay { display: none !important; } }
+.meet-paneel header { display: grid; grid-template-columns: minmax(0,1fr) auto auto; gap: 8px; }
+.meet-paneel output { min-width: 80px; text-align: right; white-space: nowrap; font-size: 1rem; }
+@media (max-width:600px) { .iso-bediening [data-plan-gereedschap] { padding: 8px 6px; font-size: .78rem; } }

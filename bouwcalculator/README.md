@@ -350,6 +350,28 @@ open/gesloten panelen behouden; een herladen pagina start weer rustig ingeklapt.
 
 Optionele browsercontrole: `tools/studio_review.mjs` (Worker of offline bestand).
 
+## Afstanden controleren in de tekening
+
+Kies **Meten** en wijs twee punten aan, of sleep van begin naar einde. De
+stippellijn en het meetpaneel tonen de rechte afstand in meter. Onder
+**Meetpunten precies invoeren** kun je dezelfde controle via getalvelden uitvoeren.
+**Wissen** verwijdert de controlemaat; een volgende meting vervangt de vorige.
+
+- Bovenaanzicht meet in X/Y. Elk vlakaanzicht meet in zijn eigen zichtbare vlak,
+  inclusief de hoogte bij wanden en de vaste hoogte van het plafond.
+- In 3D kies je expliciet Vloer X/Y, Wand noord X/Z of Wand west Y/Z. Een
+  punt wordt op dat meetvlak geïnterpreteerd, niet automatisch op een toestel.
+- Zoomen, cameradraaien en beeld verschuiven veranderen de modelafstand niet.
+  Wisselen van ruimte, aanzicht, vlak of ruimtematen wist de controlemaat.
+- Escape annuleert een lopende meting. In focusmodus sluit een volgende Escape
+  het venster. Toetsenbordgebruikers kunnen de meetpunten numeriek invoeren.
+- Een controlemaat verandert geen hoeveelheden/prijzen, staat niet in undo/redo
+  en wordt niet opgeslagen, geëxporteerd of afgedrukt. Het is geen automatische
+  leidinglengte of gecertificeerde inmeting. Klikpunten snappen niet aan objecten;
+  gebruik de numerieke invoer voor exacte coördinaten.
+
+Browsercontrole: `tools/meten_review.mjs`; afstandstest: `tests/test_meten.py`.
+
 ## Vergroten en het beeld verschuiven
 
 **Vergroten** opent de bestaande tekening in een focusvenster, zonder een tweede
@@ -575,6 +597,7 @@ bouwcalculator/
 │   ├── slepen.js        # Muis/touch/toetsenbord: objecten positioneren
 │   ├── geschiedenis.js  # Begrensde undo/redo zonder browserafhankelijkheden
 │   ├── navigatie.js     # Handgereedschap en toegankelijke focusmodus
+│   ├── meten.js         # Niet-destructieve metrische controlemaat
 │   ├── engine.js        # JS-rekenkern (Worker + browser-fallback)
 │   └── prijsboek.js     # gegenereerd uit bouw/tarieven.py
 ├── worker/
@@ -629,7 +652,7 @@ Daarom zijn er twee varianten:
 
 - **meerbestanden** (`bouwcalculator/web/`) — voor onze eigen Worker, Pages en
   de lokale server. De rekenkern is een ES-module.
-- **één bestand** (`bouwcalculator/bouwcalculator.html`, circa 250 KiB) — alles inline,
+- **één bestand** (`bouwcalculator/bouwcalculator.html`, circa 259 KiB) — alles inline,
   dus het werkt ook op hosts die HTML als `text/plain` teruggeven of op een
   stickie/schijf. De app rekent dan in de browser.
 

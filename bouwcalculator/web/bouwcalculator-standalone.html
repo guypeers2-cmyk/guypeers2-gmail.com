@@ -1413,6 +1413,27 @@ body.teken-focus-actief { overflow: hidden; }
   .object-menu-start .object-toevoegen-woord,.historie-woord { display: none; }
   #plan-undo,#plan-redo { min-width: 44px; padding: 8px; }
 }
+#plan.meet-actief,#plan.meet-actief * { cursor: crosshair !important; }
+.meet-paneel { margin: 8px 0; padding: 12px; border: 1px solid var(--accent-rand); border-radius: 10px; background: var(--accent-zacht); }
+.meet-paneel[hidden],#meet-vlak-label[hidden] { display: none !important; }
+.meet-paneel header { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.meet-paneel header strong { font-size: .85rem; }
+.meet-paneel output { margin-left: auto; font-size: 1.15rem; font-weight: 700; color: var(--accent); }
+.meet-paneel p,.meet-paneel label,.meet-paneel summary { font-size: .75rem; }
+.meet-paneel p { color: var(--tekst-2); margin: 8px 0; min-height: 3em; }
+.meet-paneel summary { cursor: pointer; padding: 8px 0; min-height: 36px; }
+.meet-paneel select,.meet-paneel input { min-height: 44px; width: 100%; }
+.meet-velden { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 10px; margin: 8px 0; }
+.meet-velden label { display: flex; flex-direction: column; gap: 5px; }
+.meet-overlay { pointer-events: none; }
+.meet-overlay line { stroke: #0f766e; stroke-width: 2; stroke-dasharray: 6 3; vector-effect: non-scaling-stroke; }
+.meet-overlay circle { fill: var(--oppervlak); stroke: #0f766e; stroke-width: 2; vector-effect: non-scaling-stroke; }
+.meet-overlay text { fill: #0f766e; stroke: var(--oppervlak); stroke-width: 4; paint-order: stroke; font-size: 17px; font-weight: 700; }
+@media (max-width:600px) { .meet-velden { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media print { .meet-paneel,.meet-overlay { display: none !important; } }
+.meet-paneel header { display: grid; grid-template-columns: minmax(0,1fr) auto auto; gap: 8px; }
+.meet-paneel output { min-width: 80px; text-align: right; white-space: nowrap; font-size: 1rem; }
+@media (max-width:600px) { .iso-bediening [data-plan-gereedschap] { padding: 8px 6px; font-size: .78rem; } }
 
 </style>
 </head>
@@ -1584,10 +1605,17 @@ body.teken-focus-actief { overflow: hidden; }
         <button type="button" class="knop klein" data-camera="maten" aria-pressed="true">Maten</button>
         <button type="button" class="knop klein" data-plan-gereedschap="select" aria-pressed="true">Selecteren</button>
         <button type="button" class="knop klein" data-plan-gereedschap="hand" aria-pressed="false">Hand</button>
+        <button type="button" class="knop klein" data-plan-gereedschap="meet" aria-pressed="false">Meten</button>
         <button type="button" class="knop klein" id="plan-undo" disabled aria-label="Ongedaan maken" title="Ongedaan maken (Ctrl/Cmd+Z)"><span aria-hidden="true">↶</span><span class="historie-woord">Ongedaan</span></button>
         <button type="button" class="knop klein" id="plan-redo" disabled aria-label="Opnieuw uitvoeren" title="Opnieuw uitvoeren (Ctrl/Cmd+Shift+Z)"><span aria-hidden="true">↷</span><span class="historie-woord">Opnieuw</span></button>
       </div>
       <p class="hint" id="plan-sleepstatus" role="status" aria-live="polite">Sleep om te positioneren · klik om te selecteren.</p>
+      <section id="meet-paneel" class="meet-paneel" aria-label="Afstand meten" hidden>
+        <header><strong>Afstand meten</strong><output id="meet-afstand" aria-live="polite">—</output><button type="button" class="knop klein" id="meet-wis">Wissen</button></header>
+        <p id="meet-instructie">Wijs twee punten aan of sleep van begin naar einde. Alleen een controlemaat, geen offertehoeveelheid.</p>
+        <label id="meet-vlak-label">3D-meetvlak<select id="meet-vlak"><option value="xy">Vloer X/Y</option><option value="xz">Wand noord X/Z</option><option value="yz">Wand west Y/Z</option></select></label>
+        <details><summary>Meetpunten precies invoeren</summary><form id="meet-form"><div id="meet-velden" class="meet-velden"></div><button type="submit" class="knop klein">Afstand tonen</button></form></details>
+      </section>
       <div class="planhouder" id="plan" tabindex="0" aria-label="Interactieve tekening"></div>
       <div id="plan-selectie" class="plan-selectie" hidden><span id="plan-selectie-naam"></span><div><button type="button" class="knop klein" id="plan-eigenschappen">Eigenschappen</button><button type="button" class="plan-vuilbak" id="plan-selectie-verwijder" aria-label="Geselecteerd object verwijderen"></button><button type="button" class="knop klein" id="plan-deselecteer" aria-label="Selectie opheffen">×</button></div></div>
       <section id="plan-inspector" class="plan-inspector" aria-label="Eigenschappen van geselecteerd object" hidden></section>
@@ -3855,6 +3883,7 @@ function nieuwProject() {
 
 const projectHistorie = window.BouwHistorie.maak();
 function laadProject(project, id = null) {
+  window.BouwMeten?.reset();
   planSelectie=null;planInspectieOpen=false;
   projectHistorie.reset(project);
   renderHistorie();
@@ -4460,6 +4489,7 @@ function renderPlan() {
     $('#plan-selectie').hidden=true;$('#plan-inspector').hidden=true;
     $('#plan-legenda').innerHTML='';$('#plan-openingen').innerHTML='';
     $('#plan-objecten-aantal').textContent='Geen actieve ruimte';
+    window.BouwMeten?.render();
     return;
   }
 
@@ -4502,6 +4532,7 @@ function renderPlan() {
   const minKnop = $('[data-camera="uit"]'), maxKnop = $('[data-camera="in"]');
   if (minKnop) minKnop.disabled = planCamera.zoom <= 0.75;
   if (maxKnop) maxKnop.disabled = planCamera.zoom >= 3;
+  window.BouwMeten?.render();
 }
 
 function render() {
@@ -5488,7 +5519,7 @@ document.addEventListener('submit',e=>{
   },true);
   document.addEventListener('keydown',e=>{
     if(e.key==='Escape' && drag){e.preventDefault();finish(true);return;}
-    if(planGereedschap==='hand' || !['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key) || drag) return;
+    if(planGereedschap!=='select' || !['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key) || drag) return;
     const d=prepare(e.target);if(!d)return;
     e.preventDefault();e.stopImmediatePropagation();
     const step=e.altKey ? .01 : e.shiftKey ? .25 : .05;
@@ -5548,7 +5579,8 @@ function sluitTekenFocus() {
     document.querySelectorAll('[data-plan-gereedschap]').forEach(b=>b.setAttribute('aria-pressed',String(b===knop)));
     host.classList.toggle('hand-actief',planGereedschap==='hand');
     document.getElementById('plan-sleepstatus').textContent=planGereedschap==='hand'
-      ? 'Hand: sleep het beeld. Objecten blijven op hun plaats.' : 'Selecteren: sleep objecten of klik om te selecteren.';
+      ? 'Hand: sleep het beeld. Objecten blijven op hun plaats.' : planGereedschap==='meet' ? 'Meten: wijs twee punten aan of sleep een meetlijn.' : 'Selecteren: sleep objecten of klik om te selecteren.';
+    window.BouwMeten?.render();
   });
   const begrens=(n,max)=>Math.max(-max,Math.min(max,n));
   function einde(annuleer=false) {
@@ -5578,7 +5610,7 @@ function sluitTekenFocus() {
   host.addEventListener('pointercancel',e=>{if(pan?.id===e.pointerId)einde(true);},true);
   host.addEventListener('lostpointercapture',()=>{if(pan)einde(true);});
   document.addEventListener('click',e=>{
-    if(e.target.closest?.('#plan') && (planGereedschap==='hand' || performance.now()<suppress)){
+    if(host.querySelector('svg') && e.target.closest?.('#plan') && (planGereedschap==='hand' || performance.now()<suppress)){
       e.preventDefault();e.stopImmediatePropagation();suppress=0;
     }
   },true);
@@ -5591,6 +5623,111 @@ function sluitTekenFocus() {
     planCamera.panY=begrens(planCamera.panY+(e.key==='ArrowDown'?stap:e.key==='ArrowUp'?-stap:0),560);
     renderPlan();host.focus({preventScroll:true});
   },true);
+})();
+
+</script>
+<script>
+/* Metric control measurements. Never writes project data or quotation lengths. */
+(function () {
+  'use strict';
+  const afstand=(a,b)=>Math.hypot(...a.map((v,i)=>b[i]-v));
+  window.BouwMeten={afstand};
+  const host=document.querySelector('#plan');if(!host)return;
+  let maat=null,contextKey='',gesture=null,suppress=0;
+  const $=s=>document.querySelector(s);
+  const assen={xy:[0,1],xz:[0,2],yz:[1,2]};
+  const kopie=m=>m?{...m,a:[...m.a],b:[...m.b]}:null;
+  function context() {
+    if(!state.project)return null;
+    const room=actieveRuimte();if(!room)return null;
+    const limieten=[room.lengte,room.breedte,room.hoogte].map(n=>Math.max(.2,Number(n)||.2));
+    const projectie=planWeergave==='isometrie'?BouwPlan.projectie(room,planCamera.hoek)
+      :planWeergave==='aanzicht'?BouwPlan.aanzichtProjectie(room,planVlak):BouwPlan.planProjectie(room);
+    const plane=planWeergave==='aanzicht'?projectie.plane:planWeergave==='isometrie'?$('#meet-vlak').value:'xy';
+    const vast=[0,0,0];
+    if(planWeergave==='aanzicht'){
+      if(planVlak==='plafond')vast[2]=limieten[2];
+      if(planVlak==='zuid')vast[1]=limieten[1];
+      if(planVlak==='oost')vast[0]=limieten[0];
+    }
+    return {P:projectie.P,plane,vast,limieten,key:JSON.stringify([room.id,planWeergave,planWeergave==='aanzicht'?planVlak:'',plane,...limieten])};
+  }
+  function punt(e,c) {
+    const svg=host.querySelector('svg'),m=svg?.getScreenCTM();if(!m)return null;
+    const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;
+    const q=p.matrixTransform(m.inverse()),o=c.P(...c.vast);
+    const d=BouwSleep.projectDelta(c.P,c.plane,q.x-o[0],q.y-o[1]);
+    return d.map((v,i)=>Math.max(0,Math.min(c.limieten[i],v+c.vast[i])));
+  }
+  function render() {
+    const c=context(),panel=$('#meet-paneel');
+    if(!c){maat=null;contextKey='';panel.hidden=true;return;}
+    if(c.key!==contextKey){maat=null;contextKey=c.key;}
+    panel.hidden=planGereedschap!=='meet' && !maat;
+    host.classList.toggle('meet-actief',planGereedschap==='meet');
+    $('#meet-vlak-label').hidden=planWeergave!=='isometrie';
+    $('#meet-afstand').textContent=maat?`${new Intl.NumberFormat('nl-BE',{minimumFractionDigits:2,maximumFractionDigits:2}).format(afstand(maat.a,maat.b))} m`:'—';
+    $('#meet-instructie').textContent='Tik twee punten of sleep een meetlijn. Controlemaat; geen offertehoeveelheid.';
+    if(!$('#meet-form').contains(document.activeElement)){
+      const a=maat?.a || c.vast,b=maat?.b || c.vast.map((n,i)=>i===assen[c.plane][0]?Math.min(1,c.limieten[i]):n);
+      $('#meet-velden').innerHTML=[a,b].map((p,j)=>assen[c.plane].map(i=>`<label>${j?'Eind':'Start'} ${'XYZ'[i]} (m)<input type="number" name="${j}_${i}" min="0" max="${c.limieten[i]}" step="any" value="${Math.round(p[i]*1000)/1000}" required></label>`).join('')).join('');
+    }
+    const svg=host.querySelector('svg');if(!svg)return;
+    svg.querySelector('.meet-overlay')?.remove();
+    if(!maat)return;
+    const a=c.P(...maat.a),b=c.P(...maat.b),g=document.createElementNS('http://www.w3.org/2000/svg','g');
+    g.setAttribute('class','meet-overlay');g.setAttribute('aria-label','Controlemaat '+$('#meet-afstand').textContent);
+    g.innerHTML=`<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}"/><circle cx="${a[0]}" cy="${a[1]}" r="5"/><circle cx="${b[0]}" cy="${b[1]}" r="5"/><text x="${(a[0]+b[0])/2}" y="${(a[1]+b[1])/2-12}" text-anchor="middle">${$('#meet-afstand').textContent}</text>`;
+    svg.append(g);
+  }
+  function einde(annuleer=false) {
+    if(!gesture)return;
+    const g=gesture;gesture=null;
+    if(annuleer)maat=context()?.key===g.c.key?g.voor:null;
+    else if(g.verplaatst && maat)maat.klaar=true;
+    if(host.hasPointerCapture(g.id))host.releasePointerCapture(g.id);
+    suppress=performance.now()+500;render();
+  }
+  host.addEventListener('pointerdown',e=>{
+    if(planGereedschap!=='meet' || !e.isPrimary || e.button!==0 || gesture)return;
+    const c=context(),p=c && punt(e,c);if(!p)return;
+    e.preventDefault();e.stopImmediatePropagation();
+    const voor=kopie(maat);
+    if(!maat || maat.klaar)maat={a:p,b:p,klaar:false};else maat={...maat,b:p,klaar:true};
+    gesture={id:e.pointerId,x:e.clientX,y:e.clientY,voor,verplaatst:false,c};
+    host.setPointerCapture(e.pointerId);render();
+  },true);
+  host.addEventListener('pointermove',e=>{
+    if(planGereedschap!=='meet' || !maat || maat.klaar)return;
+    const c=context();
+    if(gesture && c?.key!==gesture.c.key){einde(true);return;}
+    const p=c && punt(e,c);if(!p)return;
+    e.preventDefault();e.stopImmediatePropagation();
+    if(gesture && Math.hypot(e.clientX-gesture.x,e.clientY-gesture.y)>4)gesture.verplaatst=true;
+    maat.b=p;render();
+  },true);
+  host.addEventListener('pointerup',e=>{if(gesture?.id===e.pointerId){e.stopImmediatePropagation();einde();}},true);
+  host.addEventListener('pointercancel',e=>{if(gesture?.id===e.pointerId)einde(true);},true);
+  host.addEventListener('lostpointercapture',()=>{if(gesture)einde(true);});
+  document.addEventListener('click',e=>{
+    if(host.querySelector('svg') && e.target.closest?.('#plan') && (planGereedschap==='meet' || performance.now()<suppress)){e.preventDefault();e.stopImmediatePropagation();suppress=0;}
+  },true);
+  document.addEventListener('keydown',e=>{
+    if(e.key!=='Escape' || planGereedschap!=='meet' || (!gesture && (!maat || maat.klaar)))return;
+    e.preventDefault();e.stopImmediatePropagation();
+    if(gesture)einde(true);else {maat=null;render();}
+  },true);
+  $('#meet-wis').addEventListener('click',()=>{maat=null;render();});
+  $('#meet-vlak').addEventListener('change',()=>{maat=null;render();});
+  $('#meet-form').addEventListener('submit',e=>{
+    e.preventDefault();if(!e.target.reportValidity())return;
+    const c=context();if(!c)return;
+    const data=new FormData(e.target),a=[...c.vast],b=[...c.vast];
+    for(const i of assen[c.plane]){a[i]=Number(data.get('0_'+i));b[i]=Number(data.get('1_'+i));}
+    maat={a,b,klaar:true};render();
+  });
+  Object.assign(window.BouwMeten,{render,reset:()=>{maat=null;contextKey='';},status:()=>maat?{...kopie(maat),plane:context()?.plane,lengte:afstand(maat.a,maat.b)}:null});
+  render();
 })();
 
 </script>

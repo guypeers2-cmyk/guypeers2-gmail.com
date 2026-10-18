@@ -34,7 +34,8 @@ function sluitTekenFocus() {
     document.querySelectorAll('[data-plan-gereedschap]').forEach(b=>b.setAttribute('aria-pressed',String(b===knop)));
     host.classList.toggle('hand-actief',planGereedschap==='hand');
     document.getElementById('plan-sleepstatus').textContent=planGereedschap==='hand'
-      ? 'Hand: sleep het beeld. Objecten blijven op hun plaats.' : 'Selecteren: sleep objecten of klik om te selecteren.';
+      ? 'Hand: sleep het beeld. Objecten blijven op hun plaats.' : planGereedschap==='meet' ? 'Meten: wijs twee punten aan of sleep een meetlijn.' : 'Selecteren: sleep objecten of klik om te selecteren.';
+    window.BouwMeten?.render();
   });
   const begrens=(n,max)=>Math.max(-max,Math.min(max,n));
   function einde(annuleer=false) {
@@ -64,7 +65,7 @@ function sluitTekenFocus() {
   host.addEventListener('pointercancel',e=>{if(pan?.id===e.pointerId)einde(true);},true);
   host.addEventListener('lostpointercapture',()=>{if(pan)einde(true);});
   document.addEventListener('click',e=>{
-    if(e.target.closest?.('#plan') && (planGereedschap==='hand' || performance.now()<suppress)){
+    if(host.querySelector('svg') && e.target.closest?.('#plan') && (planGereedschap==='hand' || performance.now()<suppress)){
       e.preventDefault();e.stopImmediatePropagation();suppress=0;
     }
   },true);

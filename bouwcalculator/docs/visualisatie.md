@@ -194,3 +194,21 @@ het beeld bij Hand. Tijdens slepen annuleert Escape eerst die beweging.
 
 PDF blijft het volledige ongezoomde 2D-overzicht printen. Camera en focusmodus
 worden niet als projectwijziging opgeslagen en zitten niet in de undo-historie.
+
+## Controlemaat: twee punten, echte modelafstand
+
+Het gereedschap **Meten** tekent één tijdelijke rechte controlemaat tussen twee
+punten. Wijs twee punten aan of sleep de lijn; het paneel toont meter met twee
+decimalen. Getalvelden onder Meetpunten precies invoeren maken dit ook zonder
+muis bruikbaar. Wissen of een nieuwe meting vervangt de bestaande lijn.
+
+Bovenaanzicht gebruikt X/Y. Vlakaanzicht gebruikt het zichtbare vlak; zuid/west
+blijven correct gespiegeld en plafondmetingen liggen op plafondhoogte. In 3D
+kies je expliciet vloer X/Y, noordwand X/Z of westwand Y/Z. De berekening gebruikt
+modelcoördinaten, niet de lengte van de geprojecteerde SVG-lijn. De meetlijn blijft
+bij draaien en zoomen bij dezelfde modelpunten liggen. Veranderen van ruimte,
+aanzicht, vlak of ruimtematen wist de controlemaat.
+
+Dit is alleen een schematische controle: geen automatische object-/rand-snap,
+geen opmeting ter plaatse en geen leidinglengteberekening. Het verandert geen
+offertegegevens. Meetlijnen worden niet opgeslagen of afgedrukt.

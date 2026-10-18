@@ -87,6 +87,7 @@ def main() -> int:
     slepen = lees("slepen.js")
     geschiedenis = lees("geschiedenis.js")
     navigatie = lees("navigatie.js")
+    meten = lees("meten.js")
 
     html = index.replace(
         '<link rel="stylesheet" href="styles.css">',
@@ -94,15 +95,15 @@ def main() -> int:
     )
     html = html.replace(
         '<script type="module" src="engine.js"></script>\n'
-        '<script src="plattegrond.js"></script>\n<script src="geschiedenis.js"></script>\n<script src="app.js"></script>\n<script src="slepen.js"></script>\n<script src="navigatie.js"></script>',
+        '<script src="plattegrond.js"></script>\n<script src="geschiedenis.js"></script>\n<script src="app.js"></script>\n<script src="slepen.js"></script>\n<script src="navigatie.js"></script>\n<script src="meten.js"></script>',
         f"<script>\n{veilig(kern)}\n</script>\n"
         f"<script>\n{veilig(plattegrond)}\n</script>\n"
         f"<script>\n{veilig(geschiedenis)}\n</script>\n"
-        f"<script>\n{veilig(app)}\n</script>\n<script>\n{veilig(slepen)}\n</script>\n<script>\n{veilig(navigatie)}\n</script>",
+        f"<script>\n{veilig(app)}\n</script>\n<script>\n{veilig(slepen)}\n</script>\n<script>\n{veilig(navigatie)}\n</script>\n<script>\n{veilig(meten)}\n</script>",
     )
 
     if ("styles.css" in html or 'src="engine.js"' in html
-            or 'src="navigatie.js"' in html or 'src="geschiedenis.js"' in html or 'src="slepen.js"' in html or 'src="app.js"' in html or 'src="plattegrond.js"' in html):
+            or 'src="meten.js"' in html or 'src="navigatie.js"' in html or 'src="geschiedenis.js"' in html or 'src="slepen.js"' in html or 'src="app.js"' in html or 'src="plattegrond.js"' in html):
         print("FOUT: niet alle verwijzingen zijn vervangen", file=sys.stderr)
         return 1
 
