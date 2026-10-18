@@ -360,6 +360,18 @@ const BEREKENERS = {
   schilderen_gyproc: schilderenGyproc,
 };
 
+for (const pakket of PAKKETTEN) {
+  if (!pakket.recept) continue;
+  BEREKENERS[pakket.id] = ctx => {
+    if (ctx.aantal <= 0) return {materiaal: [], taken: []};
+    const key = pakket.recept.materiaal;
+    return {
+      materiaal: key ? [materiaal(ctx.tarieven.naam(key), ctx.aantal, key, ctx.tarieven)] : [],
+      taken: [taak(pakket.recept.arbeid, ctx.aantal, ctx.tarieven, ctx.uurtarief)],
+    };
+  };
+}
+
 /* ---------------- één werkregel ---------------- */
 export function standaardOpties(pakketId) {
   const pakket = PAKKET_OP_ID[pakketId] || {};
@@ -382,8 +394,12 @@ export function berekenRegel(regel, vlak, project, tarieven) {
   const opties = standaardOpties(regel.pakket_id);
   for (const [k, v] of Object.entries(regel.opties || {})) if (v) opties[k] = v;
 
-  const aantal = regel.hoeveelheid !== null && regel.hoeveelheid !== undefined
-    ? regel.hoeveelheid : vlak.netto;
+  let aantal = regel.hoeveelheid !== null && regel.hoeveelheid !== undefined
+    ? regel.hoeveelheid : (pakket.eenheid === "m2" ? vlak.netto : 0);
+  if (["st", "m"].includes(pakket.eenheid)) {
+    aantal = Math.max(0, aantal);
+    if (pakket.eenheid === "st") aantal = Math.ceil(aantal);
+  }
   const ctx = { oppervlak: vlak, opties, tarieven, aantal, uurtarief: project.uurtarief };
   const { materiaal: materiaalRegels, taken } = berekenaar(ctx);
 
@@ -487,6 +503,7 @@ export function referentieTarieven() {
   const tarieven = new Tarieven();
   const referentie = {};
   for (const pakketId of Object.keys(BEREKENERS)) {
+    if (PAKKET_OP_ID[pakketId].eenheid !== "m2") continue;
     const vlak = pakketId === "gyproc_plafond" ? REFERENTIE_PLAFOND : REFERENTIE_MUUR;
     const ctx = {
       oppervlak: vlak,
@@ -508,6 +525,7 @@ export function referentieTarieven() {
 function tarievenOverzicht(tarieven, referentie) {
   const overzicht = tarieven.overzicht();
   for (const [pakketId, pakket] of Object.entries(PAKKET_OP_ID)) {
+    if (pakket.eenheid !== "m2") continue;
     const sleutelM = `m2_${pakketId}_materiaal`;
     const sleutelA = `m2_${pakketId}_arbeid`;
     overzicht.push({
@@ -570,11 +588,14 @@ export function berekenOfferte(projectData = {}) {
       waarschuwingen.push(`Werkpakket '${regel.pakket_id}' bestaat niet meer en is overgeslagen.`);
       continue;
     }
-    regels.push(project.prijsmodus === "m2"
+    regels.push(project.prijsmodus === "m2" && PAKKET_OP_ID[regel.pakket_id].eenheid === "m2"
       ? berekenM2(regel, vlak, project, tarieven)
       : berekenRegel(regel, vlak, project, tarieven));
   }
 
+  if (regels.some(r => r.pakket.categorie === "Elektriciteit")) {
+    waarschuwingen.push("Elektriciteit: indicatieve raming. Kabel, sleuf en aansluitpunten apart tellen. Zonder verdeelkast, keuring, schema’s of conformiteitscontrole; laat ontwerp en uitvoering door een vakbekwaam elektricien beoordelen.");
+  }
   const materiaal = money(regels.reduce((s, r) => s + r.materiaal_kosten, 0));
   const arbeid = money(regels.reduce((s, r) => s + r.arbeidskosten, 0));
   const uren = money(regels.reduce((s, r) => s + r.uren, 0));

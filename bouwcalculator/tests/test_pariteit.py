@@ -79,6 +79,18 @@ PROJECTS = [
 ]
 
 
+# Elektriciteit: alle eenheden, nul/ontbrekend, overrides en gemengde prijsmodi.
+for _pakket in ("stopcontact", "stopcontact_dubbel", "schakelaar", "lichtpunt", "kabel_3g25", "kabel_3g15", "sleuf", "sleuf_dichten"):
+    for _aantal in (None, 0, -1, 1.2, 12.5):
+        PROJECTS.append(project("Elektriciteit " + _pakket, regels=[
+            regel(pakket="elek_" + _pakket, hoeveelheid=_aantal)], prijsmodus="m2"))
+PROJECTS.append(project("Gemengd Gyproc elektriciteit", regels=[
+    regel(), regel(pakket="elek_stopcontact", hoeveelheid=3, id="e"),
+    regel(pakket="elek_sleuf", hoeveelheid=12.5, id="s")], prijsmodus="m2",
+    tarieven={"elek_stopcontact": 18.75, "uur_elek_stopcontact": .4},
+    uurtarief=60, korting_pct=10, btw_pct=6))
+
+
 class TestPariteit(unittest.TestCase):
     """De JS-port en de Python-kern leveren identieke offertes."""
 

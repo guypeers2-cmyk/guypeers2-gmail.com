@@ -1104,6 +1104,22 @@ input[type="search"] { width: 100%; min-height: 38px; font: inherit; color: var(
   .tarieven-overzicht { align-items: flex-start; flex-direction: column; }
 }
 
+/* Elektriciteit is een meetstaat per stuk/meter, geen automatische m²-post. */
+.elektriciteit-kaart { background: var(--oppervlak); border: 1px solid var(--rand); border-radius: var(--radius-l); padding: 16px; box-shadow: var(--schaduw-1); }
+.elektriciteit-kop { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; }
+.elektriciteit-kop h3 { margin-top: 4px; font-size: 1.05rem; }
+.elektriciteit-kop label { font-size: .75rem; color: var(--tekst-2); }
+.elektriciteit-kop select { display: block; margin-top: 4px; min-width: 150px; }
+.elektriciteit-keuze { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 12px; }
+.elek-knop { display: flex; flex-direction: column; text-align: left; gap: 5px; border: 1px solid var(--rand); border-radius: 9px; padding: 12px; background: var(--oppervlak-2); color: var(--tekst); font: inherit; cursor: pointer; }
+.elek-knop:hover { border-color: var(--accent); background: var(--accent-zacht); }
+.elek-knop span { font-weight: 600; }
+.elek-knop small { color: var(--tekst-3); }
+.elek-opmerking, .offerte-waarschuwingen { font-size: .75rem; color: var(--tekst-2); border-left: 3px solid var(--goud); padding: 8px 12px; margin-top: 12px; background: var(--goud-zacht); }
+.elek-regel-uitleg { padding: 0 12px 10px; }
+@media (max-width: 480px) { .elektriciteit-keuze { grid-template-columns: 1fr; } }
+@media print { .offerte-waarschuwingen { font-size: 8pt; background: white; border-color: #777; break-inside: avoid; } }
+
 </style>
 </head>
 <body>
@@ -1252,6 +1268,7 @@ input[type="search"] { width: 100%; min-height: 38px; font: inherit; color: var(
       <p class="hint plantip">Klik op een wand om werk toe te voegen. In 3D kun je draaien om alle wanden te bekijken.</p>
     </div>
 
+    <section id="elektriciteit" class="elektriciteit-kaart" aria-label="Elektriciteit per ruimte"></section>
     <div class="oppervlakken" id="oppervlakken"></div>
     <div class="regels" id="regels"></div>
   </section>
@@ -1269,7 +1286,7 @@ input[type="search"] { width: 100%; min-height: 38px; font: inherit; color: var(
         in de offerte.</p>
       <div class="tarieven-tools">
         <label class="veld"><span>Zoek in het prijsboek</span><input type="search" id="tarief-zoeken" placeholder="Bijvoorbeeld gipsplaat, isolatie of schilderen" autocomplete="off"></label>
-        <label class="veld"><span>Categorie</span><select id="tarief-categorie"><option value="alle">Alle categorieën</option><option value="materiaal">Materiaal</option><option value="taak">Uurnormen</option><option value="m2">Snelle m²-prijzen</option></select></label>
+        <label class="veld"><span>Categorie</span><select id="tarief-categorie"><option value="alle">Alle categorieën</option><option value="materiaal">Materiaal</option><option value="taak">Arbeidsnormen</option><option value="elektriciteit">Elektriciteit</option><option value="m2">Snelle m²-prijzen</option></select></label>
         <label class="tarief-eigen"><input type="checkbox" id="tarief-eigen"> Alleen aangepast</label>
       </div>
       <div class="tarieven-overzicht"><p id="tarief-resultaat" role="status" aria-live="polite"></p><button type="button" class="knop klein" id="tarieven-herstellen">Alle tarieven herstellen</button></div>
@@ -1499,6 +1516,96 @@ const TARIEVEN = {
     "eenheid": "uur/m2",
     "prijs": 0.35,
     "soort": "taak"
+  },
+  "elek_stopcontact": {
+    "naam": "Elektriciteit: Stopcontact enkel, inbouw · materiaal",
+    "eenheid": "st",
+    "prijs": 12.5,
+    "soort": "materiaal"
+  },
+  "uur_elek_stopcontact": {
+    "naam": "Elektriciteit: Stopcontact enkel, inbouw · arbeid",
+    "eenheid": "uur/st",
+    "prijs": 0.35,
+    "soort": "taak"
+  },
+  "elek_stopcontact_dubbel": {
+    "naam": "Elektriciteit: Stopcontact dubbel, inbouw · materiaal",
+    "eenheid": "st",
+    "prijs": 23,
+    "soort": "materiaal"
+  },
+  "uur_elek_stopcontact_dubbel": {
+    "naam": "Elektriciteit: Stopcontact dubbel, inbouw · arbeid",
+    "eenheid": "uur/st",
+    "prijs": 0.5,
+    "soort": "taak"
+  },
+  "elek_schakelaar": {
+    "naam": "Elektriciteit: Schakelaar enkelpolig, inbouw · materiaal",
+    "eenheid": "st",
+    "prijs": 11,
+    "soort": "materiaal"
+  },
+  "uur_elek_schakelaar": {
+    "naam": "Elektriciteit: Schakelaar enkelpolig, inbouw · arbeid",
+    "eenheid": "uur/st",
+    "prijs": 0.3,
+    "soort": "taak"
+  },
+  "elek_lichtpunt": {
+    "naam": "Elektriciteit: Lichtpunt aansluiten · materiaal",
+    "eenheid": "st",
+    "prijs": 3.5,
+    "soort": "materiaal"
+  },
+  "uur_elek_lichtpunt": {
+    "naam": "Elektriciteit: Lichtpunt aansluiten · arbeid",
+    "eenheid": "uur/st",
+    "prijs": 0.25,
+    "soort": "taak"
+  },
+  "elek_kabel_3g25": {
+    "naam": "Elektriciteit: Kabel XVB 3G2,5 aanbrengen · materiaal",
+    "eenheid": "m",
+    "prijs": 1.65,
+    "soort": "materiaal"
+  },
+  "uur_elek_kabel_3g25": {
+    "naam": "Elektriciteit: Kabel XVB 3G2,5 aanbrengen · arbeid",
+    "eenheid": "uur/m",
+    "prijs": 0.06,
+    "soort": "taak"
+  },
+  "elek_kabel_3g15": {
+    "naam": "Elektriciteit: Kabel XVB 3G1,5 aanbrengen · materiaal",
+    "eenheid": "m",
+    "prijs": 1.2,
+    "soort": "materiaal"
+  },
+  "uur_elek_kabel_3g15": {
+    "naam": "Elektriciteit: Kabel XVB 3G1,5 aanbrengen · arbeid",
+    "eenheid": "uur/m",
+    "prijs": 0.06,
+    "soort": "taak"
+  },
+  "uur_elek_sleuf": {
+    "naam": "Elektriciteit: Sleuf frezen in metselwerk · arbeid",
+    "eenheid": "uur/m",
+    "prijs": 0.18,
+    "soort": "taak"
+  },
+  "elek_sleuf_dichten": {
+    "naam": "Elektriciteit: Sleuf dichtzetten · materiaal",
+    "eenheid": "m",
+    "prijs": 0.85,
+    "soort": "materiaal"
+  },
+  "uur_elek_sleuf_dichten": {
+    "naam": "Elektriciteit: Sleuf dichtzetten · arbeid",
+    "eenheid": "uur/m",
+    "prijs": 0.1,
+    "soort": "taak"
   }
 };
 const PAKKETTEN = [
@@ -1618,6 +1725,102 @@ const PAKKETTEN = [
     "eenheid": "m2",
     "beschrijving": "Primer plus twee lagen muurverf.",
     "opties": []
+  },
+  {
+    "id": "elek_stopcontact",
+    "naam": "Stopcontact enkel, inbouw",
+    "categorie": "Elektriciteit",
+    "eenheid": "st",
+    "beschrijving": "Inclusief mechanisme, inbouwdoos en standaard afdekking. Kabel en sleuf apart.",
+    "opties": [],
+    "recept": {
+      "materiaal": "elek_stopcontact",
+      "arbeid": "uur_elek_stopcontact"
+    }
+  },
+  {
+    "id": "elek_stopcontact_dubbel",
+    "naam": "Stopcontact dubbel, inbouw",
+    "categorie": "Elektriciteit",
+    "eenheid": "st",
+    "beschrijving": "Twee aansluitingen als één dubbel punt, inclusief dozen en afdekking. Kabel en sleuf apart.",
+    "opties": [],
+    "recept": {
+      "materiaal": "elek_stopcontact_dubbel",
+      "arbeid": "uur_elek_stopcontact_dubbel"
+    }
+  },
+  {
+    "id": "elek_schakelaar",
+    "naam": "Schakelaar enkelpolig, inbouw",
+    "categorie": "Elektriciteit",
+    "eenheid": "st",
+    "beschrijving": "Inclusief mechanisme, inbouwdoos en standaard afdekking. Kabel en sleuf apart.",
+    "opties": [],
+    "recept": {
+      "materiaal": "elek_schakelaar",
+      "arbeid": "uur_elek_schakelaar"
+    }
+  },
+  {
+    "id": "elek_lichtpunt",
+    "naam": "Lichtpunt aansluiten",
+    "categorie": "Elektriciteit",
+    "eenheid": "st",
+    "beschrijving": "Aansluitmateriaal en montage. Zonder armatuur, kabel, schakelaar of sleuf.",
+    "opties": [],
+    "recept": {
+      "materiaal": "elek_lichtpunt",
+      "arbeid": "uur_elek_lichtpunt"
+    }
+  },
+  {
+    "id": "elek_kabel_3g25",
+    "naam": "Kabel XVB 3G2,5 aanbrengen",
+    "categorie": "Elektriciteit",
+    "eenheid": "m",
+    "beschrijving": "Per lopende meter; zonder sleuf, buis of aansluitpunten.",
+    "opties": [],
+    "recept": {
+      "materiaal": "elek_kabel_3g25",
+      "arbeid": "uur_elek_kabel_3g25"
+    }
+  },
+  {
+    "id": "elek_kabel_3g15",
+    "naam": "Kabel XVB 3G1,5 aanbrengen",
+    "categorie": "Elektriciteit",
+    "eenheid": "m",
+    "beschrijving": "Per lopende meter; zonder sleuf, buis of aansluitpunten.",
+    "opties": [],
+    "recept": {
+      "materiaal": "elek_kabel_3g15",
+      "arbeid": "uur_elek_kabel_3g15"
+    }
+  },
+  {
+    "id": "elek_sleuf",
+    "naam": "Sleuf frezen in metselwerk",
+    "categorie": "Elektriciteit",
+    "eenheid": "m",
+    "beschrijving": "Per lopende meter in baksteen, indicatief tot 3 × 3 cm. Zonder kabel, inbouwdoosgat, dichtzetten of afvoer. Niet voor beton of dragende delen.",
+    "opties": [],
+    "recept": {
+      "materiaal": null,
+      "arbeid": "uur_elek_sleuf"
+    }
+  },
+  {
+    "id": "elek_sleuf_dichten",
+    "naam": "Sleuf dichtzetten",
+    "categorie": "Elektriciteit",
+    "eenheid": "m",
+    "beschrijving": "Vulmateriaal en dichtzetten per meter; zonder eindplamuur of schilderwerk.",
+    "opties": [],
+    "recept": {
+      "materiaal": "elek_sleuf_dichten",
+      "arbeid": "uur_elek_sleuf_dichten"
+    }
   }
 ];
 const PAKKET_OP_ID = Object.fromEntries(PAKKETTEN.map((p) => [p.id, p]));
@@ -1982,6 +2185,18 @@ const BEREKENERS = {
   schilderen_gyproc: schilderenGyproc,
 };
 
+for (const pakket of PAKKETTEN) {
+  if (!pakket.recept) continue;
+  BEREKENERS[pakket.id] = ctx => {
+    if (ctx.aantal <= 0) return {materiaal: [], taken: []};
+    const key = pakket.recept.materiaal;
+    return {
+      materiaal: key ? [materiaal(ctx.tarieven.naam(key), ctx.aantal, key, ctx.tarieven)] : [],
+      taken: [taak(pakket.recept.arbeid, ctx.aantal, ctx.tarieven, ctx.uurtarief)],
+    };
+  };
+}
+
 /* ---------------- één werkregel ---------------- */
 function standaardOpties(pakketId) {
   const pakket = PAKKET_OP_ID[pakketId] || {};
@@ -2003,8 +2218,12 @@ function berekenRegel(regel, vlak, project, tarieven) {
   const opties = standaardOpties(regel.pakket_id);
   for (const [k, v] of Object.entries(regel.opties || {})) if (v) opties[k] = v;
 
-  const aantal = regel.hoeveelheid !== null && regel.hoeveelheid !== undefined
-    ? regel.hoeveelheid : vlak.netto;
+  let aantal = regel.hoeveelheid !== null && regel.hoeveelheid !== undefined
+    ? regel.hoeveelheid : (pakket.eenheid === "m2" ? vlak.netto : 0);
+  if (["st", "m"].includes(pakket.eenheid)) {
+    aantal = Math.max(0, aantal);
+    if (pakket.eenheid === "st") aantal = Math.ceil(aantal);
+  }
   const ctx = { oppervlak: vlak, opties, tarieven, aantal, uurtarief: project.uurtarief };
   const { materiaal: materiaalRegels, taken } = berekenaar(ctx);
 
@@ -2107,6 +2326,7 @@ function referentieTarieven() {
   const tarieven = new Tarieven();
   const referentie = {};
   for (const pakketId of Object.keys(BEREKENERS)) {
+    if (PAKKET_OP_ID[pakketId].eenheid !== "m2") continue;
     const vlak = pakketId === "gyproc_plafond" ? REFERENTIE_PLAFOND : REFERENTIE_MUUR;
     const ctx = {
       oppervlak: vlak,
@@ -2128,6 +2348,7 @@ function referentieTarieven() {
 function tarievenOverzicht(tarieven, referentie) {
   const overzicht = tarieven.overzicht();
   for (const [pakketId, pakket] of Object.entries(PAKKET_OP_ID)) {
+    if (pakket.eenheid !== "m2") continue;
     const sleutelM = `m2_${pakketId}_materiaal`;
     const sleutelA = `m2_${pakketId}_arbeid`;
     overzicht.push({
@@ -2189,11 +2410,14 @@ function berekenOfferte(projectData = {}) {
       waarschuwingen.push(`Werkpakket '${regel.pakket_id}' bestaat niet meer en is overgeslagen.`);
       continue;
     }
-    regels.push(project.prijsmodus === "m2"
+    regels.push(project.prijsmodus === "m2" && PAKKET_OP_ID[regel.pakket_id].eenheid === "m2"
       ? berekenM2(regel, vlak, project, tarieven)
       : berekenRegel(regel, vlak, project, tarieven));
   }
 
+  if (regels.some(r => r.pakket.categorie === "Elektriciteit")) {
+    waarschuwingen.push("Elektriciteit: indicatieve raming. Kabel, sleuf en aansluitpunten apart tellen. Zonder verdeelkast, keuring, schema’s of conformiteitscontrole; laat ontwerp en uitvoering door een vakbekwaam elektricien beoordelen.");
+  }
   const materiaal = money(regels.reduce((s, r) => s + r.materiaal_kosten, 0));
   const arbeid = money(regels.reduce((s, r) => s + r.arbeidskosten, 0));
   const uren = money(regels.reduce((s, r) => s + r.uren, 0));
@@ -2771,7 +2995,7 @@ function renderTarieven() {
 
   const groepen = [
     { soort: "materiaal", titel: "Materiaal", klasse: "" },
-    { soort: "taak", titel: "Uren per m²", klasse: "is-taak" },
+    { soort: "taak", titel: "Arbeidsnormen (uren per eenheid)", klasse: "is-taak" },
     { soort: "m2", titel: "Snelle m²-prijzen", klasse: "is-m2" },
   ];
 
@@ -2817,7 +3041,7 @@ function filterTarieven() {
     rij.querySelector(".tarief-markering").hidden = !eigen;
     rij.querySelector("[data-herstel-tarief]").disabled = !eigen;
     rij.hidden = !(rij.title.toLocaleLowerCase("nl").includes(zoek)
-      && (categorie === "alle" || rij.dataset.tariefSoort === categorie)
+      && (categorie === "alle" || rij.dataset.tariefSoort === categorie || (categorie === "elektriciteit" && rij.title.startsWith("Elektriciteit:")))
       && (!alleenEigen || eigen));
     if (!rij.hidden) zichtbaar++;
   });
@@ -2926,6 +3150,23 @@ function renderOppervlakken() {
     </table>`;
 }
 
+function renderElektriciteit() {
+  const houder = $("#elektriciteit");
+  if (!houder) return;
+  const ruimte = actieveRuimte();
+  if (!ruimte) { houder.innerHTML = ""; return; }
+  const pakketten = (state.prijsboek?.pakketten || []).filter(p => p.categorie === "Elektriciteit");
+  const locatie = $("#elek-vlak")?.value || "noord";
+  houder.innerHTML = `
+    <header class="elektriciteit-kop"><div><p class="tarieven-label">WERK TOEVOEGEN</p><h3>Elektriciteit</h3></div>
+      <label>Locatie in ${esc(ruimte.naam)}<select id="elek-vlak" aria-label="Locatie elektriciteitswerk">
+        ${["noord", "zuid", "oost", "west", "plafond", "vloer"].map(v => `<option value="${v}" ${locatie === v ? "selected" : ""}>${v === "plafond" ? "Plafond" : v === "vloer" ? "Vloer" : "Wand " + v}</option>`).join("")}
+      </select></label></header>
+    <div class="elektriciteit-keuze">${pakketten.map(p => `<button type="button" class="elek-knop" data-elek-pakket="${esc(p.id)}" title="${esc(p.beschrijving)}"><span>+ ${esc(p.naam)}</span><small>${p.eenheid === "st" ? "Per stuk" : "Per lopende meter"}</small></button>`).join("")}</div>
+    <p class="hint">Voeg een werkregel toe en vul hieronder het aantal of de lengte in. Aansluitpunten, kabels, sleuven en dichtzetten zijn aparte posten: tel ze niet dubbel.</p>
+    <p class="elek-opmerking">Indicatieve startprijzen, exclusief verdeelkast, keuring en schema’s. Geen installatieontwerp of AREI-conformiteitscontrole. Laat ontwerp en uitvoering door een vakbekwaam elektricien beoordelen.</p>`;
+}
+
 function standaardPakket(soort) {
   if (soort === "plafond") return "gyproc_plafond";
   if (soort === "vloer") return "schilderen_gyproc";
@@ -2947,8 +3188,9 @@ function renderRegelkaart(regel, vlakken) {
       </select>
     </label>`).join("");
 
-  const auto = regel.hoeveelheid === null || regel.hoeveelheid === undefined;
-  const hoeveelheid = auto ? (vlak ? vlak.netto : 0) : regel.hoeveelheid;
+  const oppervlaktePakket = (pakket.eenheid || "m2") === "m2";
+  const auto = oppervlaktePakket && (regel.hoeveelheid === null || regel.hoeveelheid === undefined);
+  const hoeveelheid = auto ? (vlak ? vlak.netto : 0) : (regel.hoeveelheid ?? 0);
 
   return `
   <div class="regelkaart" data-regel="${esc(regel.id)}">
@@ -2963,13 +3205,14 @@ function renderRegelkaart(regel, vlakken) {
     </header>
     <div class="regelopties">
       ${optieVelden}
-      <label>Hoeveelheid (${esc(pakket.eenheid || "m2")})
-        <input type="number" step="0.01" min="0" value="${hoeveelheid}" data-hoeveelheid
+      <label>${pakket.eenheid === "st" ? "Aantal" : pakket.eenheid === "m" ? "Lengte" : "Hoeveelheid"} (${esc(pakket.eenheid || "m2")})
+        <input type="number" step="${pakket.eenheid === "st" ? "1" : "0.01"}" min="0" value="${hoeveelheid}" data-hoeveelheid
                data-fokus="r_${regel.id}_aantal" style="width:92px">
       </label>
       ${auto ? '<span class="klein-muted">= oppervlak van de wand</span>'
-             : '<button type="button" class="knop klein" data-actie="hoeveelheid-auto">opnieuw automatisch</button>'}
+             : oppervlaktePakket ? '<button type="button" class="knop klein" data-actie="hoeveelheid-auto">opnieuw automatisch</button>' : '<span class="klein-muted">Handmatig gemeten · niet afgeleid van m²</span>'}
     </div>
+    ${!oppervlaktePakket ? `<p class="hint elek-regel-uitleg">${esc(pakket.beschrijving)}</p>` : ""}
     <div class="regelprijs" data-prijzen="${esc(regel.id)}"></div>
     <details class="details">
       <summary>Materialen &amp; uren</summary>
@@ -3151,6 +3394,7 @@ function renderOfferte() {
       <div><span>BTW ${NRL.format(totalen.btw_pct)}%</span><span>${eur(totalen.btw)}</span></div>
       <div class="eind"><span>Totaal</span><span>${eur(totalen.totaal)}</span></div>
     </div>
+    ${(offerte.waarschuwingen || []).length ? `<div class="offerte-waarschuwingen">${offerte.waarschuwingen.map(w => `<p>${esc(w)}</p>`).join("")}</div>` : ""}
     ${offertePlannen(offerte)}
     ${project.opmerking ? `<p class="offerte-noot">${esc(project.opmerking)}</p>` : ""}
     <p class="offerte-voet">
@@ -3216,6 +3460,7 @@ function render() {
   const kaart = $("#ruimtekaart");
   if (kaart) kaart.innerHTML = ruimte ? renderRuimtekaart(ruimte) : "";
   renderPlan();
+  renderElektriciteit();
   renderOppervlakken();
   renderRegels();
   renderOfferte();
@@ -3353,6 +3598,18 @@ function importeerJson(tekst) {
 
 /* ---------------- events ---------------- */
 document.addEventListener("click", (e) => {
+  const elek = e.target.closest("[data-elek-pakket]");
+  if (elek) {
+    const ruimte = actieveRuimte();
+    if (!ruimte) return;
+    const locatie = $("#elek-vlak")?.value || "noord";
+    const id = uid();
+    wijzig(() => state.project.regels.push({id, ruimte_id: ruimte.id, oppervlak: locatie,
+      pakket_id: elek.dataset.elekPakket, opties: {}, hoeveelheid: 1, notitie: ""}));
+    const veld = document.querySelector(`[data-fokus="r_${id}_aantal"]`);
+    if (veld) { veld.focus(); veld.select(); }
+    return;
+  }
   const herstelTarief = e.target.closest("[data-herstel-tarief]");
   if (herstelTarief) {
     wijzig(() => { delete state.project.tarieven[herstelTarief.dataset.herstelTarief]; });
@@ -3607,7 +3864,13 @@ document.addEventListener("change", (e) => {
     const id = el.closest("[data-regel]")?.dataset.regel;
     wijzig(() => {
       const regel = state.project.regels.find((r) => r.id === id);
-      if (regel) { regel.pakket_id = el.value; regel.opties = {}; }
+      if (regel) {
+        const pakketten = state.prijsboek?.pakketten || [];
+        const oud = pakketten.find(p => p.id === regel.pakket_id)?.eenheid || "m2";
+        const nieuw = pakketten.find(p => p.id === el.value)?.eenheid || "m2";
+        regel.pakket_id = el.value; regel.opties = {};
+        if (oud !== nieuw) regel.hoeveelheid = nieuw === "m2" ? null : 1;
+      }
     });
     return;
   }
@@ -3648,7 +3911,12 @@ document.addEventListener("change", (e) => {
   if (el.dataset.hoeveelheid !== undefined) {
     const id = el.closest("[data-regel]")?.dataset.regel;
     const regel = state.project.regels.find((r) => r.id === id);
-    if (regel) regel.hoeveelheid = getal(el.value);
+    if (regel) {
+      const pakket = state.prijsboek?.pakketten.find(p => p.id === regel.pakket_id);
+      regel.hoeveelheid = Math.max(0, getal(el.value));
+      if (pakket?.eenheid === "st") regel.hoeveelheid = Math.ceil(regel.hoeveelheid);
+      el.value = regel.hoeveelheid;
+    }
     bewaarLokaal();
     render();
     bereken();

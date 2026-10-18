@@ -113,11 +113,13 @@ def bereken_offerte(project_data: Dict[str, Any]) -> Dict[str, Any]:
             waarschuwingen.append(
                 f"Werkpakket '{regel.pakket_id}' bestaat niet meer en is overgeslagen.")
             continue
-        if project.prijsmodus == "m2":
+        if project.prijsmodus == "m2" and PAKKET_OP_ID[regel.pakket_id].get("eenheid", "m2") == "m2":
             regels.append(_bereken_m2(regel, vlak, project, tarieven))
         else:
             regels.append(bereken_regel(regel, vlak, project, tarieven))
 
+    if any(r["pakket"]["categorie"] == "Elektriciteit" for r in regels):
+        waarschuwingen.append("Elektriciteit: indicatieve raming. Kabel, sleuf en aansluitpunten apart tellen. Zonder verdeelkast, keuring, schema’s of conformiteitscontrole; laat ontwerp en uitvoering door een vakbekwaam elektricien beoordelen.")
     materiaal = money(sum(r["materiaal_kosten"] for r in regels))
     arbeid = money(sum(r["arbeidskosten"] for r in regels))
     uren = money(sum(r["uren"] for r in regels))
@@ -170,6 +172,8 @@ def _tarievenoverzicht(tarieven: Tarieven, referentie: Dict[str, float]) -> List
     """Het volledige, aanpasbare prijsboek (materiaal + uren + snelle m²-prijzen)."""
     overzicht = tarieven.overzicht()
     for pakket_id, pakket in PAKKET_OP_ID.items():
+        if pakket.get("eenheid", "m2") != "m2":
+            continue
         sleutel_m, sleutel_a = m2_sleutels(pakket_id)
         overzicht.append({
             "sleutel": sleutel_m,

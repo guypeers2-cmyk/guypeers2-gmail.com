@@ -1087,3 +1087,19 @@ input[type="search"] { width: 100%; min-height: 38px; font: inherit; color: var(
   .tarief-herstel { grid-column: 2 / 4; justify-self: end; }
   .tarieven-overzicht { align-items: flex-start; flex-direction: column; }
 }
+
+/* Elektriciteit is een meetstaat per stuk/meter, geen automatische m²-post. */
+.elektriciteit-kaart { background: var(--oppervlak); border: 1px solid var(--rand); border-radius: var(--radius-l); padding: 16px; box-shadow: var(--schaduw-1); }
+.elektriciteit-kop { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; }
+.elektriciteit-kop h3 { margin-top: 4px; font-size: 1.05rem; }
+.elektriciteit-kop label { font-size: .75rem; color: var(--tekst-2); }
+.elektriciteit-kop select { display: block; margin-top: 4px; min-width: 150px; }
+.elektriciteit-keuze { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 12px; }
+.elek-knop { display: flex; flex-direction: column; text-align: left; gap: 5px; border: 1px solid var(--rand); border-radius: 9px; padding: 12px; background: var(--oppervlak-2); color: var(--tekst); font: inherit; cursor: pointer; }
+.elek-knop:hover { border-color: var(--accent); background: var(--accent-zacht); }
+.elek-knop span { font-weight: 600; }
+.elek-knop small { color: var(--tekst-3); }
+.elek-opmerking, .offerte-waarschuwingen { font-size: .75rem; color: var(--tekst-2); border-left: 3px solid var(--goud); padding: 8px 12px; margin-top: 12px; background: var(--goud-zacht); }
+.elek-regel-uitleg { padding: 0 12px 10px; }
+@media (max-width: 480px) { .elektriciteit-keuze { grid-template-columns: 1fr; } }
+@media print { .offerte-waarschuwingen { font-size: 8pt; background: white; border-color: #777; break-inside: avoid; } }

@@ -122,7 +122,7 @@ class Werkregel:
     oppervlak: str = "noord"      # noord | zuid | oost | west | plafond | vloer
     pakket_id: str = "gyproc_wand_profiel"
     opties: Dict[str, str] = field(default_factory=dict)
-    hoeveelheid: Optional[float] = None   # m² (None = oppervlak van de wand)
+    hoeveelheid: Optional[float] = None   # m², stuks of meters; None = oppervlak bij m², anders 0
     notitie: str = ""
 
     @staticmethod

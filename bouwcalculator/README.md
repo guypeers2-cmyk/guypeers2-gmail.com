@@ -223,6 +223,51 @@ beschikbaar zijn.
 
 ---
 
+## Elektriciteitswerken
+
+Per ruimte staat nu een kaart **Elektriciteit**. Kies een wand, vloer of plafond,
+klik een werkpakket aan en vul het **aantal** of de **lengte in meter** in.
+Elk toegevoegd pakket begint met 1 stuk/meter; meet de werkelijke hoeveelheid.
+
+| Werkpakket | Eenheid | Materiaal / eenheid (excl. btw) | Arbeidsnorm |
+|---|---|---:|---:|
+| Stopcontact enkel, inbouw | st | € 12,50 | 0,35 u/st |
+| Stopcontact dubbel, inbouw | st | € 23,00 | 0,50 u/st |
+| Schakelaar enkelpolig, inbouw | st | € 11,00 | 0,30 u/st |
+| Lichtpunt aansluiten | st | € 3,50 | 0,25 u/st |
+| Kabel XVB 3G2,5 aanbrengen | m | € 1,65 | 0,06 u/m |
+| Kabel XVB 3G1,5 aanbrengen | m | € 1,20 | 0,06 u/m |
+| Sleuf frezen in metselwerk | m | € 0,00 | 0,18 u/m |
+| Sleuf dichtzetten | m | € 0,85 | 0,10 u/m |
+
+**Dit zijn indicatieve, gekozen startwaarden, geen geverifieerde marktprijzen.**
+Pas ze aan in de hoofdtab **Tarieven**, categorie **Elektriciteit**.
+Arbeid = hoeveelheid × arbeidsnorm × projectuurtarief. De bestaande materiaal-
+marge, korting en btw gelden ook voor deze posten. Bedragen tonen twee decimalen.
+
+- Een enkel/dubbel stopcontact of schakelaar bevat het mechanisme, standaard
+  afdekking en inbouwdoos/dozen; geen aparte kabellengte of sleuf.
+- Een dubbel stopcontact telt als één dubbel punt (niet als twee enkele).
+- Lichtpunten bevatten aansluitmateriaal, geen armatuur.
+- Kabels bevatten geen buis, sleuf of aansluitpunt. De kabelkeuze is een
+  handmatige raming, geen automatisch advies over kabelsecties.
+- Frezen geldt indicatief voor een sleuf tot 3 × 3 cm in baksteen; zonder
+  inbouwdoosgat, afvoer, kabel of dichtzetten. Niet voor beton of dragende delen.
+- Dichtzetten bevat vulmateriaal; schilderwerk en eindplamuur apart begroten.
+- Stopcontacten/schakelaars/lichtpunten worden naar hele stuks naar boven
+  afgerond; lengtes mogen decimalen hebben. Ontbrekende hoeveelheid = 0,
+  nooit het wandoppervlak. Negatieve hoeveelheden worden 0.
+- De snelle m²-modus heeft **geen invloed** op elektriciteitsregels.
+- Opslaan, JSON export/import, tarievenherstel en print werken voor alle posten.
+
+**Zonder verdeelkast, keuring, schema’s of AREI-conformiteitscontrole.** Dit is
+geen installatieontwerp; laat ontwerp en uitvoering door een vakbekwaam
+elektricien beoordelen. Op de offerte staat hiervoor een waarschuwing.
+Er worden geen fictieve stopcontactposities in 3D geplaatst: de locatie is
+voorlopig een gekozen wand/vloer/plafond, niet een exact installatiepunt.
+
+---
+
 ## De rekenkern in het kort
 
 Per werkpakket rekent de app twee dingen uit:

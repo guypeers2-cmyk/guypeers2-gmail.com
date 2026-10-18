@@ -325,6 +325,17 @@ def _schilderen_gyproc(ctx: Ctx) -> Tuple[List[Dict[str, Any]], List[Dict[str, A
     return materiaal, taken
 
 
+def _elektriciteit(ctx: Ctx, recept: Dict[str, Any]):
+    """Losse punten/meters: nooit afleiden van het wandoppervlak."""
+    if ctx.aantal <= 0:
+        return [], []
+    materiaal = []
+    if recept.get("materiaal"):
+        key = recept["materiaal"]
+        materiaal.append(_materiaal(ctx.tarieven.naam(key), ctx.aantal, key, ctx.tarieven))
+    return materiaal, [_taak(recept["arbeid"], ctx.aantal, ctx.tarieven, ctx.uurtarief)]
+
+
 BEREKENERS: Dict[str, Callable[[Ctx], Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]]] = {
     "gyproc_wand_profiel": _gyproc_wand_profiel,
     "gyproc_plafond": _gyproc_plafond,
@@ -332,6 +343,10 @@ BEREKENERS: Dict[str, Callable[[Ctx], Tuple[List[Dict[str, Any]], List[Dict[str,
     "gyproc_voegafwerking": _gyproc_voegafwerking,
     "schilderen_gyproc": _schilderen_gyproc,
 }
+
+for _pakket in PAKKET_OP_ID.values():
+    if _pakket.get("recept"):
+        BEREKENERS[_pakket["id"]] = lambda ctx, recept=_pakket["recept"]: _elektriciteit(ctx, recept)
 
 
 # ---------------------------------------------------------------------------
@@ -356,7 +371,13 @@ def bereken_regel(regel: Werkregel, vlak: Dict[str, Any], project: Project,
     opties = standaard_opties(regel.pakket_id)
     opties.update({k: v for k, v in regel.opties.items() if v})
 
-    aantal = regel.hoeveelheid if regel.hoeveelheid is not None else float(vlak["netto"])
+    aantal = regel.hoeveelheid if regel.hoeveelheid is not None else (
+        float(vlak["netto"]) if pakket.get("eenheid", "m2") == "m2" else 0.0)
+    if pakket.get("eenheid") in ("st", "m"):
+        aantal = max(0.0, aantal)
+        if pakket["eenheid"] == "st":
+            aantal = math.ceil(aantal)
+
     ctx = Ctx(oppervlak=vlak, opties=opties, tarieven=tarieven, aantal=aantal,
               uurtarief=project.uurtarief)
     materiaal, taken = berekenaar(ctx)
@@ -435,6 +456,8 @@ def referentie_tarieven() -> Dict[str, float]:
     referentie: Dict[str, float] = {}
 
     for pakket_id in BEREKENERS:
+        if PAKKET_OP_ID[pakket_id].get("eenheid", "m2") != "m2":
+            continue
         vlak = REFERENTIE_PLAFOND if pakket_id == "gyproc_plafond" else REFERENTIE_MUUR
         ctx = Ctx(
             oppervlak=vlak,

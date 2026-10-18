@@ -196,7 +196,7 @@ function renderTarieven() {
 
   const groepen = [
     { soort: "materiaal", titel: "Materiaal", klasse: "" },
-    { soort: "taak", titel: "Uren per m²", klasse: "is-taak" },
+    { soort: "taak", titel: "Arbeidsnormen (uren per eenheid)", klasse: "is-taak" },
     { soort: "m2", titel: "Snelle m²-prijzen", klasse: "is-m2" },
   ];
 
@@ -242,7 +242,7 @@ function filterTarieven() {
     rij.querySelector(".tarief-markering").hidden = !eigen;
     rij.querySelector("[data-herstel-tarief]").disabled = !eigen;
     rij.hidden = !(rij.title.toLocaleLowerCase("nl").includes(zoek)
-      && (categorie === "alle" || rij.dataset.tariefSoort === categorie)
+      && (categorie === "alle" || rij.dataset.tariefSoort === categorie || (categorie === "elektriciteit" && rij.title.startsWith("Elektriciteit:")))
       && (!alleenEigen || eigen));
     if (!rij.hidden) zichtbaar++;
   });
@@ -351,6 +351,23 @@ function renderOppervlakken() {
     </table>`;
 }
 
+function renderElektriciteit() {
+  const houder = $("#elektriciteit");
+  if (!houder) return;
+  const ruimte = actieveRuimte();
+  if (!ruimte) { houder.innerHTML = ""; return; }
+  const pakketten = (state.prijsboek?.pakketten || []).filter(p => p.categorie === "Elektriciteit");
+  const locatie = $("#elek-vlak")?.value || "noord";
+  houder.innerHTML = `
+    <header class="elektriciteit-kop"><div><p class="tarieven-label">WERK TOEVOEGEN</p><h3>Elektriciteit</h3></div>
+      <label>Locatie in ${esc(ruimte.naam)}<select id="elek-vlak" aria-label="Locatie elektriciteitswerk">
+        ${["noord", "zuid", "oost", "west", "plafond", "vloer"].map(v => `<option value="${v}" ${locatie === v ? "selected" : ""}>${v === "plafond" ? "Plafond" : v === "vloer" ? "Vloer" : "Wand " + v}</option>`).join("")}
+      </select></label></header>
+    <div class="elektriciteit-keuze">${pakketten.map(p => `<button type="button" class="elek-knop" data-elek-pakket="${esc(p.id)}" title="${esc(p.beschrijving)}"><span>+ ${esc(p.naam)}</span><small>${p.eenheid === "st" ? "Per stuk" : "Per lopende meter"}</small></button>`).join("")}</div>
+    <p class="hint">Voeg een werkregel toe en vul hieronder het aantal of de lengte in. Aansluitpunten, kabels, sleuven en dichtzetten zijn aparte posten: tel ze niet dubbel.</p>
+    <p class="elek-opmerking">Indicatieve startprijzen, exclusief verdeelkast, keuring en schema’s. Geen installatieontwerp of AREI-conformiteitscontrole. Laat ontwerp en uitvoering door een vakbekwaam elektricien beoordelen.</p>`;
+}
+
 function standaardPakket(soort) {
   if (soort === "plafond") return "gyproc_plafond";
   if (soort === "vloer") return "schilderen_gyproc";
@@ -372,8 +389,9 @@ function renderRegelkaart(regel, vlakken) {
       </select>
     </label>`).join("");
 
-  const auto = regel.hoeveelheid === null || regel.hoeveelheid === undefined;
-  const hoeveelheid = auto ? (vlak ? vlak.netto : 0) : regel.hoeveelheid;
+  const oppervlaktePakket = (pakket.eenheid || "m2") === "m2";
+  const auto = oppervlaktePakket && (regel.hoeveelheid === null || regel.hoeveelheid === undefined);
+  const hoeveelheid = auto ? (vlak ? vlak.netto : 0) : (regel.hoeveelheid ?? 0);
 
   return `
   <div class="regelkaart" data-regel="${esc(regel.id)}">
@@ -388,13 +406,14 @@ function renderRegelkaart(regel, vlakken) {
     </header>
     <div class="regelopties">
       ${optieVelden}
-      <label>Hoeveelheid (${esc(pakket.eenheid || "m2")})
-        <input type="number" step="0.01" min="0" value="${hoeveelheid}" data-hoeveelheid
+      <label>${pakket.eenheid === "st" ? "Aantal" : pakket.eenheid === "m" ? "Lengte" : "Hoeveelheid"} (${esc(pakket.eenheid || "m2")})
+        <input type="number" step="${pakket.eenheid === "st" ? "1" : "0.01"}" min="0" value="${hoeveelheid}" data-hoeveelheid
                data-fokus="r_${regel.id}_aantal" style="width:92px">
       </label>
       ${auto ? '<span class="klein-muted">= oppervlak van de wand</span>'
-             : '<button type="button" class="knop klein" data-actie="hoeveelheid-auto">opnieuw automatisch</button>'}
+             : oppervlaktePakket ? '<button type="button" class="knop klein" data-actie="hoeveelheid-auto">opnieuw automatisch</button>' : '<span class="klein-muted">Handmatig gemeten · niet afgeleid van m²</span>'}
     </div>
+    ${!oppervlaktePakket ? `<p class="hint elek-regel-uitleg">${esc(pakket.beschrijving)}</p>` : ""}
     <div class="regelprijs" data-prijzen="${esc(regel.id)}"></div>
     <details class="details">
       <summary>Materialen &amp; uren</summary>
@@ -576,6 +595,7 @@ function renderOfferte() {
       <div><span>BTW ${NRL.format(totalen.btw_pct)}%</span><span>${eur(totalen.btw)}</span></div>
       <div class="eind"><span>Totaal</span><span>${eur(totalen.totaal)}</span></div>
     </div>
+    ${(offerte.waarschuwingen || []).length ? `<div class="offerte-waarschuwingen">${offerte.waarschuwingen.map(w => `<p>${esc(w)}</p>`).join("")}</div>` : ""}
     ${offertePlannen(offerte)}
     ${project.opmerking ? `<p class="offerte-noot">${esc(project.opmerking)}</p>` : ""}
     <p class="offerte-voet">
@@ -641,6 +661,7 @@ function render() {
   const kaart = $("#ruimtekaart");
   if (kaart) kaart.innerHTML = ruimte ? renderRuimtekaart(ruimte) : "";
   renderPlan();
+  renderElektriciteit();
   renderOppervlakken();
   renderRegels();
   renderOfferte();
@@ -778,6 +799,18 @@ function importeerJson(tekst) {
 
 /* ---------------- events ---------------- */
 document.addEventListener("click", (e) => {
+  const elek = e.target.closest("[data-elek-pakket]");
+  if (elek) {
+    const ruimte = actieveRuimte();
+    if (!ruimte) return;
+    const locatie = $("#elek-vlak")?.value || "noord";
+    const id = uid();
+    wijzig(() => state.project.regels.push({id, ruimte_id: ruimte.id, oppervlak: locatie,
+      pakket_id: elek.dataset.elekPakket, opties: {}, hoeveelheid: 1, notitie: ""}));
+    const veld = document.querySelector(`[data-fokus="r_${id}_aantal"]`);
+    if (veld) { veld.focus(); veld.select(); }
+    return;
+  }
   const herstelTarief = e.target.closest("[data-herstel-tarief]");
   if (herstelTarief) {
     wijzig(() => { delete state.project.tarieven[herstelTarief.dataset.herstelTarief]; });
@@ -1032,7 +1065,13 @@ document.addEventListener("change", (e) => {
     const id = el.closest("[data-regel]")?.dataset.regel;
     wijzig(() => {
       const regel = state.project.regels.find((r) => r.id === id);
-      if (regel) { regel.pakket_id = el.value; regel.opties = {}; }
+      if (regel) {
+        const pakketten = state.prijsboek?.pakketten || [];
+        const oud = pakketten.find(p => p.id === regel.pakket_id)?.eenheid || "m2";
+        const nieuw = pakketten.find(p => p.id === el.value)?.eenheid || "m2";
+        regel.pakket_id = el.value; regel.opties = {};
+        if (oud !== nieuw) regel.hoeveelheid = nieuw === "m2" ? null : 1;
+      }
     });
     return;
   }
@@ -1073,7 +1112,12 @@ document.addEventListener("change", (e) => {
   if (el.dataset.hoeveelheid !== undefined) {
     const id = el.closest("[data-regel]")?.dataset.regel;
     const regel = state.project.regels.find((r) => r.id === id);
-    if (regel) regel.hoeveelheid = getal(el.value);
+    if (regel) {
+      const pakket = state.prijsboek?.pakketten.find(p => p.id === regel.pakket_id);
+      regel.hoeveelheid = Math.max(0, getal(el.value));
+      if (pakket?.eenheid === "st") regel.hoeveelheid = Math.ceil(regel.hoeveelheid);
+      el.value = regel.hoeveelheid;
+    }
     bewaarLokaal();
     render();
     bereken();
