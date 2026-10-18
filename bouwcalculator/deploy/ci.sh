@@ -26,11 +26,16 @@ gh auth status 2>&1 | head -3 | sed 's/^/    /'
 
 echo
 echo "==> 2/4  Cloudflare API-token opslaan als secret"
-echo "    Nog nodig? Maak een token aan op:"
-echo "      https://dash.cloudflare.com/profile/api-tokens"
-echo "    Kies 'Edit Cloudflare Workers' en zet Account Resources op jouw account."
-echo "    Plak het token hieronder (er wordt niets weergegeven):"
-gh secret set CLOUDFLARE_API_TOKEN
+if [ -n "${CLOUDFLARE_API_TOKEN:-}" ]; then
+  echo "    Token gevonden in de omgeving — gebruik die."
+  echo "$CLOUDFLARE_API_TOKEN" | gh secret set CLOUDFLARE_API_TOKEN
+else
+  echo "    Nog nodig? Maak een token aan op:"
+  echo "      https://dash.cloudflare.com/profile/api-tokens"
+  echo "    Kies 'Edit Cloudflare Workers' en zet Account Resources op jouw account."
+  echo "    Plak het token hieronder (er wordt niets weergegeven):"
+  gh secret set CLOUDFLARE_API_TOKEN
+fi
 echo "    Secret opgeslagen."
 
 echo
