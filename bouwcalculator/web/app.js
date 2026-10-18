@@ -51,7 +51,8 @@ const state = {
 const esc = (tekst) => String(tekst ?? "").replace(/[&<>"']/g, (c) => (
   { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]
 ));
-const eur = (bedrag) => `€&nbsp;${NR.format(Number(bedrag) || 0)}`;
+/* echte niet-afbreekbare spatie: werkt zowel in HTML als in SVG-tekst */
+const eur = (bedrag) => `€ ${NR.format(Number(bedrag) || 0)}`;
 const getal = (waarde, standaard = 0) => {
   const n = parseFloat(String(waarde ?? "").replace(",", "."));
   return Number.isFinite(n) ? n : standaard;
@@ -153,6 +154,7 @@ async function bereken() {
     renderOppervlakken();
     renderRegelPrijzen();
     renderTarieven();
+    renderPlan();
     herstelFocus(focus);
     const waarschuwingen = state.offerte.waarschuwingen || [];
     status(waarschuwingen.length ? "⚠ " + waarschuwingen[0] : "Offerte bijgewerkt");
@@ -428,6 +430,21 @@ function renderDetails(regel) {
 }
 
 /* ---------------- offerte (document) ---------------- */
+/* Plattegronden voor het gedrukte offerte-document (alleen zichtbaar bij printen). */
+function offertePlannen(offerte) {
+  if (!window.BouwPlan || !offerte?.ruimtes?.length) return "";
+  const plannen = offerte.ruimtes.map((r) => {
+    const ruimte = state.project.ruimtes.find((x) => x.id === r.id);
+    if (!ruimte) return "";
+    return `<div class="offerte-plan">
+      <h4>${esc(r.naam)} · ${NRL.format(r.lengte)} × ${NRL.format(r.breedte)} × ${NRL.format(r.hoogte)} m</h4>
+      ${window.BouwPlan.plattegrond(ruimte, r.vlakken || [], {})}
+    </div>`;
+  }).join("");
+  if (!plannen) return "";
+  return `<section class="offerte-plannen"><h3>Plattegronden</h3>${plannen}</section>`;
+}
+
 function renderOfferte() {
   const container = $("#offerte");
   const offerte = state.offerte;
@@ -519,6 +536,7 @@ function renderOfferte() {
       <div><span>BTW ${NRL.format(totalen.btw_pct)}%</span><span>${eur(totalen.btw)}</span></div>
       <div class="eind"><span>Totaal</span><span>${eur(totalen.totaal)}</span></div>
     </div>
+    ${offertePlannen(offerte)}
     ${project.opmerking ? `<p class="offerte-noot">${esc(project.opmerking)}</p>` : ""}
     <p class="offerte-voet">
       ${esc(project.aannemer || "Aannemer")} · ${esc(project.naam || "Project")} ·
@@ -527,12 +545,52 @@ function renderOfferte() {
 }
 
 /* ---------------- render ---------------- */
+/* ---------------- plattegrond ---------------- */
+let planWeergave = "plattegrond";
+
+function werkPerVlak(ruimte) {
+  const uit = {};
+  /* aantal regels komt direct uit het project (altijd actueel) */
+  state.project.regels
+    .filter((r) => r.ruimte_id === ruimte.id)
+    .forEach((r) => {
+      const v = uit[r.oppervlak] || (uit[r.oppervlak] = { aantal: 0, totaal: 0 });
+      v.aantal += 1;
+    });
+  /* bedragen komen uit de laatste berekening */
+  (state.offerte?.regels || [])
+    .filter((r) => r.ruimte_id === ruimte.id)
+    .forEach((r) => {
+      const v = uit[r.oppervlak];
+      if (v) v.totaal += r.totaal || 0;
+    });
+  return uit;
+}
+
+function renderPlan() {
+  const houder = $("#plan");
+  if (!houder) return;
+  const ruimte = actieveRuimte();
+  if (!ruimte || !window.BouwPlan) { houder.innerHTML = ""; return; }
+
+  const werk = {};
+  Object.entries(werkPerVlak(ruimte)).forEach(([sleutel, info]) => {
+    const aantal = `${info.aantal} regel${info.aantal > 1 ? "s" : ""}`;
+    werk[sleutel] = info.totaal > 0 ? `${aantal} · ${eur(info.totaal)}` : aantal;
+  });
+
+  const vlakken = vlakkenVoor(ruimte);
+  const tekenaar = planWeergave === "isometrie" ? window.BouwPlan.isometrie : window.BouwPlan.plattegrond;
+  houder.innerHTML = tekenaar(ruimte, vlakken, werk);
+}
+
 function render() {
   const focus = bewaarFocus();
   renderRuimteChips();
   const ruimte = actieveRuimte();
   const kaart = $("#ruimtekaart");
   if (kaart) kaart.innerHTML = ruimte ? renderRuimtekaart(ruimte) : "";
+  renderPlan();
   renderOppervlakken();
   renderRegels();
   renderOfferte();
@@ -670,6 +728,26 @@ function importeerJson(tekst) {
 
 /* ---------------- events ---------------- */
 document.addEventListener("click", (e) => {
+  /* Weergave wisselen: bovenaanzicht <-> 3D */
+  const weergave = e.target.closest("[data-plan]");
+  if (weergave) {
+    planWeergave = weergave.dataset.plan;
+    $$("[data-plan]").forEach((b) => {
+      const actief = b === weergave;
+      b.classList.toggle("actief", actief);
+      b.setAttribute("aria-pressed", actief ? "true" : "false");
+    });
+    renderPlan();
+    return;
+  }
+
+  /* Klik op een wand (of een opening daarin) in de plattegrond = werk toevoegen op dat vlak */
+  const wand = e.target.closest(".plan-wand, .plan-open");
+  if (wand) {
+    wijzig(() => regelToevoegen(wand.dataset.vlak, wand.dataset.soort || "muur"));
+    return;
+  }
+
   const knop = e.target.closest("[data-actie]");
   if (knop) {
     const actie = knop.dataset.actie;
@@ -770,6 +848,15 @@ document.addEventListener("click", (e) => {
   } else if (e.target.id === "btn-import") {
     $("#import-bestand").click();
   }
+});
+
+/* Toetsenbord: Enter of spatie op een wand voegt werk toe. */
+document.addEventListener("keydown", (e) => {
+  if (e.key !== "Enter" && e.key !== " ") return;
+  const wand = e.target.closest && e.target.closest(".plan-wand, .plan-open");
+  if (!wand) return;
+  e.preventDefault();
+  wijzig(() => regelToevoegen(wand.dataset.vlak, wand.dataset.soort || "muur"));
 });
 
 /* Tijdens het typen: het model bijwerken, maar het veld zelf niet opnieuw bouwen. */

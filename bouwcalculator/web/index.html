@@ -134,6 +134,19 @@
   <section class="paneel werkvlak" id="werkvlak">
     <div class="ruimtechips" id="ruimtechips"></div>
     <article class="ruimtekaart" id="ruimtekaart"></article>
+
+    <div class="plankaart">
+      <header class="plankop">
+        <h3>Plattegrond</h3>
+        <div class="plankeuze" role="group" aria-label="Weergave kiezen">
+          <button type="button" class="planknop actief" data-plan="plattegrond" aria-pressed="true">Bovenaanzicht</button>
+          <button type="button" class="planknop" data-plan="isometrie" aria-pressed="false">3D</button>
+        </div>
+      </header>
+      <div class="planhouder" id="plan"></div>
+      <p class="hint plantip">Klik op een wand in de plattegrond om daar werk aan toe te voegen.</p>
+    </div>
+
     <div class="oppervlakken" id="oppervlakken"></div>
     <div class="regels" id="regels"></div>
   </section>
@@ -158,6 +171,7 @@
 <div class="toast" id="toast" hidden role="status" aria-live="polite"></div>
 
 <script type="module" src="engine.js"></script>
+<script src="plattegrond.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

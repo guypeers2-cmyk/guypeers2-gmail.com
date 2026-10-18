@@ -611,6 +611,82 @@ details.details tr.sectie td {
 }
 details.details tr.totaal td { border-top: 1px solid var(--rand); font-weight: 700; padding-top: 8px; }
 
+/* ---------- plattegrond ---------- */
+.plankaart {
+  background: var(--oppervlak);
+  border: 1px solid var(--rand);
+  border-radius: var(--radius-l);
+  box-shadow: var(--schaduw-2);
+  padding: var(--ruimte-4);
+}
+.plankop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ruimte-3);
+  margin-bottom: var(--ruimte-3);
+}
+.plankop h3 { font-size: var(--fs-md); font-weight: 650; }
+.plankeuze {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  background: var(--oppervlak-3);
+  border-radius: var(--radius);
+}
+.planknop {
+  font: inherit;
+  font-size: var(--fs-xs);
+  font-weight: 650;
+  color: var(--tekst-2);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-s);
+  padding: 6px 11px;
+  cursor: pointer;
+  transition: background var(--overgang), color var(--overgang), box-shadow var(--overgang);
+}
+.planknop:hover { color: var(--tekst); }
+.planknop.actief { background: var(--oppervlak); color: var(--accent); box-shadow: var(--schaduw-1); }
+.planhouder { width: 100%; max-width: 860px; margin: 0 auto; }
+.plan { width: 100%; height: auto; display: block; overflow: visible; }
+.plantip { margin: var(--ruimte-3) 0 0; text-align: center; }
+
+/* plattegrond */
+.plan-vloer { fill: var(--oppervlak-2); }
+.plan-raster { stroke: var(--rand); stroke-width: 1; stroke-dasharray: 2 5; }
+.plan-muur { stroke: var(--tekst); stroke-width: 4; stroke-linecap: butt; transition: stroke var(--overgang); }
+.plan-hit { fill: transparent; stroke: none; cursor: pointer; }
+.plan-wand { cursor: pointer; }
+.plan-wand:hover .plan-muur { stroke: var(--accent); }
+.plan-wand:focus { outline: none; }
+.plan-wand:focus-visible .plan-muur { stroke: var(--accent); stroke-width: 5; }
+.plan-open { cursor: pointer; }
+.plan-open:hover .plan-deur, .plan-open:hover .plan-raam { stroke: var(--accent); }
+.plan-open:focus { outline: none; }
+.plan-open:focus-visible .plan-deur, .plan-open:focus-visible .plan-raam { stroke: var(--accent); stroke-width: 4; }
+.plan-label { fill: var(--tekst-2); font-size: 12px; font-weight: 600; }
+.plan-opp { fill: var(--tekst-3); font-size: 11px; }
+.plan-deur { stroke: var(--goud); stroke-width: 2.5; fill: none; }
+.plan-slag { stroke: var(--goud); stroke-width: 1; fill: none; stroke-dasharray: 3 3; opacity: .8; }
+.plan-raam { stroke: var(--accent); stroke-width: 3; }
+.plan-maat line { stroke: var(--tekst-3); stroke-width: 1; }
+.plan-maat text { fill: var(--tekst-2); font-size: 12px; font-weight: 600; }
+.plan-hoogte { fill: var(--tekst-3); font-size: 11px; }
+
+/* 3D */
+.iso-vloer { fill: var(--oppervlak-3); stroke: var(--rand-sterk); stroke-width: 1.2; filter: drop-shadow(0 5px 10px rgba(16, 24, 40, .08)); }
+.iso-muur { fill: var(--oppervlak-2); stroke: var(--rand-sterk); stroke-width: 1.2; }
+.iso-stop-a { stop-color: color-mix(in srgb, var(--oppervlak-3) 94%, var(--tekst) 4%); }
+.iso-stop-b { stop-color: color-mix(in srgb, var(--oppervlak-3) 86%, var(--tekst) 8%); }
+.iso-stop-m { stop-color: var(--oppervlak); }
+.iso-bovenrand { stroke: var(--rand-sterk); stroke-width: 1.2; fill: none; }
+.iso-opening { fill: var(--bg); stroke: var(--rand-sterk); stroke-width: 1; }
+.iso-deur { stroke: var(--goud); stroke-width: 2; }
+.iso-label { fill: var(--tekst); font-size: 13px; font-weight: 650; }
+.iso-opp { fill: var(--tekst-3); font-size: 11px; }
+.iso-maat { fill: var(--tekst-2); font-size: 12px; font-weight: 600; }
+
 /* ---------- 6. Prijsboek ---------- */
 .tarievenlijst { display: flex; flex-direction: column; gap: 2px; }
 .tarief-groep {
@@ -639,6 +715,8 @@ details.details tr.totaal td { border-top: 1px solid var(--rand); font-weight: 7
 
 /* ---------- 7. Offertedocument ---------- */
 .offerte { background: var(--oppervlak); }
+/* de plattegronden horen alleen in het gedrukte document */
+.offerte-plannen { display: none; }
 .offerte-kop {
   display: flex;
   align-items: flex-start;
@@ -921,6 +999,19 @@ table.offerte-tabel tr.ruimte-kop:hover td { background: var(--oppervlak-3); }
   .offerte-totaal .eind span:last-child { color: #000; }
   .offerte-noot { font-size: 8.5pt; border-top: 0.5pt solid #d4d4d8; padding-top: 6pt; }
   .offerte-voet { display: block; font-size: 8pt; color: #52525b; }
+
+  /* plattegronden in het gedrukte document */
+  .offerte-plannen { display: block; margin-top: 10pt; }
+  .offerte-plannen h3 { font-size: 10pt; margin: 0 0 6pt; }
+  .offerte-plan { break-inside: avoid; page-break-inside: avoid; margin-bottom: 8pt; }
+  .offerte-plan h4 { font-size: 8.5pt; margin: 0 0 2pt; }
+  .offerte-plan .plan { width: 105mm; max-width: 100%; height: auto; }
+  .offerte-plan .plan-muur { stroke-width: 4; }
+  .offerte-plan .plan-raster { stroke: #e4e4e7; }
+  .offerte-plan .plan-label { font-size: 16px; }
+  .offerte-plan .plan-opp { font-size: 14px; }
+  .offerte-plan .plan-maat text { font-size: 15px; }
+  .offerte-plan .plan-hoogte { font-size: 13px; }
 
   /* onderbrekingen vermijden */
   tr, .offerte-partijen, .offerte-totaal, .offerte-kop { break-inside: avoid; page-break-inside: avoid; }

@@ -83,16 +83,22 @@ def main() -> int:
 }})();
 """
 
+    plattegrond = lees("plattegrond.js")
+
     html = index.replace(
         '<link rel="stylesheet" href="styles.css">',
         f"<style>\n{css}\n</style>",
     )
     html = html.replace(
-        '<script type="module" src="engine.js"></script>\n<script src="app.js"></script>',
-        f"<script>\n{veilig(kern)}\n</script>\n<script>\n{veilig(app)}\n</script>",
+        '<script type="module" src="engine.js"></script>\n'
+        '<script src="plattegrond.js"></script>\n<script src="app.js"></script>',
+        f"<script>\n{veilig(kern)}\n</script>\n"
+        f"<script>\n{veilig(plattegrond)}\n</script>\n"
+        f"<script>\n{veilig(app)}\n</script>",
     )
 
-    if "styles.css" in html or 'src="engine.js"' in html or 'src="app.js"' in html:
+    if ("styles.css" in html or 'src="engine.js"' in html
+            or 'src="app.js"' in html or 'src="plattegrond.js"' in html):
         print("FOUT: niet alle verwijzingen zijn vervangen", file=sys.stderr)
         return 1
 

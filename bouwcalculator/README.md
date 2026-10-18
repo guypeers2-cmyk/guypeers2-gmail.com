@@ -174,9 +174,33 @@ uit elkaar lopen.
 
 3. **Werk kiezen** — bij elk oppervlak op *+ werk*. Per werkregel stel je de
    opties in (1 of 2 zijden beplankt, welke plaat, welk profiel, isolatie of niet).
+   Of klik gewoon **op de wand in de plattegrond**: de werkregel komt er dan
+   automatisch bij.
 4. **Offerte** — rechts staat het offertedocument: materiaal, arbeid, marge,
    korting, BTW en totaal. Met **🖨 Offerte printen** wordt het een A4-PDF
    (via de printknop van je browser).
+
+---
+
+## De plattegrond
+
+De app tekent de ruimte voor je uit — in zuivere SVG, dus scherp op elke
+printer en in elke browser:
+
+* **Bovenaanzicht** — wanden met dikte, deuren met slag, ramen met kozijn,
+  maatvoering (lengte, breedte, hoogte) en per wand het nettoppervlak plus
+  het werk dat er al op staat.
+* **3D** — dezelfde ruimte als aaxonometrische kijk vanuit de hoek, met
+  openingen als gat in de muur.
+
+Klik op een wand (of op een deur daarin) en de werkregel voor dat vlak wordt
+toegevoegd. De plattegrond staat ook in het **gedrukte offerte-document**,
+zodat de klant ziet over welke ruimte het gaat.
+
+De tekening wordt opnieuw opgebouwd zodra er iets verandert: maten, deuren,
+ramen of werkregels. De module `web/plattegrond.js` staat helemaal los van
+de rekenkern en gebruikt geen browser-API's die niet in een testomgeving
+beschikbaar zijn.
 
 ---
 
@@ -263,6 +287,7 @@ bouwcalculator/
 │   ├── index.html       # de app
 │   ├── styles.css       # stijl + print-opmaak voor de offerte
 │   ├── app.js           # presentatielaag (alleen weergave)
+│   ├── plattegrond.js   # 2D-bovenaanzicht en 3D-weergave (SVG)
 │   ├── engine.js        # JS-rekenkern (Worker + browser-fallback)
 │   └── prijsboek.js     # gegenereerd uit bouw/tarieven.py
 ├── worker/
