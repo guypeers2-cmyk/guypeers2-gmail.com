@@ -1,6 +1,6 @@
 // Runner voor de pariteitstest: leest projecten (JSON) van stdin en
 // schrijft de berekende offertes naar stdout.
-import { berekenOfferte } from "../src/engine.js";
+import { berekenOfferte } from "../../web/engine.js";
 
 let invoer = "";
 for await (const chunk of process.stdin) invoer += chunk;

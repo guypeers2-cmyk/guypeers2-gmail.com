@@ -639,3 +639,9 @@ export function prijsboek() {
     versie: "1.0.0",
   };
 }
+
+// In de browser ook beschikbaar als window.BouwEngine, zodat de app kan
+// terugvallen op de lokale rekenkern als er geen API bereikbaar is.
+if (typeof window !== "undefined") {
+  window.BouwEngine = { berekenOfferte, berekenRegel, prijsboek, referentieTarieven, money };
+}

@@ -7,7 +7,7 @@
 // bouwcalculator/tests/test_pariteit.py).
 // ==========================================================
 
-import { berekenOfferte, prijsboek } from "./engine.js";
+import { berekenOfferte, prijsboek } from "../../web/engine.js";
 
 const JSON_HEADERS = {
   "Content-Type": "application/json; charset=utf-8",

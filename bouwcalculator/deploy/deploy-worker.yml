@@ -1,3 +1,16 @@
+# ==========================================================
+# Deploy de Bouwprijscalculator naar Cloudflare Workers.
+#
+# Kopieer dit bestand naar .github/workflows/deploy-worker.yml
+# om GitHub Actions te gebruiken. (De token van deze sandbox mag
+# geen workflow-bestanden aanmaken — daarom staat het hier.)
+#
+# De deploy gebruikt het secret CLOUDFLARE_API_TOKEN in de repo.
+# Zonder dat secret kun je ook lokaal deployen:
+#     npx wrangler login
+#     npx wrangler deploy
+# ==========================================================
+
 name: Bouwprijscalculator → Cloudflare Worker
 
 on:

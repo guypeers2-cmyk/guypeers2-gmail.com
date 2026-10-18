@@ -16,7 +16,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from bouw.tarieven import PAKKETTEN, TARIEVEN  # noqa: E402
 
-DOEL = Path(__file__).resolve().parents[1] / "worker" / "src" / "prijsboek.js"
+DOEL = Path(__file__).resolve().parents[1] / "web" / "prijsboek.js"
 
 KOP = """// ==========================================================
 // PRIJSBOEK — gegenereerd uit bouw/tarieven.py

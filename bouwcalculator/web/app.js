@@ -24,6 +24,7 @@ const state = {
   actieveRuimteId: null,
   berekenTimer: null,
   opslag: "server",   // "server" (Python-server) of "lokaal" (Worker: alleen browser)
+  engine: null,       // lokale rekenkern (fallback als er geen API is)
 };
 
 /* ---------------- hulpmiddelen ---------------- */
@@ -115,13 +116,18 @@ async function bereken() {
   if (!state.project) return;
   status("Berekenen…");
   try {
-    const antwoord = await fetch("/api/offerte", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ project: state.project }),
-    });
-    if (!antwoord.ok) throw new Error("serverfout");
-    state.offerte = await antwoord.json();
+    if (state.engine) {
+      // Geen API bereikbaar: reken in de browser met de JS-rekenkern.
+      state.offerte = state.engine.berekenOfferte(state.project);
+    } else {
+      const antwoord = await fetch("/api/offerte", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ project: state.project }),
+      });
+      if (!antwoord.ok) throw new Error("serverfout");
+      state.offerte = await antwoord.json();
+    }
     const focus = bewaarFocus();
     renderOfferte();
     renderOppervlakken();
@@ -853,6 +859,21 @@ document.addEventListener("change", (e) => {
 });
 
 /* ---------------- opstart ---------------- */
+async function laadLokaleEngine() {
+  // De engine wordt als module geladen (window.BouwEngine). Wacht daar even op.
+  for (let i = 0; i < 60; i++) {
+    if (window.BouwEngine) return window.BouwEngine;
+    await new Promise((r) => setTimeout(r, 50));
+  }
+  // Nóg een poging: dynamisch importeren.
+  try {
+    const module = await import("./engine.js");
+    return module;
+  } catch (_) {
+    return null;
+  }
+}
+
 async function init() {
   $$(".tab").forEach((tab) => tab.addEventListener("click", () => {
     $$(".tab").forEach((t) => t.classList.toggle("actief", t === tab));
@@ -864,8 +885,17 @@ async function init() {
     state.prijsboek = await antwoord.json();
     state.opslag = state.prijsboek.opslag || "server";
   } catch (fout) {
-    status("Kan de server niet bereiken — start hem met: python3 bouwcalculator/server.py");
-    state.prijsboek = { tarieven: [], pakketten: [] };
+    // Geen API? Dan rekenen we gewoon in de browser met de JS-rekenkern.
+    status("Geen server bereikbaar — reken lokaal in de browser.");
+    const engine = await laadLokaleEngine();
+    if (engine) {
+      state.engine = engine;
+      state.prijsboek = engine.prijsboek();
+      state.opslag = "lokaal";
+    } else {
+      status("Kan de rekenkern niet laden.");
+      state.prijsboek = { tarieven: [], pakketten: [] };
+    }
   }
 
   let opgeslagen = null;
