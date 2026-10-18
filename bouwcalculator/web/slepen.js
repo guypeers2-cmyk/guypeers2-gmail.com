@@ -154,7 +154,7 @@
   },true);
   document.addEventListener('keydown',e=>{
     if(e.key==='Escape' && drag){e.preventDefault();finish(true);return;}
-    if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key) || drag) return;
+    if(planGereedschap==='hand' || !['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key) || drag) return;
     const d=prepare(e.target);if(!d)return;
     e.preventDefault();e.stopImmediatePropagation();
     const step=e.altKey ? .01 : e.shiftKey ? .25 : .05;

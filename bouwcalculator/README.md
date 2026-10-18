@@ -350,6 +350,24 @@ open/gesloten panelen behouden; een herladen pagina start weer rustig ingeklapt.
 
 Optionele browsercontrole: `tools/studio_review.mjs` (Worker of offline bestand).
 
+## Vergroten en het beeld verschuiven
+
+**Vergroten** opent de bestaande tekening in een focusvenster, zonder een tweede
+kopie van de scène te maken. Sluit met **Sluiten** of Escape. De geselecteerde
+ruimte, camera, objecten en tekenopties blijven behouden. Objecten toevoegen blijft
+ook hier mogelijk. **Alle instellingen** sluit de focusmodus en opent het juiste
+invoerpaneel. Printen herstelt de focusmodus na de afdrukdialoog.
+
+Gebruik **Hand** om met muis of één vinger het beeld te verschuiven. Met
+**Selecteren** verplaats je weer objecten. De middelste muisknop verschuift het
+beeld ook tijdelijk. Bij Hand verschuiven pijltjes het beeld; Shift vergroot die
+stap. Escape tijdens verschuiven annuleert die camerabeweging, niet het project.
+Zoomen gaat via +/− van 75% tot 300%; **Herstel** centreert het volledige beeld.
+Dit werkt in bovenaanzicht, vlakaanzicht en 3D. Wisselen van aanzicht of vlak
+centreert de verschuiving opnieuw. Camera-instellingen staan niet in undo/redo.
+
+Browsercontrole: `tools/navigatie_review.mjs`, inclusief touch en focus/print-herstel.
+
 ## Directe eigenschappen en ongedaan maken
 
 Selecteer een object of opening en klik **Eigenschappen**. Het compacte formulier
@@ -556,6 +574,7 @@ bouwcalculator/
 │   ├── plattegrond.js   # 2D-bovenaanzicht en 3D-weergave (SVG)
 │   ├── slepen.js        # Muis/touch/toetsenbord: objecten positioneren
 │   ├── geschiedenis.js  # Begrensde undo/redo zonder browserafhankelijkheden
+│   ├── navigatie.js     # Handgereedschap en toegankelijke focusmodus
 │   ├── engine.js        # JS-rekenkern (Worker + browser-fallback)
 │   └── prijsboek.js     # gegenereerd uit bouw/tarieven.py
 ├── worker/
@@ -610,7 +629,7 @@ Daarom zijn er twee varianten:
 
 - **meerbestanden** (`bouwcalculator/web/`) — voor onze eigen Worker, Pages en
   de lokale server. De rekenkern is een ES-module.
-- **één bestand** (`bouwcalculator/bouwcalculator.html`, circa 243 KiB) — alles inline,
+- **één bestand** (`bouwcalculator/bouwcalculator.html`, circa 250 KiB) — alles inline,
   dus het werkt ook op hosts die HTML als `text/plain` teruggeven of op een
   stickie/schijf. De app rekent dan in de browser.
 

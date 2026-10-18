@@ -175,3 +175,22 @@ en begint opnieuw bij herladen of het openen/importeren van een project.
 De camera, lagen en selectie zijn geen offertewijzigingen en staan niet in die historie.
 Een lege ruimteverzameling geeft nu een startactie in de tekening; het verwijderen
 van de laatste ruimte kan ook ongedaan worden gemaakt.
+
+## Meer tekenruimte en camera verplaatsen
+
+**Vergroten** gebruikt een native modaal focusvenster voor de bestaande
+ontwerpkaart. Toetsenbordfocus blijft binnen dat venster. Sluiten/Escape zet de
+kaart terug op de oorspronkelijke plek, met behoud van de scène en camera.
+Het objectmenu werkt als een tweede dialoog erboven; Escape sluit eerst dat menu.
+De volledige invoer openen verlaat de focusmodus automatisch.
+
+**Hand** reserveert slepen voor de camera, ook wanneer je op een symbool begint.
+Met **Selecteren** sleep je weer objecten. Middelste muisknop is een tijdelijke
+handfunctie. Pijltjes bij Hand verschuiven het beeld; bij Selecteren blijven ze
+objectposities aanpassen. Camera verschuiven verandert geen offertegegevens.
+Gebruik +/− voor 75–300% zoom en Herstel om weer alles gecentreerd te zien.
+Er is geen automatische wiel- of pinchzoom; aanraken met één vinger verschuift
+het beeld bij Hand. Tijdens slepen annuleert Escape eerst die beweging.
+
+PDF blijft het volledige ongezoomde 2D-overzicht printen. Camera en focusmodus
+worden niet als projectwijziging opgeslagen en zitten niet in de undo-historie.

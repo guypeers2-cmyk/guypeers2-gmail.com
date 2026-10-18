@@ -37,8 +37,8 @@
   }
 
   function zoomBox(W,H,opties) {
-    const zoom=Math.max(.75,Math.min(1.6,Number(opties.zoom)||1));
-    return `${R((W-W/zoom)/2)} ${R((H-H/zoom)/2)} ${R(W/zoom)} ${R(H/zoom)}`;
+    const zoom=Math.max(.75,Math.min(3,Number(opties.zoom)||1));
+    return `${R((W-W/zoom)/2+get(opties.panX))} ${R((H-H/zoom)/2+get(opties.panY))} ${R(W/zoom)} ${R(H/zoom)}`;
   }
 
   /* Openingen per muur verzamelen. */
@@ -375,7 +375,6 @@
     const maat = v => Math.max(0.2, Number.parseFloat(v) || 0.2);
     const L = maat(ruimte.lengte), B = maat(ruimte.breedte), H = maat(ruimte.hoogte);
     const hoek = ((Math.trunc(opties.hoek || 0) % 4) + 4) % 4;
-    const zoom = Math.max(0.75, Math.min(1.6, Number(opties.zoom) || 1));
     const maten = opties.maten !== false;
     const {P,W,HP} = projectie(ruimte, hoek);
     const lijn = (a, b, cls) => `<line class="${cls}" x1="${R(a[0])}" y1="${R(a[1])}" x2="${R(b[0])}" y2="${R(b[1])}"/>`;
@@ -442,8 +441,7 @@
     }
     svg += werkOverlay(ruimte, opties, P, true);
     svg += vlakMarkeringen(ruimte, opties, P, zichtbaar);
-    const vw = W/zoom, vh = HP/zoom;
-    return `<svg class="plan iso" viewBox="${R((W-vw)/2)} ${R((HP-vh)/2)} ${R(vw)} ${R(vh)}" role="group" aria-label="3D-ruimte ${esc(ruimte.naam || '')}. Klik op een wand om werk toe te voegen.">${svg}</svg>`;
+    return `<svg class="plan iso" viewBox="${zoomBox(W,HP,opties)}" role="group" aria-label="3D-ruimte ${esc(ruimte.naam || '')}. Klik op een wand om werk toe te voegen.">${svg}</svg>`;
   }
 
   /* Orthographic interior elevations share their exact projection with dragging. */

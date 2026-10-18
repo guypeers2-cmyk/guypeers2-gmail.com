@@ -1398,6 +1398,21 @@ input[type="search"] { width: 100%; min-height: 38px; font: inherit; color: var(
 @media print { .plan-inspector { display: none !important; } }
 .plan-leeg { min-height: 280px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; text-align: center; background: var(--oppervlak-2); border-radius: 12px; }
 .plan-leeg p { color: var(--tekst-2); font-size: .85rem; }
+#plan.hand-actief,#plan.hand-actief * { cursor: grab !important; }
+#plan.is-pannen,#plan.is-pannen * { cursor: grabbing !important; user-select: none; }
+[data-plan-gereedschap][aria-pressed="true"] { color: var(--accent); background: var(--accent-zacht); border-color: var(--accent); }
+.teken-focus { width: calc(100vw - 24px); max-width: none; height: calc(100dvh - 24px); max-height: none; padding: 0; border: 1px solid var(--rand); border-radius: 14px; background: var(--oppervlak); color: var(--tekst); }
+.teken-focus::backdrop { background: #101c35cc; }
+body.teken-focus-actief { overflow: hidden; }
+.teken-focus #tekening { border: 0; box-shadow: none; min-height: 100%; margin: 0; }
+.teken-focus #tekening #plan { max-width: none; }
+.teken-focus #tekening #plan svg { max-height: calc(100dvh - 270px); min-height: 260px; }
+@media (max-width: 600px) { .teken-focus { width: 100%; height: 100dvh; max-width: 100%; max-height: 100dvh; border: 0; border-radius: 0; margin: 0; } .teken-focus #tekening #plan svg { max-height: 55dvh; min-height: 220px; } }
+@media print { #teken-focus { display: none !important; } }
+@media (max-width: 600px) {
+  .object-menu-start .object-toevoegen-woord,.historie-woord { display: none; }
+  #plan-undo,#plan-redo { min-width: 44px; padding: 8px; }
+}
 
 </style>
 </head>
@@ -1540,12 +1555,13 @@ input[type="search"] { width: 100%; min-height: 38px; font: inherit; color: var(
     <div class="plankaart" id="tekening" tabindex="-1">
       <header class="plankop">
         <h3>Ruimteontwerp</h3>
+        <button type="button" class="knop klein" id="plan-focus" aria-haspopup="dialog" aria-controls="teken-focus">Vergroten</button>
         <div class="plankeuze" role="group" aria-label="Weergave kiezen">
           <button type="button" class="planknop actief" data-plan="plattegrond" aria-pressed="true">Bovenaanzicht</button>
           <button type="button" class="planknop" data-plan="aanzicht" aria-pressed="false">Vlakaanzicht</button>
           <button type="button" class="planknop" data-plan="isometrie" aria-pressed="false">3D</button>
         </div>
-      <button type="button" class="knop primair object-menu-start" data-object-menu aria-haspopup="dialog" aria-controls="object-menu">+ Object toevoegen</button>
+      <button type="button" class="knop primair object-menu-start" aria-label="Object toevoegen" data-object-menu aria-haspopup="dialog" aria-controls="object-menu">+ Object <span class="object-toevoegen-woord">toevoegen</span></button>
       </header>
       <div id="vlak-bediening" class="vlak-bediening" hidden>
         <div class="vlak-intro"><strong>Elk vlak, recht in beeld</strong><span>Kies een vlak en positioneer de werken op het raster.</span></div>
@@ -1566,11 +1582,13 @@ input[type="search"] { width: 100%; min-height: 38px; font: inherit; color: var(
         <button type="button" class="knop klein" data-camera="in" aria-label="Inzoomen">+</button>
         <button type="button" class="knop klein" data-camera="reset">Herstel</button>
         <button type="button" class="knop klein" data-camera="maten" aria-pressed="true">Maten</button>
-        <button type="button" class="knop klein" id="plan-undo" disabled title="Ongedaan maken (Ctrl/Cmd+Z)">↶ Ongedaan</button>
-        <button type="button" class="knop klein" id="plan-redo" disabled title="Opnieuw uitvoeren (Ctrl/Cmd+Shift+Z)">↷ Opnieuw</button>
+        <button type="button" class="knop klein" data-plan-gereedschap="select" aria-pressed="true">Selecteren</button>
+        <button type="button" class="knop klein" data-plan-gereedschap="hand" aria-pressed="false">Hand</button>
+        <button type="button" class="knop klein" id="plan-undo" disabled aria-label="Ongedaan maken" title="Ongedaan maken (Ctrl/Cmd+Z)"><span aria-hidden="true">↶</span><span class="historie-woord">Ongedaan</span></button>
+        <button type="button" class="knop klein" id="plan-redo" disabled aria-label="Opnieuw uitvoeren" title="Opnieuw uitvoeren (Ctrl/Cmd+Shift+Z)"><span aria-hidden="true">↷</span><span class="historie-woord">Opnieuw</span></button>
       </div>
       <p class="hint" id="plan-sleepstatus" role="status" aria-live="polite">Sleep om te positioneren · klik om te selecteren.</p>
-      <div class="planhouder" id="plan"></div>
+      <div class="planhouder" id="plan" tabindex="0" aria-label="Interactieve tekening"></div>
       <div id="plan-selectie" class="plan-selectie" hidden><span id="plan-selectie-naam"></span><div><button type="button" class="knop klein" id="plan-eigenschappen">Eigenschappen</button><button type="button" class="plan-vuilbak" id="plan-selectie-verwijder" aria-label="Geselecteerd object verwijderen"></button><button type="button" class="knop klein" id="plan-deselecteer" aria-label="Selectie opheffen">×</button></div></div>
       <section id="plan-inspector" class="plan-inspector" aria-label="Eigenschappen van geselecteerd object" hidden></section>
       <details class="studio-vouw studio-opties" id="tekenopties"><summary>Tekenopties <span>Lagen, raster en sleepvlak</span></summary><div class="studio-vouw-inhoud">
@@ -1656,6 +1674,8 @@ input[type="search"] { width: 100%; min-height: 38px; font: inherit; color: var(
   <div id="object-resultaten" class="object-resultaten" aria-label="Beschikbare objecten"></div>
   <footer class="object-menu-voet"><span id="object-menu-status" role="status" aria-live="polite">Kies een object. Het menu blijft open om meerdere toe te voegen.</span></footer>
 </dialog>
+
+<dialog id="teken-focus" class="teken-focus" aria-label="Tekening in focusmodus"></dialog>
 
 <script>
 
@@ -3244,8 +3264,8 @@ if (typeof window !== "undefined") {
   }
 
   function zoomBox(W,H,opties) {
-    const zoom=Math.max(.75,Math.min(1.6,Number(opties.zoom)||1));
-    return `${R((W-W/zoom)/2)} ${R((H-H/zoom)/2)} ${R(W/zoom)} ${R(H/zoom)}`;
+    const zoom=Math.max(.75,Math.min(3,Number(opties.zoom)||1));
+    return `${R((W-W/zoom)/2+get(opties.panX))} ${R((H-H/zoom)/2+get(opties.panY))} ${R(W/zoom)} ${R(H/zoom)}`;
   }
 
   /* Openingen per muur verzamelen. */
@@ -3582,7 +3602,6 @@ if (typeof window !== "undefined") {
     const maat = v => Math.max(0.2, Number.parseFloat(v) || 0.2);
     const L = maat(ruimte.lengte), B = maat(ruimte.breedte), H = maat(ruimte.hoogte);
     const hoek = ((Math.trunc(opties.hoek || 0) % 4) + 4) % 4;
-    const zoom = Math.max(0.75, Math.min(1.6, Number(opties.zoom) || 1));
     const maten = opties.maten !== false;
     const {P,W,HP} = projectie(ruimte, hoek);
     const lijn = (a, b, cls) => `<line class="${cls}" x1="${R(a[0])}" y1="${R(a[1])}" x2="${R(b[0])}" y2="${R(b[1])}"/>`;
@@ -3649,8 +3668,7 @@ if (typeof window !== "undefined") {
     }
     svg += werkOverlay(ruimte, opties, P, true);
     svg += vlakMarkeringen(ruimte, opties, P, zichtbaar);
-    const vw = W/zoom, vh = HP/zoom;
-    return `<svg class="plan iso" viewBox="${R((W-vw)/2)} ${R((HP-vh)/2)} ${R(vw)} ${R(vh)}" role="group" aria-label="3D-ruimte ${esc(ruimte.naam || '')}. Klik op een wand om werk toe te voegen.">${svg}</svg>`;
+    return `<svg class="plan iso" viewBox="${zoomBox(W,HP,opties)}" role="group" aria-label="3D-ruimte ${esc(ruimte.naam || '')}. Klik op een wand om werk toe te voegen.">${svg}</svg>`;
   }
 
   /* Orthographic interior elevations share their exact projection with dragging. */
@@ -3853,7 +3871,7 @@ function renderHistorie() {
   if($('#plan-redo'))$('#plan-redo').disabled=!projectHistorie.kanRedo();
 }
 function historieStap(richting) {
-  if(document.querySelector('#plan.is-slepen'))return;
+  if(document.querySelector('#plan.is-slepen,#plan.is-pannen'))return;
   const project=richting==='undo'?projectHistorie.undo():projectHistorie.redo();
   if(!project)return;
   state.project=project;
@@ -4388,7 +4406,8 @@ let planWeergave = "plattegrond";
 let planVlak = "noord";
 let planSelectie = null;
 let planInspectieOpen = false;
-const planCamera = { hoek: 0, zoom: 1, maten: true };
+const planCamera = { hoek: 0, zoom: 1, maten: true, panX: 0, panY: 0 };
+let planGereedschap = "select";
 const planLagen = {afwerking: true, elektriciteit: true, sanitair: true};
 
 function planRegels(ruimte) {
@@ -4482,7 +4501,7 @@ function renderPlan() {
   if (matenKnop) matenKnop.setAttribute("aria-pressed", String(planCamera.maten));
   const minKnop = $('[data-camera="uit"]'), maxKnop = $('[data-camera="in"]');
   if (minKnop) minKnop.disabled = planCamera.zoom <= 0.75;
-  if (maxKnop) maxKnop.disabled = planCamera.zoom >= 1.6;
+  if (maxKnop) maxKnop.disabled = planCamera.zoom >= 3;
 }
 
 function render() {
@@ -4663,6 +4682,7 @@ function renderPlanSelectie() {
 }
 function studioOpen(id) {
   const doel=document.getElementById(id);if(!doel)return;
+  if(document.querySelector('#teken-focus[open]') && !$('#tekening').contains(doel) && doel.id!=='tekening')sluitTekenFocus();
   if(id==='tekening')document.querySelectorAll('#calculator-paneel details[open]').forEach(d=>d.open=false);
   for(let el=doel;el;el=el.parentElement)if(el.tagName==='DETAILS')el.open=true;
   document.querySelectorAll('[data-studio-doel]').forEach(b=>{b.classList.toggle('studio-nav-actief',b.dataset.studioDoel===id);b.setAttribute('aria-current',b.dataset.studioDoel===id?'location':'false');});
@@ -4749,16 +4769,16 @@ document.addEventListener("click", (e) => {
     return;
   }
   const vlakKnop = e.target.closest("[data-aanzicht-vlak]");
-  if (vlakKnop) {planVlak=vlakKnop.dataset.aanzichtVlak;renderPlan();return;}
+  if (vlakKnop) {planCamera.panX=planCamera.panY=0;planVlak=vlakKnop.dataset.aanzichtVlak;renderPlan();return;}
   const cameraKnop = e.target.closest("[data-camera]");
   if (cameraKnop) {
     const actie = cameraKnop.dataset.camera;
     if (actie === "links") planCamera.hoek = (planCamera.hoek + 3) % 4;
     if (actie === "rechts") planCamera.hoek = (planCamera.hoek + 1) % 4;
-    if (actie === "in") planCamera.zoom = Math.min(1.6, +(planCamera.zoom + 0.15).toFixed(2));
-    if (actie === "uit") planCamera.zoom = Math.max(0.75, +(planCamera.zoom - 0.15).toFixed(2));
+    if (actie === "in") planCamera.zoom = Math.min(3, +(planCamera.zoom + 0.25).toFixed(2));
+    if (actie === "uit") planCamera.zoom = Math.max(0.75, +(planCamera.zoom - 0.25).toFixed(2));
     if (actie === "maten") planCamera.maten = !planCamera.maten;
-    if (actie === "reset") Object.assign(planCamera, {hoek: 0, zoom: 1, maten: true});
+    if (actie === "reset") Object.assign(planCamera, {hoek: 0, zoom: 1, maten: true, panX: 0, panY: 0});
     renderPlan();
     return;
   }
@@ -4766,6 +4786,7 @@ document.addEventListener("click", (e) => {
   /* Weergave wisselen: bovenaanzicht <-> 3D */
   const weergave = e.target.closest("[data-plan]");
   if (weergave) {
+    planCamera.panX=planCamera.panY=0;
     planWeergave = weergave.dataset.plan;
     $$("[data-plan]").forEach((b) => {
       const actief = b === weergave;
@@ -4793,9 +4814,11 @@ document.addEventListener("click", (e) => {
           id, naam: `Ruimte ${state.project.ruimtes.length + 1}`,
           lengte: 4, breedte: 3, hoogte: 2.5, openingen: [],
         });
+        Object.assign(planCamera,{panX:0,panY:0,zoom:1});
         state.actieveRuimteId = id;
       });
     } else if (actie === "ruimte-kiezen") {
+      Object.assign(planCamera,{panX:0,panY:0,zoom:1});
       state.actieveRuimteId = knop.dataset.id;
       render();
     } else if (actie === "ruimte-verwijderen") {
@@ -5244,7 +5267,7 @@ init();
 /* Leave native text-field undo intact; project shortcuts apply on the canvas. */
 document.addEventListener('keydown',e=>{
   if(!(e.ctrlKey || e.metaKey) || e.altKey || e.defaultPrevented)return;
-  if(e.target.closest?.('input,textarea,select,[contenteditable="true"]') || document.querySelector('dialog[open],#modal-achtergrond:not([hidden])'))return;
+  if(e.target.closest?.('input,textarea,select,[contenteditable="true"]') || document.querySelector('dialog[open]:not(#teken-focus),#modal-achtergrond:not([hidden])'))return;
   const toets=e.key.toLowerCase();
   if(toets!=='z' && toets!=='y')return;
   e.preventDefault();historieStap(toets==='y' || e.shiftKey?'redo':'undo');
@@ -5465,7 +5488,7 @@ document.addEventListener('submit',e=>{
   },true);
   document.addEventListener('keydown',e=>{
     if(e.key==='Escape' && drag){e.preventDefault();finish(true);return;}
-    if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key) || drag) return;
+    if(planGereedschap==='hand' || !['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key) || drag) return;
     const d=prepare(e.target);if(!d)return;
     e.preventDefault();e.stopImmediatePropagation();
     const step=e.altKey ? .01 : e.shiftKey ? .25 : .05;
@@ -5484,6 +5507,89 @@ document.addEventListener('submit',e=>{
       ? Number(el.dataset.openingIndex)===d.index : el.dataset.planRegel===d.model.id);
     const focus=d.endpoint ? next?.querySelector(`[data-plan-end="${d.endpoint}"]`) : next;
     focus?.focus({preventScroll:true});
+  },true);
+})();
+
+</script>
+<script>
+/* Canvas-only camera gestures, independent of project data and history. */
+let tekenFocusPlaceholder=null,tekenFocusScroll=0;
+function sluitTekenFocus() {
+  const dialoog=document.getElementById('teken-focus');
+  if(dialoog.open)dialoog.close();
+  if(!tekenFocusPlaceholder)return;
+  tekenFocusPlaceholder.replaceWith(document.getElementById('tekening'));
+  tekenFocusPlaceholder=null;
+  document.body.classList.remove('teken-focus-actief');
+  document.getElementById('plan-focus').textContent='Vergroten';
+  window.scrollTo({top:tekenFocusScroll,behavior:'instant'});
+  document.getElementById('plan-focus').focus({preventScroll:true});
+}
+(function () {
+  const host=document.getElementById('plan'),dialoog=document.getElementById('teken-focus');
+  let pan=null,suppress=0,heropenNaPrint=false;
+  function openFocus() {
+    if(dialoog.open)return;
+    const kaart=document.getElementById('tekening');
+    tekenFocusScroll=window.scrollY;
+    tekenFocusPlaceholder=document.createComment('tekening op oorspronkelijke positie');
+    kaart.before(tekenFocusPlaceholder);dialoog.append(kaart);
+    document.body.classList.add('teken-focus-actief');
+    document.getElementById('plan-focus').textContent='Sluiten';
+    dialoog.showModal();document.getElementById('plan-focus').focus({preventScroll:true});
+  }
+  document.getElementById('plan-focus').addEventListener('click',()=>dialoog.open?sluitTekenFocus():openFocus());
+  dialoog.addEventListener('close',()=>{if(!dialoog.open)sluitTekenFocus();});
+  window.addEventListener('beforeprint',()=>{heropenNaPrint=dialoog.open;if(heropenNaPrint)sluitTekenFocus();});
+  window.addEventListener('afterprint',()=>{if(heropenNaPrint){heropenNaPrint=false;openFocus();}});
+  document.addEventListener('click',e=>{
+    const knop=e.target.closest('[data-plan-gereedschap]');if(!knop)return;
+    planGereedschap=knop.dataset.planGereedschap;
+    document.querySelectorAll('[data-plan-gereedschap]').forEach(b=>b.setAttribute('aria-pressed',String(b===knop)));
+    host.classList.toggle('hand-actief',planGereedschap==='hand');
+    document.getElementById('plan-sleepstatus').textContent=planGereedschap==='hand'
+      ? 'Hand: sleep het beeld. Objecten blijven op hun plaats.' : 'Selecteren: sleep objecten of klik om te selecteren.';
+  });
+  const begrens=(n,max)=>Math.max(-max,Math.min(max,n));
+  function einde(annuleer=false) {
+    if(!pan)return;
+    const p=pan;pan=null;
+    if(annuleer){planCamera.panX=p.x;planCamera.panY=p.y;renderPlan();}
+    host.classList.remove('is-pannen');
+    if(host.hasPointerCapture(p.id))host.releasePointerCapture(p.id);
+    suppress=performance.now()+500;
+  }
+  host.addEventListener('pointerdown',e=>{
+    if(pan || !e.isPrimary || !(e.button===1 || (e.button===0 && planGereedschap==='hand')))return;
+    const m=host.querySelector('svg')?.getScreenCTM()?.inverse();if(!m)return;
+    e.preventDefault();e.stopImmediatePropagation();
+    pan={id:e.pointerId,cx:e.clientX,cy:e.clientY,x:planCamera.panX,y:planCamera.panY,m};
+    host.setPointerCapture(e.pointerId);host.classList.add('is-pannen');
+  },true);
+  host.addEventListener('pointermove',e=>{
+    if(!pan || pan.id!==e.pointerId)return;
+    e.preventDefault();e.stopImmediatePropagation();
+    const dx=e.clientX-pan.cx,dy=e.clientY-pan.cy;
+    planCamera.panX=begrens(pan.x-(pan.m.a*dx+pan.m.c*dy),780);
+    planCamera.panY=begrens(pan.y-(pan.m.b*dx+pan.m.d*dy),560);
+    renderPlan();
+  },true);
+  host.addEventListener('pointerup',e=>{if(pan?.id===e.pointerId){e.stopImmediatePropagation();einde();}},true);
+  host.addEventListener('pointercancel',e=>{if(pan?.id===e.pointerId)einde(true);},true);
+  host.addEventListener('lostpointercapture',()=>{if(pan)einde(true);});
+  document.addEventListener('click',e=>{
+    if(e.target.closest?.('#plan') && (planGereedschap==='hand' || performance.now()<suppress)){
+      e.preventDefault();e.stopImmediatePropagation();suppress=0;
+    }
+  },true);
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Escape' && pan){e.preventDefault();e.stopImmediatePropagation();einde(true);return;}
+    if(planGereedschap!=='hand' || !e.target.closest?.('#plan') || !['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key))return;
+    e.preventDefault();e.stopImmediatePropagation();
+    const stap=(e.shiftKey?60:24)/planCamera.zoom;
+    planCamera.panX=begrens(planCamera.panX+(e.key==='ArrowRight'?stap:e.key==='ArrowLeft'?-stap:0),780);
+    planCamera.panY=begrens(planCamera.panY+(e.key==='ArrowDown'?stap:e.key==='ArrowUp'?-stap:0),560);
+    renderPlan();host.focus({preventScroll:true});
   },true);
 })();
 

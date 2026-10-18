@@ -147,12 +147,13 @@
     <div class="plankaart" id="tekening" tabindex="-1">
       <header class="plankop">
         <h3>Ruimteontwerp</h3>
+        <button type="button" class="knop klein" id="plan-focus" aria-haspopup="dialog" aria-controls="teken-focus">Vergroten</button>
         <div class="plankeuze" role="group" aria-label="Weergave kiezen">
           <button type="button" class="planknop actief" data-plan="plattegrond" aria-pressed="true">Bovenaanzicht</button>
           <button type="button" class="planknop" data-plan="aanzicht" aria-pressed="false">Vlakaanzicht</button>
           <button type="button" class="planknop" data-plan="isometrie" aria-pressed="false">3D</button>
         </div>
-      <button type="button" class="knop primair object-menu-start" data-object-menu aria-haspopup="dialog" aria-controls="object-menu">+ Object toevoegen</button>
+      <button type="button" class="knop primair object-menu-start" aria-label="Object toevoegen" data-object-menu aria-haspopup="dialog" aria-controls="object-menu">+ Object <span class="object-toevoegen-woord">toevoegen</span></button>
       </header>
       <div id="vlak-bediening" class="vlak-bediening" hidden>
         <div class="vlak-intro"><strong>Elk vlak, recht in beeld</strong><span>Kies een vlak en positioneer de werken op het raster.</span></div>
@@ -173,11 +174,13 @@
         <button type="button" class="knop klein" data-camera="in" aria-label="Inzoomen">+</button>
         <button type="button" class="knop klein" data-camera="reset">Herstel</button>
         <button type="button" class="knop klein" data-camera="maten" aria-pressed="true">Maten</button>
-        <button type="button" class="knop klein" id="plan-undo" disabled title="Ongedaan maken (Ctrl/Cmd+Z)">↶ Ongedaan</button>
-        <button type="button" class="knop klein" id="plan-redo" disabled title="Opnieuw uitvoeren (Ctrl/Cmd+Shift+Z)">↷ Opnieuw</button>
+        <button type="button" class="knop klein" data-plan-gereedschap="select" aria-pressed="true">Selecteren</button>
+        <button type="button" class="knop klein" data-plan-gereedschap="hand" aria-pressed="false">Hand</button>
+        <button type="button" class="knop klein" id="plan-undo" disabled aria-label="Ongedaan maken" title="Ongedaan maken (Ctrl/Cmd+Z)"><span aria-hidden="true">↶</span><span class="historie-woord">Ongedaan</span></button>
+        <button type="button" class="knop klein" id="plan-redo" disabled aria-label="Opnieuw uitvoeren" title="Opnieuw uitvoeren (Ctrl/Cmd+Shift+Z)"><span aria-hidden="true">↷</span><span class="historie-woord">Opnieuw</span></button>
       </div>
       <p class="hint" id="plan-sleepstatus" role="status" aria-live="polite">Sleep om te positioneren · klik om te selecteren.</p>
-      <div class="planhouder" id="plan"></div>
+      <div class="planhouder" id="plan" tabindex="0" aria-label="Interactieve tekening"></div>
       <div id="plan-selectie" class="plan-selectie" hidden><span id="plan-selectie-naam"></span><div><button type="button" class="knop klein" id="plan-eigenschappen">Eigenschappen</button><button type="button" class="plan-vuilbak" id="plan-selectie-verwijder" aria-label="Geselecteerd object verwijderen"></button><button type="button" class="knop klein" id="plan-deselecteer" aria-label="Selectie opheffen">×</button></div></div>
       <section id="plan-inspector" class="plan-inspector" aria-label="Eigenschappen van geselecteerd object" hidden></section>
       <details class="studio-vouw studio-opties" id="tekenopties"><summary>Tekenopties <span>Lagen, raster en sleepvlak</span></summary><div class="studio-vouw-inhoud">
@@ -264,10 +267,13 @@
   <footer class="object-menu-voet"><span id="object-menu-status" role="status" aria-live="polite">Kies een object. Het menu blijft open om meerdere toe te voegen.</span></footer>
 </dialog>
 
+<dialog id="teken-focus" class="teken-focus" aria-label="Tekening in focusmodus"></dialog>
+
 <script type="module" src="engine.js"></script>
 <script src="plattegrond.js"></script>
 <script src="geschiedenis.js"></script>
 <script src="app.js"></script>
 <script src="slepen.js"></script>
+<script src="navigatie.js"></script>
 </body>
 </html>

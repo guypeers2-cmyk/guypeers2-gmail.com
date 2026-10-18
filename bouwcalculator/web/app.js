@@ -124,7 +124,7 @@ function renderHistorie() {
   if($('#plan-redo'))$('#plan-redo').disabled=!projectHistorie.kanRedo();
 }
 function historieStap(richting) {
-  if(document.querySelector('#plan.is-slepen'))return;
+  if(document.querySelector('#plan.is-slepen,#plan.is-pannen'))return;
   const project=richting==='undo'?projectHistorie.undo():projectHistorie.redo();
   if(!project)return;
   state.project=project;
@@ -659,7 +659,8 @@ let planWeergave = "plattegrond";
 let planVlak = "noord";
 let planSelectie = null;
 let planInspectieOpen = false;
-const planCamera = { hoek: 0, zoom: 1, maten: true };
+const planCamera = { hoek: 0, zoom: 1, maten: true, panX: 0, panY: 0 };
+let planGereedschap = "select";
 const planLagen = {afwerking: true, elektriciteit: true, sanitair: true};
 
 function planRegels(ruimte) {
@@ -753,7 +754,7 @@ function renderPlan() {
   if (matenKnop) matenKnop.setAttribute("aria-pressed", String(planCamera.maten));
   const minKnop = $('[data-camera="uit"]'), maxKnop = $('[data-camera="in"]');
   if (minKnop) minKnop.disabled = planCamera.zoom <= 0.75;
-  if (maxKnop) maxKnop.disabled = planCamera.zoom >= 1.6;
+  if (maxKnop) maxKnop.disabled = planCamera.zoom >= 3;
 }
 
 function render() {
@@ -934,6 +935,7 @@ function renderPlanSelectie() {
 }
 function studioOpen(id) {
   const doel=document.getElementById(id);if(!doel)return;
+  if(document.querySelector('#teken-focus[open]') && !$('#tekening').contains(doel) && doel.id!=='tekening')sluitTekenFocus();
   if(id==='tekening')document.querySelectorAll('#calculator-paneel details[open]').forEach(d=>d.open=false);
   for(let el=doel;el;el=el.parentElement)if(el.tagName==='DETAILS')el.open=true;
   document.querySelectorAll('[data-studio-doel]').forEach(b=>{b.classList.toggle('studio-nav-actief',b.dataset.studioDoel===id);b.setAttribute('aria-current',b.dataset.studioDoel===id?'location':'false');});
@@ -1020,16 +1022,16 @@ document.addEventListener("click", (e) => {
     return;
   }
   const vlakKnop = e.target.closest("[data-aanzicht-vlak]");
-  if (vlakKnop) {planVlak=vlakKnop.dataset.aanzichtVlak;renderPlan();return;}
+  if (vlakKnop) {planCamera.panX=planCamera.panY=0;planVlak=vlakKnop.dataset.aanzichtVlak;renderPlan();return;}
   const cameraKnop = e.target.closest("[data-camera]");
   if (cameraKnop) {
     const actie = cameraKnop.dataset.camera;
     if (actie === "links") planCamera.hoek = (planCamera.hoek + 3) % 4;
     if (actie === "rechts") planCamera.hoek = (planCamera.hoek + 1) % 4;
-    if (actie === "in") planCamera.zoom = Math.min(1.6, +(planCamera.zoom + 0.15).toFixed(2));
-    if (actie === "uit") planCamera.zoom = Math.max(0.75, +(planCamera.zoom - 0.15).toFixed(2));
+    if (actie === "in") planCamera.zoom = Math.min(3, +(planCamera.zoom + 0.25).toFixed(2));
+    if (actie === "uit") planCamera.zoom = Math.max(0.75, +(planCamera.zoom - 0.25).toFixed(2));
     if (actie === "maten") planCamera.maten = !planCamera.maten;
-    if (actie === "reset") Object.assign(planCamera, {hoek: 0, zoom: 1, maten: true});
+    if (actie === "reset") Object.assign(planCamera, {hoek: 0, zoom: 1, maten: true, panX: 0, panY: 0});
     renderPlan();
     return;
   }
@@ -1037,6 +1039,7 @@ document.addEventListener("click", (e) => {
   /* Weergave wisselen: bovenaanzicht <-> 3D */
   const weergave = e.target.closest("[data-plan]");
   if (weergave) {
+    planCamera.panX=planCamera.panY=0;
     planWeergave = weergave.dataset.plan;
     $$("[data-plan]").forEach((b) => {
       const actief = b === weergave;
@@ -1064,9 +1067,11 @@ document.addEventListener("click", (e) => {
           id, naam: `Ruimte ${state.project.ruimtes.length + 1}`,
           lengte: 4, breedte: 3, hoogte: 2.5, openingen: [],
         });
+        Object.assign(planCamera,{panX:0,panY:0,zoom:1});
         state.actieveRuimteId = id;
       });
     } else if (actie === "ruimte-kiezen") {
+      Object.assign(planCamera,{panX:0,panY:0,zoom:1});
       state.actieveRuimteId = knop.dataset.id;
       render();
     } else if (actie === "ruimte-verwijderen") {
@@ -1520,7 +1525,7 @@ init();
 /* Leave native text-field undo intact; project shortcuts apply on the canvas. */
 document.addEventListener('keydown',e=>{
   if(!(e.ctrlKey || e.metaKey) || e.altKey || e.defaultPrevented)return;
-  if(e.target.closest?.('input,textarea,select,[contenteditable="true"]') || document.querySelector('dialog[open],#modal-achtergrond:not([hidden])'))return;
+  if(e.target.closest?.('input,textarea,select,[contenteditable="true"]') || document.querySelector('dialog[open]:not(#teken-focus),#modal-achtergrond:not([hidden])'))return;
   const toets=e.key.toLowerCase();
   if(toets!=='z' && toets!=='y')return;
   e.preventDefault();historieStap(toets==='y' || e.shiftKey?'redo':'undo');

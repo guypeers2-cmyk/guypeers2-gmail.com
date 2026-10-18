@@ -45,6 +45,12 @@ for(const draw of [window.BouwPlan.plattegrond,window.BouwPlan.aanzicht]) {
  assert.notEqual(normal.match(/viewBox="[^"]+"/)[0],zoomed.match(/viewBox="[^"]+"/)[0]);
  assert(!zoomed.includes('NaN'));
 }
+for(const draw of [window.BouwPlan.plattegrond,window.BouwPlan.aanzicht,window.BouwPlan.isometrie]) {
+ const svg=draw(room,[],{},{zoom:3,panX:23,panY:-17});
+ const box=svg.match(/viewBox="([^"]+)"/)[1].split(' ').map(Number);
+ assert.equal(box[2],260);assert.equal(box[0],283);
+ assert(box.every(Number.isFinite));
+}
 const huge=window.BouwPlan.aanzicht({lengte:1e6,breedte:1e6,hoogte:1e6},[],{},{vlak:'noord'});
 assert((huge.match(/aanzicht-raster/g)||[]).length<45);
 const {P} = window.BouwPlan.planProjectie(room);
