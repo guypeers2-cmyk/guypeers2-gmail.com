@@ -76,6 +76,22 @@ De workflow draait eerst de tests (Python + JS-pariteit) en deployt daarna:
 .bouwcalculator/deploy/deploy-worker.yml  →  .github/workflows/deploy-worker.yml
 ```
 
+### GitHub Pages (publiceren zonder Cloudflare)
+
+De app werkt ook zonder API: dan rekent de browser zelf (de rekenkern zit in
+`web/engine.js`). Publiceren kan dus via GitHub Pages, zonder token:
+
+**Settings → Pages → Build and deployment → Deploy from a branch**
+
+| | |
+|---|---|
+| Branch | `arena/c5fdb0b8-guypeers2-gmail-com` |
+| Folder | `/bouwcalculator/web` |
+
+Het resultaat komt op `https://<github-user>.github.io/<repo>/`. Let op: daar
+worden offertes in de browser bewaard (localStorage) in plaats van op de
+server.
+
 ### Workers Builds (Cloudflare)
 
 Is de repo in de Cloudflare-dashboard aan een Worker gekoppeld, dan volstaat
