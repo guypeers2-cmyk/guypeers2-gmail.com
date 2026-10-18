@@ -48,6 +48,7 @@ profielen, plafonds, direct montage, voegafwerking, schilderen).
 ```bash
 python3 bouwcalculator/server.py      # → http://localhost:8090
 python3 -m unittest discover -s bouwcalculator/tests -v
+npx wrangler deploy                  # → https://patient-sun-c959.guypeers2.workers.dev
 ```
 
 Maten (lengte × breedte × hoogte) + deuren/ramen → oppervlakken → materiaalname

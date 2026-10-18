@@ -20,8 +20,67 @@ PORT=9000 python3 bouwcalculator/server.py
 Tests:
 
 ```bash
-python3 -m unittest discover -s bouwcalculator/tests -v   # 18 tests
+python3 -m unittest discover -s bouwcalculator/tests -v   # 19 tests
 ```
+
+---
+
+## Deployen naar Cloudflare Workers
+
+De app draait op drie manieren — alle drie zijn getest:
+
+| Wijze | Wanneer | Hoe |
+|-------|---------|-----|
+| **Lokale server** | ontwikkelen, offline | `python3 bouwcalculator/server.py` |
+| **Cloudflare Worker** | live op internet | `npx wrangler deploy` |
+| **Statische hosting** | zonder API | de app rekent dan zelf in de browser |
+
+### De Worker publiceren
+
+```bash
+cd <repo>                 # map met wrangler.toml
+npx wrangler login        # één keer, inloggen bij Cloudflare
+npx wrangler deploy
+```
+
+De worker heet `patient-sun-c959` (zie `wrangler.toml`) en komt live op:
+
+**https://patient-sun-c959.guypeers2.workers.dev**
+
+De Worker serveert de app (statische bestanden) en rekent `/api/*` met de
+JS-rekenkern. De bestanden in `bouwcalculator/web/` worden automatisch
+meegestuurd als assets.
+
+### Deployen bij elke push (GitHub Actions)
+
+Kopieer `bouwcalculator/deploy/deploy-worker.yml` naar
+`.github/workflows/deploy-worker.yml` en zet in de repo-secrets:
+
+- `CLOUDFLARE_API_TOKEN` — een API-token met rechten *Edit Cloudflare Workers*
+
+De workflow draait eerst de tests (Python + JS-pariteit) en deployt daarna.
+
+### Workers Builds (Cloudflare)
+
+Is de repo in de Cloudflare-dashboard aan een Worker gekoppeld, dan volstaat
+een push: de build doet `wrangler deploy` voor je. De branch-preview komt dan
+op `patient-sun-<branch>.guypeers2.workers.dev`.
+
+> De sandbox waarin dit gebouwd is kan `dash.cloudflare.com` en
+> `api.cloudflare.com` niet bereiken (netwerkbeperking), dus de eerste
+> publicatie moet vanaf een machine met vrij internet gebeuren.
+
+### Twee rekenkernen, één waarheid
+
+Op Workers draait JavaScript, lokaal draait Python. Daarom is de
+rekenkern twee keer geschreven — en bewaakt een test dat ze identiek zijn:
+
+```
+bouwcalculator/tests/test_pariteit.py  →  17 projecten, cent voor cent gelijk
+```
+
+Het prijsboek wordt gegenereerd (`npm run prijsboek`), dus ook dat kan niet
+uit elkaar lopen.
 
 ---
 
@@ -127,8 +186,17 @@ bouwcalculator/
 ├── web/
 │   ├── index.html       # de app
 │   ├── styles.css       # stijl + print-opmaak voor de offerte
-│   └── app.js           # presentatielaag (alleen weergave)
-├── tests/               # 18 unittest-tests
+│   ├── app.js           # presentatielaag (alleen weergave)
+│   ├── engine.js        # JS-rekenkern (Worker + browser-fallback)
+│   └── prijsboek.js     # gegenereerd uit bouw/tarieven.py
+├── worker/
+│   ├── src/worker.js    # Cloudflare Worker: assets + /api/*
+│   └── test/runner.mjs  # runner voor de pariteitstest
+├── tools/
+│   └── maak_prijsboek.py  # prijsboek genereren voor de JS-kern
+├── deploy/
+│   └── deploy-worker.yml  # GitHub Actions-workflow (kopiëren naar .github/workflows/)
+├── tests/               # 19 unittest-tests
 └── data/                # opgeslagen offertes (in .gitignore)
 ```
 
