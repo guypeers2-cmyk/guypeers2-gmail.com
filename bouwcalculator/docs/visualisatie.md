@@ -228,3 +228,19 @@ openingen op de wand behouden visueel hun plaats doordat hun positie wordt vastg
 Centreren verschuift punten en markers in hun toegewezen vlak. Voor tracés blijft
 de vector tussen begin en einde gelijk; een opening centreert alleen langs de wand.
 Deze plaatsingsactie verandert geen hoeveelheden. Beide acties zijn ongedaan te maken.
+
+## Expliciet de rechte tracélengte gebruiken
+
+Bij een geselecteerde meterpost toont de selectiebalk de Euclidische 3D-afstand
+van de zichtbare, begrensde modeleindpunten, naast de offertehoeveelheid.
+De meetwaarde verandert niet door een andere camera, projectie of zoom.
+**Acties → Tracélengte overnemen…** vraagt bevestiging en zet uitsluitend daarna
+de hoeveelheid op deze afstand, afgerond op twee decimalen. De exacte getekende
+begin- en eindcoördinaten worden vastgelegd; dit voorkomt dat voorbeeldposities
+later veranderen. De actie werkt met historie en JSON/projectopslag.
+
+Geen automatische leidingberekening: een recht lijnstuk is niet noodzakelijk het
+werkelijk benodigde materiaal. Bochten, reservemarge, bijkomende tracés en andere
+installatievereisten blijven voor de gebruiker. Nog niet toegepaste invoervelden
+tellen niet mee. Een afstand die naar nul afrondt, kan niet worden overgenomen.
+Gewoon slepen of een meetlijn plaatsen wijzigt de offertehoeveelheden niet.

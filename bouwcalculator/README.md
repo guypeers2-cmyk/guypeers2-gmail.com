@@ -350,6 +350,23 @@ open/gesloten panelen behouden; een herladen pagina start weer rustig ingeklapt.
 
 Optionele browsercontrole: `tools/studio_review.mjs` (Worker of offline bestand).
 
+## Getekende tracélengte naar de offerte
+
+Selecteer een leiding-, kabel- of ander werk met eenheid meter. Onder de selectie
+staan de **rechte 3D-lengte** en de huidige offertehoeveelheid naast elkaar.
+**Acties → Tracélengte overnemen…** vervangt na bevestiging de hoeveelheid door
+die eindpuntafstand, afgerond op twee decimalen. De offerte wordt opnieuw berekend.
+
+Dit is nadrukkelijk een optionele overname van het getekende rechte lijnstuk:
+geen bochten, reserve, extra leidingen, vermenigvuldiging met aansluitpunten of
+installatieadvies. Gebruik alleen toegepaste eindpunten; nog niet bevestigde
+invoervelden tellen niet mee. Nulmetingen kunnen niet worden overgenomen.
+De getekende eindpunten worden expliciet opgeslagen, ook wanneer ze eerst
+voorbeeldposities waren. De actie ondersteunt Ongedaan/Opnieuw en projectopslag.
+Slepen, draaien en zoomen wijzigen nog steeds nooit automatisch de hoeveelheid.
+
+Browsercontrole: `tools/trace_review.mjs`, online en met het offline bestand.
+
 ## Herhaald plaatsen en centreren
 
 Selecteer een werkregel of opening en open **Acties** in de selectiebalk.
@@ -675,7 +692,7 @@ Daarom zijn er twee varianten:
 
 - **meerbestanden** (`bouwcalculator/web/`) — voor onze eigen Worker, Pages en
   de lokale server. De rekenkern is een ES-module.
-- **één bestand** (`bouwcalculator/bouwcalculator.html`, circa 264 KiB) — alles inline,
+- **één bestand** (`bouwcalculator/bouwcalculator.html`, circa 266 KiB) — alles inline,
   dus het werkt ook op hosts die HTML als `text/plain` teruggeven of op een
   stickie/schijf. De app rekent dan in de browser.
 

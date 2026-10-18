@@ -64,6 +64,23 @@ console.log('OK');
 
 
 class WerkPlaatsingTest(unittest.TestCase):
+    @unittest.skipUnless(shutil.which("node"), "Node nodig voor tracélengte")
+    def test_rechte_trace_lengte(self):
+        script = Path(__file__).resolve().parents[1] / "web" / "plattegrond.js"
+        code = r"""
+const assert=require('node:assert/strict');global.window={};require(process.argv[1]);
+const room={lengte:4,breedte:3,hoogte:2.5};
+const regel={pakket:{eenheid:'m'},oppervlak:'vloer',visualisatie:{x:0,y:0,z:0,x2:3,y2:0,z2:2}};
+assert(Math.abs(window.BouwPlan.traceLengte(regel,room)-Math.sqrt(13))<1e-12);
+assert.equal(window.BouwPlan.traceLengte({...regel,pakket:{eenheid:'st'}},room),null);
+assert.equal(window.BouwPlan.traceLengte({...regel,visualisatie:{x:1,y:1,z:1,x2:1,y2:1,z2:1}},room),0);
+assert.equal(window.BouwPlan.traceLengte({...regel,visualisatie:{x:0,y:0,z:0,x2:99,y2:0,z2:0}},room),4);
+console.log('OK');
+"""
+        result = subprocess.run(["node", "-e", code, str(script)],
+                                capture_output=True, text=True, check=True)
+        self.assertEqual(result.stdout.strip(), "OK")
+
     def test_roundtrip_en_berekening_ongewijzigd(self):
         from bouw.model import Werkregel
         from bouw.offerte import bereken_offerte

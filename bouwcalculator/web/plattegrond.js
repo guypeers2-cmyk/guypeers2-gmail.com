@@ -102,6 +102,11 @@
       begrens(get(v.z2,a[2]),H)];
     return {a,b,L,B,H};
   }
+  function traceLengte(r,ruimte) {
+    if(r?.pakket?.eenheid!=='m')return null;
+    const {a,b}=werkGeometrie(r,ruimte);
+    return Math.hypot(...a.map((v,i)=>b[i]-v));
+  }
   function icon(r) {
     const id = r.pakket_id;
     if (/stopcontact/.test(id)) return '<circle r="8"/><circle cx="-3" r="1"/><circle cx="3" r="1"/><path d="M-3 -7v2M3 -7v2"/>';
@@ -486,5 +491,5 @@
     return `<svg class="plan aanzicht" viewBox="${zoomBox(780,550,opties)}" role="group" aria-label="${naam}, vlakaanzicht van ${esc(ruimte.naam)}">${svg}</svg>`;
   }
 
-  window.BouwPlan = { plattegrond, isometrie, laag, werkGeometrie, tint, projectie, planProjectie, openingGeometrie, aanzichtProjectie, aanzicht };
+  window.BouwPlan = { traceLengte, plattegrond, isometrie, laag, werkGeometrie, tint, projectie, planProjectie, openingGeometrie, aanzichtProjectie, aanzicht };
 })();

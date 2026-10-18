@@ -924,6 +924,16 @@ function renderPlanSelectie() {
   if(!regel && !opening)planSelectie=null;
   bar.hidden=!planSelectie;
   if(!planSelectie)$("#plan-acties").open=false;
+  const traceregel=regel && planRegels(room).find(r=>r.id===regel.id);
+  const lengte=traceregel?BouwPlan.traceLengte(traceregel,room):null;
+  const overnemen=$('#plan-tracelengte'),info=$('#plan-trace-info');
+  overnemen.hidden=info.hidden=lengte==null;
+  if(lengte!=null){
+    const aantal=Math.round((lengte+Number.EPSILON)*100)/100;
+    overnemen.disabled=aantal<=0;
+    overnemen.textContent=`Tracélengte overnemen (${NR.format(aantal)} m)…`;
+    info.textContent=`Rechte 3D-lengte: ${NR.format(aantal)} m · Offerte: ${NR.format(regel.hoeveelheid ?? traceregel.aantal)} m. Geen bochten of reserve.`;
+  }
   renderPlanInspector(regel,opening);
   $$('#plan [data-opening-index]').forEach(el=>el.classList.toggle('plan-geselecteerd',!!opening && Number(el.dataset.openingIndex)===planSelectie.index));
   $$('#plan [data-plan-regel]').forEach(el=>el.classList.toggle('plan-geselecteerd',!!regel && el.dataset.planRegel===regel.id));
@@ -1599,14 +1609,29 @@ document.addEventListener('submit',e=>{
   const menu=$('#plan-acties');
   document.addEventListener('click',e=>{
     if(!menu.contains(e.target))menu.open=false;
-    const kopie=e.target.closest('#plan-dupliceer'),centreer=e.target.closest('#plan-centreer');
-    if(!kopie && !centreer)return;
+    const kopie=e.target.closest('#plan-dupliceer'),centreer=e.target.closest('#plan-centreer'),lengteActie=e.target.closest('#plan-tracelengte');
+    if(!kopie && !centreer && !lengteActie)return;
     menu.open=false;
     if(document.querySelector('#plan.is-slepen,#plan.is-pannen'))return;
     const room=actieveRuimte();if(!room || !planSelectie)return;
     const regel=planSelectie.type==='regel' && planRegels(room).find(r=>r.id===planSelectie.id);
     const opening=planSelectie.type==='opening' && room.openingen[planSelectie.index];
     if(!regel && !opening)return;
+    if(lengteActie){
+      const lengte=regel?BouwPlan.traceLengte(regel,room):null;
+      if(lengte==null)return;
+      const aantal=Math.round((lengte+Number.EPSILON)*100)/100;
+      if(aantal<=0)return;
+      if(!confirm(`Offertehoeveelheid voor “${regel.pakket.naam}” vervangen door ${NR.format(aantal)} m? Dit is alleen de rechte 3D-afstand tussen toegepaste eindpunten, zonder bochten, reserve of bijkomende tracés. Niet-toegepaste velden worden niet gebruikt. De offerteprijs kan veranderen.`))return;
+      const model=state.project.regels.find(r=>r.id===regel.id),{a,b}=BouwPlan.werkGeometrie(regel,room);
+      wijzig(()=>{
+        model.hoeveelheid=aantal;
+        // Freeze the exact displayed geometry instead of retaining example positions.
+        model.visualisatie={...(model.visualisatie || {}),x:a[0],y:a[1],z:a[2],x2:b[0],y2:b[1],z2:b[2]};
+      });
+      $('#plan-sleepstatus').textContent=`Offertehoeveelheid vervangen door ${NR.format(aantal)} m rechte tracélengte. Controleer bochten en reserve zelf.`;
+      return;
+    }
     if(kopie){
       const naam=regel?regel.pakket.naam:opening.naam;
       const aantal=regel?`${NRL.format(regel.hoeveelheid ?? regel.aantal)} ${regel.pakket.eenheid}`:`${opening.aantal ?? 1} opening(en)`;

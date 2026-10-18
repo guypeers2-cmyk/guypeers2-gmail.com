@@ -1422,6 +1422,8 @@ body.teken-focus-actief { overflow: hidden; }
 .plan-acties { position: relative; }
 .plan-acties > summary { list-style: none; cursor: pointer; min-height: 44px; }
 .plan-acties > summary::-webkit-details-marker { display: none; }
-.plan-acties > div { position: absolute; right: 0; top: calc(100% + 6px); z-index: 35; width: 215px; padding: 8px; border: 1px solid var(--rand); border-radius: 10px; background: var(--oppervlak); box-shadow: var(--schaduw-2); display: grid; gap: 6px; }
-.plan-acties button { min-height: 44px; justify-content: flex-start; }
+.plan-acties > div { position: absolute; right: 0; top: calc(100% + 6px); z-index: 35; width: 215px; padding: 8px; border: 1px solid var(--rand); border-radius: 10px; background: var(--oppervlak); box-shadow: var(--schaduw-2); display: grid; grid-template-columns: minmax(0,1fr); gap: 6px; }
+.plan-acties button { min-height: 44px; min-width: 0; width: 100%; white-space: normal; text-align: left; justify-content: flex-start; }
 @media print { .plan-acties { display: none !important; } }
+
+#plan-trace-info { flex-basis: 100%; margin: 2px 0 0; }
