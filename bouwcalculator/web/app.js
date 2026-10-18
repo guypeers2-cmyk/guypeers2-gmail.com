@@ -641,13 +641,14 @@ function planRegels(ruimte) {
   }).filter(r => r.pakket);
 }
 
+const vuilbakIcoon = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/></svg>';
 function planLegenda(regels, print = false) {
   return regels.filter(r => r.aantal > 0).map(r => {
     const laag = window.BouwPlan.laag(r);
     if (!print && !planLagen[laag]) return "";
     const inhoud = `<b>${r.nummer}</b><span>${esc(r.pakket.naam)} · ${NRL.format(r.aantal)} ${esc(r.pakket.eenheid)}<small>${esc(r.oppervlak)} · ${Object.keys(r.visualisatie || {}).length ? "Plaatsing geheel/deels ingesteld" : "Automatische schemapositie"}</small></span>`;
     return print ? `<div class="plan-legenda-item laag-${laag} tint-${window.BouwPlan.tint(r)}">${inhoud}</div>`
-      : `<button type="button" class="plan-legenda-item laag-${laag} tint-${window.BouwPlan.tint(r)}" data-plan-regel="${esc(r.id)}">${inhoud}</button>`;
+      : `<div class="plan-legenda-rij"><button type="button" class="plan-legenda-item laag-${laag} tint-${window.BouwPlan.tint(r)}" data-plan-regel="${esc(r.id)}">${inhoud}</button><button type="button" class="plan-vuilbak" data-plan-verwijder="${esc(r.id)}" aria-label="${esc(r.pakket.naam)} verwijderen" title="Object en offertepost verwijderen">${vuilbakIcoon}</button></div>`;
   }).join("");
 }
 
@@ -688,6 +689,10 @@ function renderPlan() {
   houder.innerHTML = tekenaar(ruimte, vlakken, werk, {...planCamera, regels, lagen: planLagen, vlak: planVlak});
   const legenda = $("#plan-legenda");
   if (legenda) legenda.innerHTML = planLegenda(planWeergave === "aanzicht" ? regels.filter(r=>r.oppervlak===planVlak) : regels) || '<p class="vlak-leeg">Nog geen zichtbare werken op dit vlak. Voeg hieronder een werkregel toe of schakel een laag in.</p>';
+  $("#plan-openingen").innerHTML = (ruimte.openingen || []).map((o,index)=> {
+    if(planWeergave === "aanzicht" && o.muur !== planVlak) return "";
+    return `<div class="plan-opening-rij"><span><strong>${esc(o.naam)}</strong><small>Opening · wand ${esc(o.muur)}</small></span><button type="button" class="plan-vuilbak" data-plan-opening-verwijder="${index}" aria-label="${esc(o.naam)} op wand ${esc(o.muur)} verwijderen" title="Opening verwijderen">${vuilbakIcoon}</button></div>`;
+  }).join("");
   $("#vlak-bediening").hidden = planWeergave !== "aanzicht";
   $("#sleepvlak-keuze").hidden = planWeergave !== "isometrie";
   $$("[data-aanzicht-vlak]").forEach(b=>{
@@ -866,6 +871,25 @@ function selecteerPlanRegel(id) {
 }
 
 document.addEventListener("click", (e) => {
+  const verwijder=e.target.closest('[data-plan-verwijder]');
+  if(verwijder) {
+    const regel=state.project.regels.find(r=>r.id===verwijder.dataset.planVerwijder);
+    if(!regel)return;
+    const naam=state.prijsboek.pakketten.find(p=>p.id===regel.pakket_id)?.naam || 'Object';
+    if(confirm(`“${naam}” verwijderen uit de tekening én de offerte?`)) {
+      wijzig(()=>{state.project.regels=state.project.regels.filter(r=>r.id!==regel.id);});
+      toast('Object en offertepost verwijderd.');
+    }
+    return;
+  }
+  const openingKnop=e.target.closest('[data-plan-opening-verwijder]');
+  if(openingKnop) {
+    const ruimte=actieveRuimte(),index=Number(openingKnop.dataset.planOpeningVerwijder),o=ruimte?.openingen[index];
+    if(o && confirm(`“${o.naam}” op wand ${o.muur} verwijderen? De netto-oppervlakte en offerte worden opnieuw berekend.`)) {
+      wijzig(()=>{ruimte.openingen.splice(index,1);});toast('Opening verwijderd.');
+    }
+    return;
+  }
   const planRegel = e.target.closest("[data-plan-regel]");
   if (planRegel) { selecteerPlanRegel(planRegel.dataset.planRegel); return; }
 

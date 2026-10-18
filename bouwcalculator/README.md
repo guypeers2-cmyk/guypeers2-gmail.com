@@ -322,6 +322,14 @@ conformiteit. Laat ontwerp en uitvoering door een vakbekwaam installateur
 beoordelen. Toestellen en leidingen worden schematisch getekend; automatische voorbeeldposities
 zijn geen exacte montagepunten. Vul daarvoor de plaatsing bij de werkregel in.
 
+## Objecten verwijderen
+
+Naast elke werkregel in de legenda bij de tekening staat een vuilbak-icoon.
+Na bevestiging verwijdert dit de hele werkregel uit de tekening én offerte,
+niet alleen zijn symbool. Deuren en ramen hebben daar een eigen vuilbakknop;
+verwijderen herberekent de netto-oppervlakte en bijbehorende calculatie.
+Annuleren laat alles ongewijzigd. De knoppen werken ook in Vlakaanzicht.
+
 ## Objecten toevoegen via één menu
 
 Klik bij Ruimteontwerp op **+ Object toevoegen**, of gebruik de vaste knop

@@ -1274,3 +1274,12 @@ input[type="search"] { width: 100%; min-height: 38px; font: inherit; color: var(
 @media print { .object-snelknop,.object-menu-start,.object-menu { display: none !important; } }
 .object-menu-kop h2 { text-transform: none; letter-spacing: -.02em; color: var(--tekst); }
 .object-menu-invoer input { font-weight: 400; }
+
+.plan-legenda-rij { display: flex; align-items: stretch; gap: 6px; min-width: 0; }
+.plan-legenda-rij .plan-legenda-item { flex: 1; min-width: 0; }
+.plan-vuilbak { display: grid; place-items: center; flex: 0 0 44px; width: 44px; min-height: 44px; border: 1px solid var(--rand); border-radius: 8px; background: var(--oppervlak); color: var(--tekst-2); cursor: pointer; }
+.plan-vuilbak:hover { color: #b91c1c; background: #fef2f2; border-color: #fca5a5; }
+.plan-opening-rij { display: flex; align-items: center; justify-content: space-between; gap: 8px; border: 1px solid var(--rand); border-radius: 8px; padding: 6px 6px 6px 10px; }
+.plan-opening-rij strong { font-size: .8rem; }
+.plan-opening-rij small { display: block; margin-top: 3px; color: var(--tekst-2); font-size: .7rem; }
+@media print { .plan-vuilbak,#plan-openingen { display: none !important; } }

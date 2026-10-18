@@ -1291,6 +1291,15 @@ input[type="search"] { width: 100%; min-height: 38px; font: inherit; color: var(
 .object-menu-kop h2 { text-transform: none; letter-spacing: -.02em; color: var(--tekst); }
 .object-menu-invoer input { font-weight: 400; }
 
+.plan-legenda-rij { display: flex; align-items: stretch; gap: 6px; min-width: 0; }
+.plan-legenda-rij .plan-legenda-item { flex: 1; min-width: 0; }
+.plan-vuilbak { display: grid; place-items: center; flex: 0 0 44px; width: 44px; min-height: 44px; border: 1px solid var(--rand); border-radius: 8px; background: var(--oppervlak); color: var(--tekst-2); cursor: pointer; }
+.plan-vuilbak:hover { color: #b91c1c; background: #fef2f2; border-color: #fca5a5; }
+.plan-opening-rij { display: flex; align-items: center; justify-content: space-between; gap: 8px; border: 1px solid var(--rand); border-radius: 8px; padding: 6px 6px 6px 10px; }
+.plan-opening-rij strong { font-size: .8rem; }
+.plan-opening-rij small { display: block; margin-top: 3px; color: var(--tekst-2); font-size: .7rem; }
+@media print { .plan-vuilbak,#plan-openingen { display: none !important; } }
+
 </style>
 </head>
 <body>
@@ -1461,6 +1470,7 @@ input[type="search"] { width: 100%; min-height: 38px; font: inherit; color: var(
       <p class="hint" id="plan-sleepstatus" role="status" aria-live="polite">Sleep symbolen, tracés, eindpunten, deuren, ramen of vlaknummers. Pijltjes: 5 cm · Shift: 25 cm · Alt: 1 cm. Escape annuleert. Scroll de pagina buiten de tekening.</p>
       <div class="planhouder" id="plan"></div>
       <div id="plan-legenda" class="plan-legenda" aria-label="Werken in de tekening"></div>
+      <div id="plan-openingen" class="plan-legenda" aria-label="Openingen in de tekening"></div>
       <p class="hint plan-voorbehoud">Schematische weergave, geen uitvoeringsplan. Eén symbool staat voor één werkregel (× aantal). Automatische posities zijn voorbeelden; stel de plaatsing in bij de werkregel. Tracés wijzigen geen offertehoeveelheden. Vlakmarkeringen tonen het gekozen werk, geen exacte gedeeltelijke dekking.</p>
       <p class="hint plantip">Klik op een wand om werk toe te voegen. In 3D kun je draaien om alle wanden te bekijken.</p>
     </div>
@@ -4204,13 +4214,14 @@ function planRegels(ruimte) {
   }).filter(r => r.pakket);
 }
 
+const vuilbakIcoon = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/></svg>';
 function planLegenda(regels, print = false) {
   return regels.filter(r => r.aantal > 0).map(r => {
     const laag = window.BouwPlan.laag(r);
     if (!print && !planLagen[laag]) return "";
     const inhoud = `<b>${r.nummer}</b><span>${esc(r.pakket.naam)} · ${NRL.format(r.aantal)} ${esc(r.pakket.eenheid)}<small>${esc(r.oppervlak)} · ${Object.keys(r.visualisatie || {}).length ? "Plaatsing geheel/deels ingesteld" : "Automatische schemapositie"}</small></span>`;
     return print ? `<div class="plan-legenda-item laag-${laag} tint-${window.BouwPlan.tint(r)}">${inhoud}</div>`
-      : `<button type="button" class="plan-legenda-item laag-${laag} tint-${window.BouwPlan.tint(r)}" data-plan-regel="${esc(r.id)}">${inhoud}</button>`;
+      : `<div class="plan-legenda-rij"><button type="button" class="plan-legenda-item laag-${laag} tint-${window.BouwPlan.tint(r)}" data-plan-regel="${esc(r.id)}">${inhoud}</button><button type="button" class="plan-vuilbak" data-plan-verwijder="${esc(r.id)}" aria-label="${esc(r.pakket.naam)} verwijderen" title="Object en offertepost verwijderen">${vuilbakIcoon}</button></div>`;
   }).join("");
 }
 
@@ -4251,6 +4262,10 @@ function renderPlan() {
   houder.innerHTML = tekenaar(ruimte, vlakken, werk, {...planCamera, regels, lagen: planLagen, vlak: planVlak});
   const legenda = $("#plan-legenda");
   if (legenda) legenda.innerHTML = planLegenda(planWeergave === "aanzicht" ? regels.filter(r=>r.oppervlak===planVlak) : regels) || '<p class="vlak-leeg">Nog geen zichtbare werken op dit vlak. Voeg hieronder een werkregel toe of schakel een laag in.</p>';
+  $("#plan-openingen").innerHTML = (ruimte.openingen || []).map((o,index)=> {
+    if(planWeergave === "aanzicht" && o.muur !== planVlak) return "";
+    return `<div class="plan-opening-rij"><span><strong>${esc(o.naam)}</strong><small>Opening · wand ${esc(o.muur)}</small></span><button type="button" class="plan-vuilbak" data-plan-opening-verwijder="${index}" aria-label="${esc(o.naam)} op wand ${esc(o.muur)} verwijderen" title="Opening verwijderen">${vuilbakIcoon}</button></div>`;
+  }).join("");
   $("#vlak-bediening").hidden = planWeergave !== "aanzicht";
   $("#sleepvlak-keuze").hidden = planWeergave !== "isometrie";
   $$("[data-aanzicht-vlak]").forEach(b=>{
@@ -4429,6 +4444,25 @@ function selecteerPlanRegel(id) {
 }
 
 document.addEventListener("click", (e) => {
+  const verwijder=e.target.closest('[data-plan-verwijder]');
+  if(verwijder) {
+    const regel=state.project.regels.find(r=>r.id===verwijder.dataset.planVerwijder);
+    if(!regel)return;
+    const naam=state.prijsboek.pakketten.find(p=>p.id===regel.pakket_id)?.naam || 'Object';
+    if(confirm(`“${naam}” verwijderen uit de tekening én de offerte?`)) {
+      wijzig(()=>{state.project.regels=state.project.regels.filter(r=>r.id!==regel.id);});
+      toast('Object en offertepost verwijderd.');
+    }
+    return;
+  }
+  const openingKnop=e.target.closest('[data-plan-opening-verwijder]');
+  if(openingKnop) {
+    const ruimte=actieveRuimte(),index=Number(openingKnop.dataset.planOpeningVerwijder),o=ruimte?.openingen[index];
+    if(o && confirm(`“${o.naam}” op wand ${o.muur} verwijderen? De netto-oppervlakte en offerte worden opnieuw berekend.`)) {
+      wijzig(()=>{ruimte.openingen.splice(index,1);});toast('Opening verwijderd.');
+    }
+    return;
+  }
   const planRegel = e.target.closest("[data-plan-regel]");
   if (planRegel) { selecteerPlanRegel(planRegel.dataset.planRegel); return; }
 
