@@ -1741,3 +1741,42 @@ body.huisstand-actief .object-snelknop,body.huisstand-actief .tekening-snelknop{
 }
 @media screen and (max-width:600px){.studio-room-tools select{min-height:44px;font-size:16px}.studio-next .knop{flex:1;min-height:44px}.studio-room-price{font-size:.73rem}}
 @media print{.studio-next,#studio-room-summary{display:none!important}}
+
+/* House canvas: readable empty state and theme-aware drawing, screen only. */
+@media screen{
+ #huis-plan{background:var(--oppervlak-2);border:1px solid var(--rand);border-radius:8px}
+ .huis-leeg{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;min-height:210px;padding:24px 16px;color:var(--tekst)}
+ .huis-leeg h4{margin:0;font-size:1rem;color:var(--tekst)}
+ .huis-leeg p{margin:0;max-width:360px;font-size:.82rem;color:var(--tekst-2)}
+ .huis-leeg small{max-width:360px;font-size:.72rem;color:var(--tekst-2)}
+ .huis-leeg .knop{min-height:44px;max-width:100%;white-space:normal}
+}
+@media screen and (prefers-color-scheme:dark){
+ #huis-plan .huis-buiten{fill:#192738;stroke:#94a3b8}
+ #huis-plan .huis-vloer{fill:#243d3b;stroke:#8eae9b}
+ #huis-plan .huis-kamer.geselecteerd .huis-vloer,#huis-plan .huis-kamer:focus .huis-vloer{fill:#20553e;stroke:#73d4a0}
+ #huis-plan .huis-wand{fill:#658f7c;stroke:#a1c1ae}
+ #huis-plan .huis-dak{fill:#87b49c;stroke:#a1c1ae}
+ #huis-plan .huis-label,#huis-plan .huis-oppervlak,#huis-plan .huis-maat{fill:#e2f5eb;stroke:#14221b}
+ #huis-plan .huis-object{fill:#8fbaff;stroke:#14221b}
+ #huis-plan .huis-object line{stroke:#8fbaff}
+ #huis-plan .huis-opening{stroke:#efbd7a;fill:#b48d58}
+}
+@media screen{.huis-leeg p{max-width:430px}}
+@media screen and (prefers-color-scheme:dark){.huis-leeg .knop.primair{color:var(--bg)}}
+
+/* Show the house workflow, not a toolbar full of unavailable actions. */
+@media screen{
+ #huis-paneel [data-huis-ready][hidden],#huis-undo[hidden],#huis-redo[hidden],.huis-acties[hidden],#huis-splits-invoer[hidden],#huis-kamers[hidden]{display:none!important}
+ .huis-stappen{display:flex;flex-wrap:wrap;gap:6px 18px;list-style:none;margin:4px 0 10px;padding:0;color:var(--tekst-2);font-size:.72rem}
+ .huis-stappen li{display:flex;align-items:center;gap:5px;min-height:24px}
+ .huis-stappen li>span{display:grid;place-items:center;width:20px;height:20px;border-radius:50%;border:1px solid var(--rand-sterk);font-size:.65rem;font-weight:650}
+ .huis-stappen [aria-current="step"]{color:var(--tekst);font-weight:650}
+ .huis-stappen [aria-current="step"]>span{background:var(--accent-zacht);border-color:var(--accent);color:var(--accent)}
+ .huis-stappen .afgerond>span{color:var(--groen);border-color:var(--groen-rand);background:var(--groen-zacht)}
+ #huis-open.compact-icon,#huis-splits.compact-icon{width:auto;padding-inline:10px;gap:7px}
+ #huis-open span,#huis-splits span{font-size:.78rem;white-space:nowrap}
+}
+@media screen and (max-width:600px){.huis-stappen{gap:4px 10px;font-size:.67rem}.huis-stappen li{gap:4px}.huis-stappen li>span{width:18px;height:18px}}
+@media print{.huis-stappen{display:none!important}}
+@media screen and (max-width:600px){.huis-stappen{margin-bottom:6px;flex-wrap:nowrap}.huis-stappen li{white-space:nowrap}}

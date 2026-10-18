@@ -9,7 +9,7 @@
   const empty=r=>!(r.openingen||[]).length&&!state.project.regels.some(x=>x.ruimte_id===r.id)&&!Object.keys(r.wand_helling||{}).length;
   const message=s=>$('#huis-melding').textContent=s;
   function svg(project,mode='2d',selection=null,magnify=1,options={}){
-    const h=project.huis;if(!h)return '<p class="huis-leeg">Begin met <strong>Huiscontour tekenen</strong>. Je bestaande kamers en werkposten blijven bewaard.</p>';
+    const h=project.huis;if(!h)return '<div class="huis-leeg"><h4>Begin met je huisplan</h4><p>Teken de binnencontour en deel die daarna in kamers in.</p><button type="button" class="knop primair" data-huis-start>Huiscontour tekenen</button><small>Je bestaande kamers en werkposten blijven bewaard.</small></div>';
     const rooms=project.ruimtes.filter(r=>r.huis_positie),L=h.lengte,B=h.breedte,H=Math.max(h.hoogte,...rooms.map(r=>Number(r.hoogte))),iso=mode==='3d';
     const raw=(x,y,z=0)=>{const [u,v]=iso?BouwHuisCamera.draai(x,y,L,B,options.hoek||0):[x,y];return iso?[(u-v)*.866,(u+v)*.5-z]:[x,y];};
     const bounds=V().points(h).flatMap(a=>[raw(a.x,a.y),raw(a.x,a.y,H)]),xs=bounds.map(p=>p[0]),ys=bounds.map(p=>p[1]);
@@ -54,6 +54,19 @@
     host.classList.toggle('huis-hand',gereedschap==='hand');
     $('#huis-camera-hulp').textContent=gereedschap==='hand'?'Hand: sleep het beeld, niet de kamers. Pijltjes verschuiven; Escape annuleert de beweging.':'Selecteer een kamer met klikken of Tab/Enter. Dubbelklik opent de kamer. Kies Hand om het beeld te verschuiven.';
     const h=state.project.huis,rs=state.project.ruimtes.filter(r=>r.huis_positie),total=rs.reduce((s,r)=>s+Math.abs(V().area(V().points(r))),0),apart=state.project.ruimtes.length-rs.length;
+    // Progressive disclosure: camera/placement controls need an actual contour.
+    $('#huis-paneel').querySelectorAll('[data-huis-ready]').forEach(el=>el.hidden=!h);
+    $('#huis-draaien').hidden=!h||view!=='3d';
+    $('#huis-splits-invoer').hidden=!h;
+    $('#huis-kamers').hidden=!h;
+    $('.huis-acties').hidden=!selected();
+    const history=projectHistorie.kanUndo()||projectHistorie.kanRedo();
+    $('#huis-undo').hidden=$('#huis-redo').hidden=!h&&!history;
+    const stage=!h?1:(rs.length>1||(selected()&&!empty(selected()))?3:2);
+    document.querySelectorAll('[data-huis-stap]').forEach(el=>{
+      const step=Number(el.dataset.huisStap);el.classList.toggle('afgerond',step<stage);
+      if(step===stage)el.setAttribute('aria-current','step');else el.removeAttribute('aria-current');
+    });
     const chip=(value,label)=>`<span title="${esc(label)}" aria-label="${esc(label)}">${esc(value)}</span>`;
     const area=h?Math.abs(V().area(V().points(h))):0;
     $('#huis-statistiek').innerHTML=h?chip(`${NR.format(area)} m²`,'Woningoppervlakte')+chip(`▱ ${rs.length}`,'Kamers op het huisplan')+chip(`${NR.format(Math.max(0,area-total))} m²`,'Nog niet ingedeelde oppervlakte')+(apart?chip(`⚠ ${apart} buiten plan`,'Bestaande kamers buiten huisplan; hun werken tellen wel mee in de offerte'):''):'⌂ Eén verdieping · m';
@@ -118,6 +131,7 @@
     if(e.target.closest('[data-actie="ruimte-kiezen"]'))setLevel('ruimte');
   });
   $('#huis-plan').addEventListener('click',e=>{
+    if(e.target.closest('[data-huis-start]')){$('#huis-tekenen').click();return;}
     if(performance.now()<suppress){suppress=0;e.preventDefault();return;}
     if(gereedschap==='hand')return;
     if(snede){

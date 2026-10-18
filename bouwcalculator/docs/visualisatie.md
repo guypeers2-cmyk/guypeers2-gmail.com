@@ -452,3 +452,27 @@ De hoofdtabfunctie bewaart per tab de scroll-Y vóór het verbergen van de huidi
 inhoud. Herstel gebeurt direct na het tonen; er is geen uitgestelde callback die
 een aansluitende expliciete kamer-/taaksprong kan overschrijven. Alle nieuwe
 bediening en kamerinzichten zijn uitgesloten van offerteprint.
+
+
+### Huiscanvas en donkere modus
+
+Het huiscanvas gebruikt op het scherm een thema-afhankelijke achtergrond. De lege
+beginweergave heeft eigen leesbare tekstkleuren en een zichtbare actie
+**Huiscontour tekenen**, die dezelfde bestaande editor opent als het potlood in de
+werkbalk. Openen/annuleren verandert geen projectdata. In donkere modus hebben ook
+vloer, wanden, labels en objecten een aangepaste schermpalette; de printkleuren
+blijven ongewijzigd. `tools/huis_theme_review.mjs` bewaakt licht/donker, 320–1440 px,
+4.5:1 tekstcontrast (inclusief startknop), editor/cancel, 2D/3D en printisolatie.
+
+
+### Progressieve huisbediening
+
+De huiswerkruimte toont drie compacte fasen: Contour → Indelen → Openen, met
+`aria-current="step"` voor de huidige fase. Zonder contour zijn weergave-, camera-,
+splits- en plaatsingsbediening verborgen; de primaire tekenactie en hulp blijven
+bereikbaar. Undo/redo blijft beschikbaar zodra er historie is, ook zonder contour.
+Na een contour verschijnt de relevante bediening opnieuw. Acties om te openen en
+in te delen verschijnen bij een geselecteerde kamer en hebben naast hun pictogram
+een kort zichtbaar label. De stappenbalk stuurt geen projectmutaties aan; bestaande
+veiligheidscontroles voor splitsen blijven ongewijzigd. De thema-browserreview
+controleert deze lege/ingedeelde/beschermde toestanden naast het kleurcontrast.
