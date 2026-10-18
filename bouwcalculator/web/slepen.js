@@ -71,7 +71,7 @@
       if (planWeergave!=='plattegrond' && !/^deur/i.test(m.naam || '')) {
         m.borstwering=value(g.a[2],delta[2],Math.max(0,g.H-g.hoogte));
       }
-      note(`Opening: ${m.positie.toFixed(2)} m langs de wand · onderkant ${Number(m.borstwering || 0).toFixed(2)} m. Escape annuleert.`);
+      note(`Opening: ${m.positie.toFixed(2)} m langs de wand · onderkant ${Number(m.borstwering || 0).toFixed(2)} m.`);
     } else {
       const a=g.a, b=d.route ? g.b : g.a;
       let da,db;
@@ -82,7 +82,7 @@
       m.visualisatie={...(d.original.visualisatie || {}),x:nextA[0],y:nextA[1],z:nextA[2]};
       if (d.route) Object.assign(m.visualisatie,{x2:nextB[0],y2:nextB[1],z2:nextB[2]});
       const active=d.endpoint==='b' ? nextB : nextA;
-      note(`Positie X ${active[0].toFixed(2)} · Y ${active[1].toFixed(2)} · Z ${active[2].toFixed(2)} m. Escape annuleert.`);
+      note(`Positie X ${active[0].toFixed(2)} · Y ${active[1].toFixed(2)} · Z ${active[2].toFixed(2)} m.`);
     }
     renderPlan();
   }
@@ -115,8 +115,7 @@
       suppressClickUntil=performance.now()+500;
       if (cancel) {note('Verplaatsing geannuleerd.');return;}
       if (d.isOpening) {
-        const input=document.querySelector(`[data-opening="${d.index}"][data-opening-veld="positie"]`);
-        input?.focus();
+        selecteerPlanOpening(d.index);
       } else selecteerPlanRegel(d.model.id);
       return;
     }

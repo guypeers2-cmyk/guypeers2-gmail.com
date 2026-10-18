@@ -27,10 +27,12 @@
   </div>
   <div class="topbar-acties">
     <span class="status" id="status" role="status" aria-live="polite"></span>
-    <button type="button" class="knop" id="btn-nieuw" title="Nieuwe offerte beginnen"><svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V7z"/><path d="M14 3v4h4"/><path d="M12 11v6M9 14h6"/></svg> Nieuw</button>
     <button type="button" class="knop" id="btn-opslaan" title="Offerte opslaan"><svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h12l4 4v12H4z"/><path d="M8 4v6h8V4"/><path d="M8 20v-6h8v6"/></svg> Opslaan</button>
+    <details id="bestand-menu" class="bestand-menu"><summary class="knop">Bestand ▾</summary><div class="bestand-menu-inhoud">
+    <button type="button" class="knop" id="btn-nieuw" title="Nieuwe offerte beginnen"><svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V7z"/><path d="M14 3v4h4"/><path d="M12 11v6M9 14h6"/></svg> Nieuw</button>
     <button type="button" class="knop" id="btn-openen" title="Opgeslagen offertes openen"><svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg> Openen</button>
     <button type="button" class="knop primair" id="btn-print" title="Offerte printen of als pdf opslaan"><svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 9V4h10v5"/><path d="M7 18H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2"/><path d="M7 14h10v6H7z"/></svg> Offerte printen</button>
+    </div></details>
   </div>
 </header>
 
@@ -40,9 +42,17 @@
 </nav>
 <main class="layout" id="calculator-paneel" role="tabpanel" aria-labelledby="tab-calculator">
   <button type="button" class="knop primair object-snelknop" data-object-menu aria-haspopup="dialog" aria-controls="object-menu">+ Object toevoegen</button>
+  <button type="button" class="knop tekening-snelknop" data-studio-doel="tekening" aria-controls="tekening">↑ Tekening</button>
 
+  <nav class="studio-nav" aria-label="Ontwerpnavigatie">
+    <button type="button" class="studio-nav-actief" data-studio-doel="tekening" aria-controls="tekening" aria-current="location">Tekening</button>
+    <button type="button" data-studio-doel="ruimte-invoer" aria-controls="ruimte-invoer">Ruimtematen</button>
+    <button type="button" data-studio-doel="werk-invoer" aria-controls="werk-invoer">Werkregels</button>
+    <button type="button" data-studio-doel="offertepaneel" aria-controls="offertepaneel">Offerte <span id="studio-totaal">€ 0,00</span></button>
+    <button type="button" data-studio-doel="zijde" aria-controls="zijde">Project &amp; prijzen</button>
+  </nav>
   <!-- ================= LINKERZIJDE: project, instellingen, tarieven ================= -->
-  <aside class="paneel zijde" id="zijde">
+  <details class="paneel zijde studio-vouw" id="zijde"><summary>Project &amp; prijzen <span>Klantgegevens, uurtarief, btw en korting</span></summary><div class="studio-vouw-inhoud">
     <nav class="tabs" role="tablist" aria-label="Onderdelen">
       <button class="tab actief" data-tab="project" role="tab" aria-selected="true" aria-controls="paneel-project" id="tab-project">Project</button>
       <button class="tab" data-tab="instellingen" role="tab" aria-selected="false" aria-controls="paneel-instellingen" id="tab-instellingen">Prijzen</button>
@@ -127,14 +137,14 @@
     </section>
 
 
-  </aside>
+  </div></details>
 
   <!-- ================= MIDDEN: ruimtes, oppervlakken, werkregels ================= -->
   <section class="paneel werkvlak" id="werkvlak">
     <div class="ruimtechips" id="ruimtechips"></div>
-    <article class="ruimtekaart" id="ruimtekaart"></article>
+    <details class="studio-vouw" id="ruimte-invoer"><summary>Ruimtematen &amp; openingen <span>Afmetingen, deuren en ramen</span></summary><div class="studio-vouw-inhoud"><article class="ruimtekaart" id="ruimtekaart"></article></div></details>
 
-    <div class="plankaart">
+    <div class="plankaart" id="tekening" tabindex="-1">
       <header class="plankop">
         <h3>Ruimteontwerp</h3>
         <div class="plankeuze" role="group" aria-label="Weergave kiezen">
@@ -142,8 +152,8 @@
           <button type="button" class="planknop" data-plan="aanzicht" aria-pressed="false">Vlakaanzicht</button>
           <button type="button" class="planknop" data-plan="isometrie" aria-pressed="false">3D</button>
         </div>
-      </header>
       <button type="button" class="knop primair object-menu-start" data-object-menu aria-haspopup="dialog" aria-controls="object-menu">+ Object toevoegen</button>
+      </header>
       <div id="vlak-bediening" class="vlak-bediening" hidden>
         <div class="vlak-intro"><strong>Elk vlak, recht in beeld</strong><span>Kies een vlak en positioneer de werken op het raster.</span></div>
         <div class="vlak-keuze" role="group" aria-label="Vlak voor vooraanzicht">
@@ -155,7 +165,7 @@
           <button type="button" data-aanzicht-vlak="plafond" aria-pressed="false"><span>Plafond</span><small></small></button>
         </div>
       </div>
-      <div class="iso-bediening" id="iso-bediening" hidden role="group" aria-label="3D-bediening">
+      <div class="iso-bediening" id="iso-bediening" hidden role="group" aria-label="Beeldbediening: zoom en camera">
         <button type="button" class="knop klein" data-camera="links" aria-label="Draai 90 graden links">↶ Links</button>
         <span id="iso-richting" class="klein-muted" aria-live="polite"></span>
         <button type="button" class="knop klein" data-camera="rechts" aria-label="Draai 90 graden rechts">Rechts ↷</button>
@@ -164,6 +174,10 @@
         <button type="button" class="knop klein" data-camera="reset">Herstel</button>
         <button type="button" class="knop klein" data-camera="maten" aria-pressed="true">Maten</button>
       </div>
+      <p class="hint" id="plan-sleepstatus" role="status" aria-live="polite">Sleep om te positioneren · klik om te selecteren.</p>
+      <div class="planhouder" id="plan"></div>
+      <div id="plan-selectie" class="plan-selectie" hidden><span id="plan-selectie-naam"></span><div><button type="button" class="knop klein" id="plan-eigenschappen">Eigenschappen</button><button type="button" class="plan-vuilbak" id="plan-selectie-verwijder" aria-label="Geselecteerd object verwijderen"></button><button type="button" class="knop klein" id="plan-deselecteer" aria-label="Selectie opheffen">×</button></div></div>
+      <details class="studio-vouw studio-opties" id="tekenopties"><summary>Tekenopties <span>Lagen, raster en sleepvlak</span></summary><div class="studio-vouw-inhoud">
       <div class="plan-lagen" role="group" aria-label="Zichtbare werken">
         <label><input type="checkbox" data-plan-laag="afwerking" checked> Gyproc &amp; afwerking</label>
         <label><input type="checkbox" data-plan-laag="elektriciteit" checked> Elektriciteit</label>
@@ -173,28 +187,36 @@
         <label><input type="checkbox" id="plan-snap" checked> Vastklikken op 5 cm</label>
         <label id="sleepvlak-keuze">3D verplaatsen in <select id="plan-sleepvlak"><option value="auto">Automatisch per wand/vloer</option><option value="xy">Vloervlak X/Y</option><option value="xz">Hoogte X/Z</option><option value="yz">Hoogte Y/Z</option></select></label>
       </div>
-      <p class="hint" id="plan-sleepstatus" role="status" aria-live="polite">Sleep symbolen, tracés, eindpunten, deuren, ramen of vlaknummers. Pijltjes: 5 cm · Shift: 25 cm · Alt: 1 cm. Escape annuleert. Scroll de pagina buiten de tekening.</p>
-      <div class="planhouder" id="plan"></div>
+      </div></details>
+      <details class="studio-vouw" id="plan-objecten"><summary>Objecten &amp; verwijderen <span id="plan-objecten-aantal">Overzicht op de tekening</span></summary><div class="studio-vouw-inhoud">
       <div id="plan-legenda" class="plan-legenda" aria-label="Werken in de tekening"></div>
       <div id="plan-openingen" class="plan-legenda" aria-label="Openingen in de tekening"></div>
+      </div></details>
+      <details class="studio-vouw studio-uitleg"><summary>Hulp bij de tekening</summary><div class="studio-vouw-inhoud">
       <p class="hint plan-voorbehoud">Schematische weergave, geen uitvoeringsplan. Eén symbool staat voor één werkregel (× aantal). Automatische posities zijn voorbeelden; stel de plaatsing in bij de werkregel. Tracés wijzigen geen offertehoeveelheden. Vlakmarkeringen tonen het gekozen werk, geen exacte gedeeltelijke dekking.</p>
-      <p class="hint plantip">Klik op een wand om werk toe te voegen. In 3D kun je draaien om alle wanden te bekijken.</p>
+      <p class="hint plantip">Klik op een wand om het objectmenu te openen. In 3D kun je draaien om alle wanden te bekijken.</p>
+      <p class="hint">Pijltjes: 5 cm · Shift: 25 cm · Alt: 1 cm. De numerieke plaatsingsvelden staan bij Eigenschappen.</p>
+      </div></details>
     </div>
 
+    <details class="studio-vouw" id="installatie-invoer"><summary>Uitgebreide installatie-invoer <span>Alternatief voor het objectmenu</span></summary><div class="studio-vouw-inhoud">
     <nav class="installatie-tabs" aria-label="Installatiewerken kiezen">
       <button type="button" class="knop" data-installatie="elektriciteit" aria-pressed="true" aria-controls="elektriciteit">Elektriciteit</button>
       <button type="button" class="knop" data-installatie="sanitair" aria-pressed="false" aria-controls="sanitair">Sanitair &amp; water</button>
     </nav>
     <section id="sanitair" class="elektriciteit-kaart" aria-label="Sanitair en water per ruimte" hidden></section>
     <section id="elektriciteit" class="elektriciteit-kaart" aria-label="Elektriciteit per ruimte"></section>
+    </div></details>
+    <details class="studio-vouw" id="werk-invoer"><summary>Meetstaat &amp; werkregels <span>Aantallen, pakketten en precieze plaatsing</span></summary><div class="studio-vouw-inhoud">
     <div class="oppervlakken" id="oppervlakken"></div>
     <div class="regels" id="regels"></div>
+    </div></details>
   </section>
 
   <!-- ================= RECHTERZIJDE: de offerte ================= -->
-  <aside class="paneel offertepaneel" id="offertepaneel">
+  <details class="paneel offertepaneel studio-vouw" id="offertepaneel"><summary>Offerte bekijken <span>Calculatie, totalen en printvoorbeeld</span></summary><div class="studio-vouw-inhoud">
     <div id="offerte" class="offerte"></div>
-  </aside>
+  </div></details>
 
 </main>
 

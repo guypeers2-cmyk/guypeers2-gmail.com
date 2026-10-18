@@ -322,6 +322,34 @@ conformiteit. Laat ontwerp en uitvoering door een vakbekwaam installateur
 beoordelen. Toestellen en leidingen worden schematisch getekend; automatische voorbeeldposities
 zijn geen exacte montagepunten. Vul daarvoor de plaatsing bij de werkregel in.
 
+## Tekening eerst: de ontwerpstudio
+
+De tekening staat bovenaan en krijgt de volle werkbreedte. Ondersteunende
+panelen zijn standaard ingeklapt: ruimtematen/openingen, meetstaat/werkregels,
+uitgebreide installatie-invoer, project/prijzen en offerte. Ook de legenda,
+verwijderlijst, tekenopties en uitleg zijn inklapbaar. Tijdens bewerken blijven
+open/gesloten panelen behouden; een herladen pagina start weer rustig ingeklapt.
+
+- **Bestand** bovenaan bundelt Nieuw, Openen en Offerte printen; Opslaan blijft direct zichtbaar.
+- **Tekening** in de navigatie of de vaste knop linksonder brengt je terug naar
+  het ontwerp en klapt de ondersteunende panelen weer in.
+- **Ruimtematen**, **Werkregels**, **Offerte** en **Project & prijzen** openen
+  rechtstreeks de juiste sectie. De navigatie toont ook het actuele offertotaal.
+- Klik een object om het ter plaatse te selecteren. De selectiebalk toont de
+  naam, **Eigenschappen**, verwijderen en selectie opheffen. Alleen Eigenschappen
+  opent de invoer; selecteren springt niet meer weg van de tekening.
+- Een wand aanklikken of met Enter activeren opent het objectmenu op dat vlak,
+  zonder ongevraagd een Gyproc-post toe te voegen.
+- Zoom +/− en Herstel werken in bovenaanzicht, vlakaanzicht én 3D; draai- en
+  matenknoppen worden alleen in 3D getoond. Een ingezoomde tekening kan randen
+  afsnijden: Herstel toont het hele vlak weer.
+- Ruimtes en de drie weergaveknoppen blijven direct bereikbaar. Op mobiel zijn
+  de zes vlakkaarten compacter en ontstaan geen horizontale paginascrollbalken.
+- Afdrukken opent de gesloten offertedetails tijdelijk en herstelt de
+  schermtoestand achteraf. De geprinte offerte blijft volledig, met 2D-overzicht.
+
+Optionele browsercontrole: `tools/studio_review.mjs` (Worker of offline bestand).
+
 ## Objecten verwijderen
 
 Naast elke werkregel in de legenda bij de tekening staat een vuilbak-icoon.
@@ -561,7 +589,7 @@ Daarom zijn er twee varianten:
 
 - **meerbestanden** (`bouwcalculator/web/`) — voor onze eigen Worker, Pages en
   de lokale server. De rekenkern is een ES-module.
-- **één bestand** (`bouwcalculator/bouwcalculator.html`, circa 199 KiB) — alles inline,
+- **één bestand** (`bouwcalculator/bouwcalculator.html`, circa 233 KiB) — alles inline,
   dus het werkt ook op hosts die HTML als `text/plain` teruggeven of op een
   stickie/schijf. De app rekent dan in de browser.
 

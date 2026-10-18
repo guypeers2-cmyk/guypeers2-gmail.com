@@ -41,8 +41,9 @@ naar nul genormaliseerd. Wijzigingen blijven behouden bij herladen, opslaan en
 JSON export/import; ook beide rekenkernen bewaren de plaatsingsmetadata.
 
 Klik een symbool, tracé of genummerde legendaregel om de betreffende werkregel
-te selecteren. Toetsenbord: Tab naar een SVG-symbool, Enter of spatie om de
-regel te openen/selecteren. De bestaande wandklik blijft Gyproc-werk toevoegen.
+ter plaatse te selecteren. De selectiebalk onder de tekening geeft toegang tot
+Eigenschappen en verwijderen. Toetsenbord: Tab naar een SVG-symbool, Enter of
+spatie om te selecteren. Een wandklik opent het objectmenu op dat vlak.
 
 ## Slepen naar positie
 
@@ -142,3 +143,20 @@ noord, oost, zuid, west, vloer en plafond. De gekozen kaart is blauw gemarkeerd.
 Optionele browsertest: `tools/aanzicht_review.mjs`, met dezelfde omgevingsvariabelen
 als de andere browserreviews. Deze test controleert zes vlakken, filtering,
 positioneren, gespiegelde toetsenbordbediening, raamhoogte en responsive layout.
+
+## Ontwerpstudio: minder panelen, meer tekening
+
+De kaart is nu het hoofdwerkvlak, niet een kleine kolom tussen twee formulieren.
+Met de navigatie bovenaan open je ruimtematen, werkregels, project/prijzen of de
+offerte. **Tekening** (ook vast linksonder) sluit de ondersteunende secties en
+brengt je terug naar het ontwerp. Het actuele totaal blijft in de navigatie staan. Minder gebruikte bestandsacties
+(Nieuw, Openen, Offerte printen) staan onder **Bestand**; Opslaan blijft direct zichtbaar.
+
+Lagen, vastklikken en het 3D-sleepvlak staan onder **Tekenopties**. De legenda en
+vuilbakken staan onder **Objecten & verwijderen**; een geselecteerd object heeft
+ook een directe vuilbak in de selectiebalk. Hulp en uitgebreide installatie-invoer
+zijn eveneens ingeklapt, maar niet verwijderd. Native details/summary ondersteunt
+muis, aanraking en toetsenbord zonder extra bibliotheken.
+
+Zoom werkt nu in alle drie de weergaven. Het printbeeld blijft ongezoomd en toont
+alle offertewerken; gesloten panelen sluiten niets uit van de afdruk.

@@ -36,6 +36,11 @@
     return lijst.map((p) => `${R(p[0])},${R(p[1])}`).join(" ");
   }
 
+  function zoomBox(W,H,opties) {
+    const zoom=Math.max(.75,Math.min(1.6,Number(opties.zoom)||1));
+    return `${R((W-W/zoom)/2)} ${R((H-H/zoom)/2)} ${R(W/zoom)} ${R(H/zoom)}`;
+  }
+
   /* Openingen per muur verzamelen. */
   function openingenPerMuur(ruimte) {
     const per = { noord: [], zuid: [], oost: [], west: [] };
@@ -360,7 +365,7 @@
     const projecteer = (x,y,z) => [rx+x*schaal, ry+y*schaal];
     svg += werkOverlay(ruimte, opties, projecteer);
     svg += vlakMarkeringen(ruimte, opties, projecteer);
-    return `<svg class="plan" viewBox="0 0 ${W} ${HP}" role="group" aria-label="Plattegrond van ${esc(ruimte.naam || "ruimte")}">${svg}</svg>`;
+    return `<svg class="plan" viewBox="${zoomBox(W,HP,opties)}" role="group" aria-label="Plattegrond van ${esc(ruimte.naam || "ruimte")}">${svg}</svg>`;
   }
 
   /* ==================================================================
@@ -480,7 +485,7 @@
     svg+=`<path class="aanzicht-maatlijn" d="M${R(links)} ${R(boven+h+16)}v12m0 -6h${R(w)}m0 -6v12M${R(links-16)} ${R(boven)}h-12m6 0v${R(h)}m-6 0h12"/><text class="aanzicht-maat" text-anchor="middle" x="390" y="${R(boven+h+46)}">${F(breedte)} m</text><text class="aanzicht-maat" text-anchor="middle" transform="translate(${R(links-37)} ${R(boven+h/2)}) rotate(-90)">${F(hoogte)} m</text>`;
     const richtingen={noord:['West','Oost'],zuid:['Oost','West'],west:['Zuid','Noord'],oost:['Noord','Zuid'],vloer:['West','Oost'],plafond:['West','Oost']}[vlak];
     svg+=`<text class="aanzicht-sub" x="${R(links)}" y="${R(boven-14)}">${richtingen[0]}</text><text class="aanzicht-sub" text-anchor="end" x="${R(links+w)}" y="${R(boven-14)}">${richtingen[1]}</text><text class="aanzicht-sub" x="390" y="530" text-anchor="middle">Raster ${F(stap)} m · ${horizontaal ? 'X / Y' : 'hoogte vanaf vloer'} · alleen werken op dit vlak</text>`;
-    return `<svg class="plan aanzicht" viewBox="0 0 780 550" role="group" aria-label="${naam}, vlakaanzicht van ${esc(ruimte.naam)}">${svg}</svg>`;
+    return `<svg class="plan aanzicht" viewBox="${zoomBox(780,550,opties)}" role="group" aria-label="${naam}, vlakaanzicht van ${esc(ruimte.naam)}">${svg}</svg>`;
   }
 
   window.BouwPlan = { plattegrond, isometrie, laag, werkGeometrie, tint, projectie, planProjectie, openingGeometrie, aanzichtProjectie, aanzicht };

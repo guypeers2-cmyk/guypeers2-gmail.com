@@ -531,6 +531,7 @@ function renderOfferte() {
   if (!offerte) { container.innerHTML = ""; return; }
   const project = state.project;
   const totalen = offerte.totalen;
+  if ($("#studio-totaal")) $("#studio-totaal").textContent = eur(totalen.totaal);
 
   if (!offerte.regels.length) {
     container.innerHTML = `
@@ -628,6 +629,7 @@ function renderOfferte() {
 /* ---------------- plattegrond ---------------- */
 let planWeergave = "plattegrond";
 let planVlak = "noord";
+let planSelectie = null;
 const planCamera = { hoek: 0, zoom: 1, maten: true };
 const planLagen = {afwerking: true, elektriciteit: true, sanitair: true};
 
@@ -700,14 +702,17 @@ function renderPlan() {
     b.setAttribute("aria-pressed",String(b.dataset.aanzichtVlak===planVlak));
     b.querySelector("small").textContent=v ? `${NRL.format(v.netto)} m² netto` : "";
   });
+  $("#plan-objecten-aantal").textContent = `${regels.filter(r=>r.aantal>0).length} werkregels · ${(ruimte.openingen || []).length} openingen in deze ruimte`;
+  renderPlanSelectie();
   const bediening = $("#iso-bediening");
-  if (bediening) bediening.hidden = planWeergave !== "isometrie";
+  if (bediening) bediening.hidden = false;
+  $$('[data-camera="links"],[data-camera="rechts"],[data-camera="maten"]').forEach(b=>b.hidden=planWeergave!=="isometrie");
   const tip = $(".plantip");
   if (tip) tip.textContent = planWeergave === "aanzicht"
     ? "Sleep werken naar hun positie op dit vlak. Kies de locatie van een werkregel om die aan een ander vlak toe te wijzen."
-    : "Klik op een wand om werk toe te voegen. In 3D kun je draaien om alle wanden te bekijken.";
+    : "Klik op een wand om het objectmenu te openen. In 3D kun je draaien om alle wanden te bekijken.";
   const richting = $("#iso-richting");
-  if (richting) richting.textContent = ["Noord / west", "Noord / oost", "Zuid / oost", "Zuid / west"][planCamera.hoek] + ` · ${Math.round(planCamera.zoom * 100)}%`;
+  if (richting) richting.textContent = (planWeergave === "isometrie" ? ["Noord / west", "Noord / oost", "Zuid / oost", "Zuid / west"][planCamera.hoek] + " · " : "") + `${Math.round(planCamera.zoom * 100)}%`;
   const matenKnop = $('[data-camera="maten"]');
   if (matenKnop) matenKnop.setAttribute("aria-pressed", String(planCamera.maten));
   const minKnop = $('[data-camera="uit"]'), maxKnop = $('[data-camera="in"]');
@@ -860,17 +865,59 @@ function importeerJson(tekst) {
 
 /* ---------------- events ---------------- */
 function selecteerPlanRegel(id) {
-  const regel = state.project.regels.find(r => r.id === id);
-  if (!regel) return;
-  const veld = $$("[data-hoeveelheid]").find(el => el.closest("[data-regel]")?.dataset.regel === regel.id);
-  const kaart = veld?.closest(".regelkaart");
-  if (kaart) {
-    kaart.scrollIntoView({block: "center", behavior: window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ? "auto" : "smooth"});
-    veld.focus({preventScroll:true});
+  planSelectie = {type:'regel',id};
+  renderPlanSelectie();
+}
+function selecteerPlanOpening(index) {
+  planSelectie = {type:'opening',index,ruimteId:actieveRuimte()?.id};
+  renderPlanSelectie();
+}
+function renderPlanSelectie() {
+  const room=actieveRuimte(),bar=$("#plan-selectie");
+  if(!bar)return;
+  const regel=planSelectie?.type==='regel' && state.project.regels.find(r=>r.id===planSelectie.id && r.ruimte_id===room?.id);
+  const opening=planSelectie?.type==='opening' && planSelectie.ruimteId===room?.id && room?.openingen[planSelectie.index];
+  if(!regel && !opening)planSelectie=null;
+  bar.hidden=!planSelectie;
+  $$('#plan [data-opening-index]').forEach(el=>el.classList.toggle('plan-geselecteerd',!!opening && Number(el.dataset.openingIndex)===planSelectie.index));
+  $$('#plan [data-plan-regel]').forEach(el=>el.classList.toggle('plan-geselecteerd',!!regel && el.dataset.planRegel===regel.id));
+  const verwijder=$("#plan-selectie-verwijder");
+  verwijder.innerHTML=vuilbakIcoon;
+  delete verwijder.dataset.planVerwijder;delete verwijder.dataset.planOpeningVerwijder;
+  if(regel) {
+    $("#plan-selectie-naam").textContent=state.prijsboek.pakketten.find(p=>p.id===regel.pakket_id)?.naam || 'Werkregel';
+    verwijder.dataset.planVerwijder=regel.id;
   }
+  if(opening) {
+    $("#plan-selectie-naam").textContent=`${opening.naam} · wand ${opening.muur}`;
+    verwijder.dataset.planOpeningVerwijder=String(planSelectie.index);
+  }
+}
+function studioOpen(id) {
+  const doel=document.getElementById(id);if(!doel)return;
+  if(id==='tekening')document.querySelectorAll('#calculator-paneel details[open]').forEach(d=>d.open=false);
+  for(let el=doel;el;el=el.parentElement)if(el.tagName==='DETAILS')el.open=true;
+  document.querySelectorAll('[data-studio-doel]').forEach(b=>{b.classList.toggle('studio-nav-actief',b.dataset.studioDoel===id);b.setAttribute('aria-current',b.dataset.studioDoel===id?'location':'false');});
+  doel.scrollIntoView({block:'start',behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});
+  if(doel.tagName==='DETAILS')doel.querySelector('summary')?.focus({preventScroll:true});
+  else doel.focus({preventScroll:true});
 }
 
 document.addEventListener("click", (e) => {
+  const nav=e.target.closest('[data-studio-doel]');
+  if(nav){studioOpen(nav.dataset.studioDoel);return;}
+  if(e.target.closest('#plan-deselecteer')){planSelectie=null;renderPlanSelectie();return;}
+  if(e.target.closest('#plan-eigenschappen')){
+    if(planSelectie?.type==='regel'){
+      studioOpen('werk-invoer');
+      const veld=$$('[data-hoeveelheid]').find(el=>el.closest('[data-regel]')?.dataset.regel===planSelectie.id);
+      veld?.scrollIntoView({block:'center'});veld?.focus({preventScroll:true});
+    } else if(planSelectie?.type==='opening'){
+      studioOpen('ruimte-invoer');
+      document.querySelector(`[data-opening="${planSelectie.index}"][data-opening-veld="positie"]`)?.focus({preventScroll:true});
+    }
+    return;
+  }
   const verwijder=e.target.closest('[data-plan-verwijder]');
   if(verwijder) {
     const regel=state.project.regels.find(r=>r.id===verwijder.dataset.planVerwijder);
@@ -886,7 +933,7 @@ document.addEventListener("click", (e) => {
   if(openingKnop) {
     const ruimte=actieveRuimte(),index=Number(openingKnop.dataset.planOpeningVerwijder),o=ruimte?.openingen[index];
     if(o && confirm(`“${o.naam}” op wand ${o.muur} verwijderen? De netto-oppervlakte en offerte worden opnieuw berekend.`)) {
-      wijzig(()=>{ruimte.openingen.splice(index,1);});toast('Opening verwijderd.');
+      planSelectie=null;wijzig(()=>{ruimte.openingen.splice(index,1);});toast('Opening verwijderd.');
     }
     return;
   }
@@ -910,7 +957,7 @@ document.addEventListener("click", (e) => {
     wijzig(() => state.project.regels.push({id, ruimte_id: ruimte.id, oppervlak: locatie,
       pakket_id: elek.dataset.elekPakket || elek.dataset.installatiePakket, opties: {}, hoeveelheid: 1, notitie: ""}));
     const veld = document.querySelector(`[data-fokus="r_${id}_aantal"]`);
-    if (veld) { veld.focus(); veld.select(); }
+    if (veld) { studioOpen('werk-invoer'); veld.focus(); veld.select(); }
     return;
   }
   const herstelTarief = e.target.closest("[data-herstel-tarief]");
@@ -956,7 +1003,7 @@ document.addEventListener("click", (e) => {
   /* Klik op een wand (of een opening daarin) in de plattegrond = werk toevoegen op dat vlak */
   const wand = e.target.closest(".plan-wand, .plan-open");
   if (wand) {
-    wijzig(() => regelToevoegen(wand.dataset.vlak, wand.dataset.soort || "muur"));
+    document.dispatchEvent(new CustomEvent('bouw-object-menu',{detail:{vlak:wand.dataset.vlak}}));
     return;
   }
 
@@ -1000,7 +1047,7 @@ document.addEventListener("click", (e) => {
     } else if (actie === "opening-verwijderen") {
       const ruimte = actieveRuimte();
       const index = Number(knop.dataset.index);
-      wijzig(() => { ruimte.openingen.splice(index, 1); });
+      planSelectie=null;wijzig(() => { ruimte.openingen.splice(index, 1); });
     } else if (actie === "regel-toevoegen") {
       wijzig(() => regelToevoegen(knop.dataset.vlak, knop.dataset.soort));
     } else if (actie === "regel-verwijderen") {
@@ -1067,6 +1114,8 @@ document.addEventListener("click", (e) => {
 /* Toetsenbord: Enter of spatie op een wand voegt werk toe. */
 document.addEventListener("keydown", (e) => {
   if (e.key !== "Enter" && e.key !== " ") return;
+  const opening=e.target.closest?.('[data-plan-drag="opening"]');
+  if(opening){e.preventDefault();selecteerPlanOpening(Number(opening.dataset.openingIndex));return;}
   const symbool = e.target.closest?.("[data-plan-regel]");
   if (symbool && symbool.tagName.toLowerCase() === "g") {
     e.preventDefault(); selecteerPlanRegel(symbool.dataset.planRegel); return;
@@ -1074,7 +1123,7 @@ document.addEventListener("keydown", (e) => {
   const wand = e.target.closest && e.target.closest(".plan-wand, .plan-open");
   if (!wand) return;
   e.preventDefault();
-  wijzig(() => regelToevoegen(wand.dataset.vlak, wand.dataset.soort || "muur"));
+  document.dispatchEvent(new CustomEvent('bouw-object-menu',{detail:{vlak:wand.dataset.vlak}}));
 });
 
 /* Tijdens het typen: het model bijwerken, maar het veld zelf niet opnieuw bouwen. */
@@ -1364,15 +1413,17 @@ init();
       && normalize(`${p.naam} ${p.beschrijving} ${p.groep}`).includes(zoek));
     $('#object-resultaten').innerHTML=lijst.map(p=>`<button type="button" class="object-item" data-object-toevoegen="${esc(p.id)}"><span class="object-item-plus" aria-hidden="true">+</span><span><strong>${esc(p.naam)}</strong><small>${esc(p.groep)} · ${p.eenheid==='m2' ? 'Automatisch gemeten m²' : p.eenheid==='m' ? 'Per lopende meter' : p.eenheid==='st' ? 'Per stuk' : 'Wandopening'}</small></span></button>`).join('') || '<p class="object-geen">Geen objecten gevonden. Probeer een andere zoekterm of categorie.</p>';
   }
+  function openMenu(vlak) {
+    const room=actieveRuimte();
+    if(!room || !state.prijsboek) {toast('Voeg eerst een ruimte toe.');return;}
+    $('#object-menu-ruimte').textContent=`Voor ${room.naam} · selecteer het vlak en voeg direct toe`;
+    $('#object-vlak').value=vlak || (planWeergave==='aanzicht' ? planVlak : 'noord');
+    $('#object-menu-status').textContent='Kies een object. Het menu blijft open om meerdere toe te voegen.';
+    resultaten();if(!menu.open)menu.showModal();$('#object-zoek').focus();
+  }
+  document.addEventListener('bouw-object-menu',e=>openMenu(e.detail?.vlak));
   document.addEventListener('click',e=>{
-    if(e.target.closest('[data-object-menu]')) {
-      const room=actieveRuimte();
-      if(!room || !state.prijsboek) {toast('Voeg eerst een ruimte toe.');return;}
-      $('#object-menu-ruimte').textContent=`Voor ${room.naam} · selecteer het vlak en voeg direct toe`;
-      $('#object-vlak').value=planWeergave==='aanzicht' ? planVlak : 'noord';
-      $('#object-menu-status').textContent='Kies een object. Het menu blijft open om meerdere toe te voegen.';
-      resultaten();menu.showModal();$('#object-zoek').focus();return;
-    }
+    if(e.target.closest('[data-object-menu]')) {openMenu();return;}
     const cat=e.target.closest('[data-object-categorie]');
     if(cat){categorie=cat.dataset.objectCategorie;$$('[data-object-categorie]').forEach(b=>b.setAttribute('aria-pressed',String(b===cat)));resultaten();return;}
     const add=e.target.closest('[data-object-toevoegen]');
@@ -1395,5 +1446,26 @@ init();
   menu.addEventListener('click',e=>{
     const b=menu.getBoundingClientRect();
     if(e.target===menu && (e.clientX<b.left || e.clientX>b.right || e.clientY<b.top || e.clientY>b.bottom))menu.close();
+  });
+})();
+
+/* Print the full quote even while its disclosure is closed. Restore UI afterward. */
+(function studioPrint() {
+  let gesloten=[],printActief=false;
+  window.addEventListener('beforeprint',()=>{
+    if(printActief)return;printActief=true;
+    gesloten=[...document.querySelectorAll('#calculator-paneel details:not([open])')];
+    gesloten.forEach(d=>d.open=true);
+  });
+  window.addEventListener('afterprint',()=>{gesloten.forEach(d=>d.open=false);gesloten=[];printActief=false;});
+})();
+
+(function bestandNavigatie() {
+  const bestand=document.getElementById('bestand-menu');
+  document.addEventListener('click',e=>{
+    if(!bestand.contains(e.target) || e.target.closest('#bestand-menu button'))bestand.open=false;
+  });
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Escape' && bestand.open){bestand.open=false;bestand.querySelector('summary').focus();}
   });
 })();

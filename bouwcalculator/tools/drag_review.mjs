@@ -100,7 +100,7 @@ assert(Math.abs(await page.evaluate(()=>state.project.ruimtes[0].openingen[1].bo
 await page.$eval('#plan [data-plan-regel="sock"]',e=>e.focus());
 before=await rule('sock');await page.keyboard.press('ArrowRight');
 assert(Math.abs((await rule('sock')).x-before.x-.05)<.005,'keyboard 5 cm');
-await page.waitForNetworkIdle({idleTime:300});
+await page.waitForFunction(()=>document.querySelector('#status').textContent!=='Berekenen…');
 assert.equal(await page.evaluate(()=>document.activeElement?.dataset.planRegel),'sock','keyboard focus survives calculation');
 await page.keyboard.down('Shift');await page.keyboard.press('ArrowRight');await page.keyboard.up('Shift');
 assert(Math.abs((await rule('sock')).x-before.x-.3)<.005,'keyboard repeated with Shift');
@@ -126,7 +126,7 @@ await client.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:x
 await page.waitForFunction(()=>document.querySelector('#plan.is-slepen'));
 await client.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
 await page.waitForFunction(()=>!document.querySelector('#plan.is-slepen'));
-await page.waitForNetworkIdle({idleTime:300});
+await page.waitForFunction(()=>document.querySelector('#status').textContent!=='Berekenen…');
 v=await rule('sock');assert(v.x!==before.x || v.y!==before.y,'touch drag');
 assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth),390);
 // Browser/system cancellation rolls back the live preview rather than saving it.

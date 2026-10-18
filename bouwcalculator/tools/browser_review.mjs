@@ -20,6 +20,11 @@ const browser = await puppeteer.launch({executablePath:process.env.CHROME_PATH |
   args:chromium?.args || ['--no-sandbox']});
 const page = await browser.newPage();
 const errors = [], results = [];
+// Expanded forms are below the drawing: center controls clear of the sticky header.
+async function click(selector) {
+  await page.$eval(selector,e=>e.scrollIntoView({block:'center',behavior:'instant'}));
+  await page.click(selector);
+}
 page.on('pageerror', e => errors.push(e.message));
 page.on('console', m => {if(m.type() === 'error') errors.push(m.text());});
 try {
@@ -27,15 +32,17 @@ try {
   // Independent repeatable run: clear the browser's previous local project.
   await page.evaluate(() => localStorage.clear());
   await page.reload({waitUntil:'networkidle2'});
-  await page.click('[data-actie="opening-toevoegen"][data-soort="Deur"]');
+  await page.evaluate(()=>{for(const id of ['ruimte-invoer','werk-invoer','installatie-invoer','zijde'])document.getElementById(id).open=true;});
+  await click('[data-actie="opening-toevoegen"][data-soort="Deur"]');
   await page.waitForNetworkIdle({idleTime:300});
-  await page.click('[data-actie="regel-toevoegen"]');
+  await click('[data-actie="regel-toevoegen"]');
   await page.waitForNetworkIdle({idleTime:300});
-  await page.click('[data-installatie="sanitair"]');
+  await page.$eval('#installatie-invoer',e=>e.open=true);
+  await click('[data-installatie="sanitair"]');
   assert.equal(await page.$$eval('[data-installatie-pakket]', es => es.length), 15);
   await page.select('#san-vlak', 'vloer');
-  await page.click('[data-installatie-pakket="san_lavabo"]');
-  await page.click('[data-installatie-pakket="san_koudwater"]');
+  await click('[data-installatie-pakket="san_lavabo"]');
+  await click('[data-installatie-pakket="san_koudwater"]');
   await page.waitForFunction(() => state.offerte?.regels.length === 3);
   assert.equal(await page.evaluate(() => state.project.regels[2].oppervlak), 'vloer');
   await page.$eval('.regelkaart:last-child [data-hoeveelheid]', el => {
@@ -46,11 +53,11 @@ try {
   await page.waitForFunction(() => state.offerte.regels[2].aantal === 10);
   await page.select('.regelkaart:last-child [data-regel-vlak]', 'west');
   await page.waitForFunction(() => state.offerte.regels[2].oppervlak === 'west');
-  await page.click('[data-tab="instellingen"]');
-  await page.click('input[name="prijsmodus"][value="m2"]');
+  await click('[data-tab="instellingen"]');
+  await click('input[name="prijsmodus"][value="m2"]');
   await page.waitForFunction(() => state.project.prijsmodus === 'm2');
   assert.equal(await page.evaluate(() => state.offerte.regels[2].eenheid), 'm');
-  await page.click('[data-hoofdtab="tarieven"]');
+  await click('[data-hoofdtab="tarieven"]');
   await page.select('#tarief-categorie', 'sanitair');
   assert.equal(await page.$$eval('.tarief:not([hidden])', es => es.length), 29);
   await page.reload({waitUntil:'networkidle2'});
@@ -60,11 +67,12 @@ try {
   for (const width of [320,360,390,768,1024,1280,1440,1920]) {
     await page.setViewport({width,height:900,isMobile:width<768,hasTouch:width<1024});
     for (const panel of ['calculator','tarieven']) {
-      await page.click(`[data-hoofdtab="${panel}"]`);
+      await click(`[data-hoofdtab="${panel}"]`);
       if (panel === 'calculator') {
-        await page.click('[data-installatie="sanitair"]');
-        await page.click('[data-plan="isometrie"]');
-        await page.click('[data-camera="rechts"]');
+        await page.$eval('#installatie-invoer',e=>e.open=true);
+  await click('[data-installatie="sanitair"]');
+        await click('[data-plan="isometrie"]');
+        await click('[data-camera="rechts"]');
       }
       const size = await page.evaluate(() => ({viewport:innerWidth, scroll:document.documentElement.scrollWidth}));
       assert.equal(size.viewport, width, `Inflated mobile viewport: ${width} ${panel}`);
@@ -76,8 +84,9 @@ try {
     }
   }
   await page.setViewport({width:390,height:844,isMobile:true,hasTouch:true});
-  await page.click('[data-hoofdtab="calculator"]');
-  await page.click('[data-installatie="sanitair"]');
+  await click('[data-hoofdtab="calculator"]');
+  await page.$eval('#installatie-invoer',e=>e.open=true);
+  await click('[data-installatie="sanitair"]');
   const touch = await page.$$eval('button.knop, button.hoofdtab, button.tab, button.planknop, button.ruimtechip', es =>
     es.filter(e => e.getClientRects().length).map(e => ({text:e.textContent.trim(),height:e.getBoundingClientRect().height})));
   assert(touch.every(e => e.height >= 44), 'Some mobile controls have a target shorter than 44px');
@@ -85,7 +94,7 @@ try {
   await page.emulateMediaFeatures([{name:'prefers-color-scheme',value:'dark'}, {name:'prefers-reduced-motion',value:'reduce'}]);
   await page.screenshot({path:path.join(output,'calculator-dark-mobile.png'),fullPage:true});
   // Print while the price book is active must still print the quotation, not the editor.
-  await page.click('[data-hoofdtab="tarieven"]');
+  await click('[data-hoofdtab="tarieven"]');
   await page.emulateMediaType('print');
   assert(await page.$eval('#calculator-paneel', e => getComputedStyle(e).display !== 'none'));
   assert(await page.$eval('#paneel-tarieven', e => getComputedStyle(e).display === 'none'));

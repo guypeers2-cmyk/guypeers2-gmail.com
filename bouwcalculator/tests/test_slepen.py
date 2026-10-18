@@ -40,6 +40,11 @@ for(const vlak of ['noord','oost','zuid','west','vloer','plafond']) {
  const hidden=window.BouwPlan.aanzicht(room,[],{},{vlak,regels,lagen:{elektriciteit:false}});
  assert(!hidden.includes('data-plan-regel='));
 }
+for(const draw of [window.BouwPlan.plattegrond,window.BouwPlan.aanzicht]) {
+ const normal=draw(room,[],{},{}),zoomed=draw(room,[],{},{zoom:1.3});
+ assert.notEqual(normal.match(/viewBox="[^"]+"/)[0],zoomed.match(/viewBox="[^"]+"/)[0]);
+ assert(!zoomed.includes('NaN'));
+}
 const huge=window.BouwPlan.aanzicht({lengte:1e6,breedte:1e6,hoogte:1e6},[],{},{vlak:'noord'});
 assert((huge.match(/aanzicht-raster/g)||[]).length<45);
 const {P} = window.BouwPlan.planProjectie(room);

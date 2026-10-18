@@ -26,7 +26,8 @@ await page.evaluate(()=>{
  wijzig(()=>{});
 });
 await page.waitForFunction(()=>state.offerte.regels.length===1);
-const trash='[data-plan-verwijder="trash-test"]';
+await page.$eval('#plan-objecten',e=>e.open=true);
+const trash='#plan-legenda [data-plan-verwijder="trash-test"]';
 assert(await page.$(`${trash} svg`));
 page.once('dialog',d=>d.dismiss());await page.click(trash);
 assert.equal(await page.evaluate(()=>state.project.regels.length),1,'cancel retains object');

@@ -1283,3 +1283,89 @@ input[type="search"] { width: 100%; min-height: 38px; font: inherit; color: var(
 .plan-opening-rij strong { font-size: .8rem; }
 .plan-opening-rij small { display: block; margin-top: 3px; color: var(--tekst-2); font-size: .7rem; }
 @media print { .plan-vuilbak,#plan-openingen { display: none !important; } }
+
+/* Drawing-first studio. Supporting tasks are disclosed only when needed. */
+@media screen {
+  #calculator-paneel.layout { display: flex; flex-direction: column; max-width: 1280px; gap: 16px; padding: 20px 28px 90px; }
+  #calculator-paneel > .studio-nav { order: 0; }
+  #werkvlak { order: 1; width: 100%; gap: 14px; }
+  #zijde { order: 2; }
+  #offertepaneel { order: 3; }
+  #zijde,#offertepaneel { position: static; max-height: none; overflow: visible; width: 100%; padding: 0; }
+  #ruimte-invoer { order: 2; }
+  #werkvlak > .ruimtechips { order: 0; margin: 0; }
+  #tekening { order: 1; }
+  #werk-invoer { order: 3; }
+  #installatie-invoer { order: 4; }
+  #tekening .planhouder { max-width: 1100px; margin: 0 auto; }
+  #plan-sleepstatus { min-block-size: 3em; margin: 8px 0 0; }
+}
+.studio-nav { display: flex; flex-wrap: wrap; gap: 6px; width: 100%; padding: 8px; background: var(--oppervlak); border: 1px solid var(--rand); border-radius: 12px; }
+.studio-nav button { min-height: 44px; padding: 9px 14px; border: 0; border-radius: 7px; background: transparent; color: var(--tekst-2); cursor: pointer; font-size: .8rem; font-weight: 600; }
+.studio-nav button:hover,.studio-nav button.studio-nav-actief { color: var(--accent); background: var(--accent-zacht); }
+#studio-totaal { margin-left: 6px; white-space: nowrap; }
+.studio-vouw { min-width: 0; border: 1px solid var(--rand); border-radius: 10px; background: var(--oppervlak); }
+.studio-vouw > summary { min-height: 48px; padding: 14px 16px; color: var(--tekst); font-size: .85rem; font-weight: 650; cursor: pointer; list-style: none; display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; }
+.studio-vouw > summary::-webkit-details-marker { display: none; }
+.studio-vouw > summary::before { content: '›'; font-size: 20px; line-height: 16px; color: var(--tekst-2); transition: transform .15s; }
+.studio-vouw[open] > summary::before { transform: rotate(90deg); }
+.studio-vouw > summary span { color: var(--tekst-2); font-size: .74rem; font-weight: 400; }
+.studio-vouw[open] > summary { border-bottom: 1px solid var(--rand); }
+.studio-vouw-inhoud { padding: 16px; }
+.studio-opties { margin-top: 12px; background: var(--oppervlak-2); }
+.studio-opties .plan-lagen { margin-top: 0; }
+.studio-uitleg { margin-top: 10px; }
+#tekening { scroll-margin-top: 90px; }
+.studio-vouw { scroll-margin-top: 90px; }
+.plan-selectie { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; border: 1px solid var(--accent-rand); border-radius: 10px; background: var(--accent-zacht); padding: 10px 12px; margin: 8px 0 12px; }
+.plan-selectie[hidden] { display: none !important; }
+.plan-selectie > span { font-size: .85rem; font-weight: 600; }
+.plan-selectie > div { display: flex; align-items: center; gap: 6px; }
+.plan-geselecteerd .werk-achtergrond { stroke: var(--accent); stroke-width: 4; }
+.plan-geselecteerd .werk-trace { stroke-width: 6; }
+.plan-geselecteerd .werk-vlak-badge { stroke: var(--tekst); stroke-width: 3; }
+@media (min-width: 900px) { #zijde .studio-vouw-inhoud { max-width: 850px; } .vlak-keuze { grid-template-columns: repeat(6,minmax(0,1fr)); } }
+@media (max-width: 600px) {
+  #calculator-paneel.layout { padding: 12px 10px 90px; }
+  .studio-nav { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); }
+  .studio-nav button { padding: 8px 4px; font-size: .72rem; }
+  .studio-nav button:last-child { grid-column: span 2; }
+  .studio-nav #studio-totaal { display: block; margin: 3px 0 0; }
+  .studio-vouw > summary span { display: block; }
+  .studio-vouw-inhoud { padding: 12px; }
+  .plankaart { padding: 12px; }
+}
+@media print {
+  .studio-nav,.studio-vouw > summary { display: none !important; }
+  #offertepaneel > .studio-vouw-inhoud { padding: 0; }
+}
+@media screen {
+  #tekening .object-menu-start { margin: 0; }
+  #tekening .plankop { justify-content: flex-start; }
+  #tekening .plankop h3 { margin-right: auto; }
+  #tekening #plan svg { width: 100%; height: auto; max-height: 68dvh; display: block; }
+  #tekening .vlak-intro { display: none; }
+  #tekening .vlak-bediening { padding: 10px; }
+  #tekening .studio-opties { margin-bottom: 10px; }
+}
+@media (max-width: 600px) {
+  #tekening .vlak-keuze { grid-template-columns: repeat(3,minmax(0,1fr)); }
+  #tekening .vlak-keuze button { padding: 8px 6px; min-height: 56px; }
+  #tekening .vlak-keuze button span { font-size: .72rem; }
+  #tekening .vlak-keuze button small { font-size: .65rem; }
+  #tekening #plan svg { max-height: 60dvh; }
+  #tekening .plankeuze { order: 3; width: 100%; }
+  #tekening .object-menu-start { padding: 8px 10px; font-size: .8rem; }
+}
+[data-camera][hidden] { display: none !important; }
+.plan-geselecteerd > .aanzicht-opening,.plan-geselecteerd > .iso-opening,.plan-geselecteerd .plan-deur,.plan-geselecteerd .plan-raam { stroke: var(--accent); stroke-width: 4; }
+
+.tekening-snelknop { position: fixed; left: 24px; bottom: max(20px,env(safe-area-inset-bottom)); min-height: 48px; border-radius: 100px; z-index: 40; box-shadow: 0 6px 24px #14255020; }
+@media (max-width: 600px) { .tekening-snelknop { left: 14px; } }
+@media print { .tekening-snelknop { display: none !important; } }
+.bestand-menu { position: relative; }
+.bestand-menu > summary { list-style: none; cursor: pointer; min-height: 44px; }
+.bestand-menu > summary::-webkit-details-marker { display: none; }
+.bestand-menu-inhoud { position: absolute; top: calc(100% + 8px); right: 0; display: grid; gap: 6px; width: 220px; padding: 10px; z-index: 60; border: 1px solid var(--rand); border-radius: 12px; background: var(--oppervlak); box-shadow: var(--schaduw-2); }
+.bestand-menu-inhoud button { width: 100%; justify-content: flex-start; min-height: 44px; }
+@media screen and (min-width: 901px) { #tekening #plan svg { max-height: clamp(280px,calc(100dvh - 420px),700px); } }
