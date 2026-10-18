@@ -19,6 +19,8 @@ from pathlib import Path
 
 WEB = Path(__file__).resolve().parent.parent / "web"
 DOEL = WEB / "bouwcalculator-standalone.html"
+# Tweede kopie: korte, downloadbare link naar de app (bv. via raw/jsDelivr).
+KOPIE = WEB.parent / "bouwcalculator.html"
 
 HEADER = """<!--
   Bouwprijscalculator — één-bestand-versie (standalone).
@@ -96,7 +98,9 @@ def main() -> int:
 
     html = html.replace("<head>", "<head>\n" + HEADER, 1)
     DOEL.write_text(html, encoding="utf-8")
+    KOPIE.write_text(html, encoding="utf-8")
     print(f"{DOEL.relative_to(WEB.parent.parent)}  ({len(html.encode('utf-8')) / 1024:.1f} KiB)")
+    print(f"{KOPIE.relative_to(WEB.parent.parent)}  (downloadkopie)")
     return 0
 
 

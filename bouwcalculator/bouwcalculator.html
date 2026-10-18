@@ -1,0 +1,2333 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<!--
+  Bouwprijscalculator — één-bestand-versie (standalone).
+  Gegenereerd door bouwcalculator/tools/maak_standalone.py uit index.html,
+  styles.css, prijsboek.js, engine.js en app.js. Niets handmatig wijzigen.
+  Open dit bestand in een browser: de app rekent volledig lokaal.
+-->
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bouwprijscalculator — Gyproc, isolatie & afwerking</title>
+  <style>
+/* ==========================================================
+   BOUWPRIJSCALCULATOR — stijl
+   Licht, leesbaar, grote knoppen: ook met werkhandschoenen
+   en in zonlicht nog bruikbaar. Het offertedocument is
+   printgericht (wit, A4).
+   ========================================================== */
+
+:root {
+  --bg: #eef1f6;
+  --paneel: #ffffff;
+  --paneel-2: #f7f9fc;
+  --rand: #d6dde8;
+  --rand-sterk: #b9c4d4;
+  --tekst: #16202e;
+  --tekst-dim: #5b6a7f;
+  --accent: #d9480f;
+  --accent-zacht: #fff1e8;
+  --accent-2: #1c7ed6;
+  --groen: #2b8a3e;
+  --groen-zacht: #ebfbee;
+  --rood: #c92a2a;
+  --amber: #b8860b;
+  --grijs-zacht: #f1f3f7;
+  --radius: 10px;
+  --schaduw: 0 1px 2px rgba(16, 26, 40, .06), 0 4px 16px rgba(16, 26, 40, .06);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--tekst);
+  font-size: 15px;
+  line-height: 1.45;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+h1, h2, h3 { line-height: 1.25; }
+
+/* ---------------- Topbar ---------------- */
+.topbar {
+  background: var(--paneel);
+  border-bottom: 1px solid var(--rand);
+  padding: 10px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+.merk { display: flex; align-items: center; gap: 12px; }
+.merk .logo { font-size: 30px; }
+.merk h1 { font-size: 1.15rem; letter-spacing: -.01em; }
+.merk p { font-size: .8rem; color: var(--tekst-dim); }
+.topbar-acties { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.status { font-size: .8rem; color: var(--tekst-dim); margin-right: 6px; }
+
+/* ---------------- Knoppen ---------------- */
+.knop {
+  font: inherit;
+  font-size: .88rem;
+  font-weight: 600;
+  color: var(--tekst);
+  background: var(--paneel);
+  border: 1px solid var(--rand-sterk);
+  border-radius: 8px;
+  padding: 8px 13px;
+  cursor: pointer;
+  transition: background .12s, border-color .12s, transform .06s;
+}
+.knop:hover { background: var(--grijs-zacht); }
+.knop:active { transform: translateY(1px); }
+.knop.primair { background: var(--accent); border-color: var(--accent); color: #fff; }
+.knop.primair:hover { background: #c14009; }
+.knop.klein { font-size: .8rem; padding: 5px 9px; }
+.knop.gevaar { color: var(--rood); border-color: #f0c4c4; }
+.knop.gevaar:hover { background: #fff5f5; }
+.knop:disabled { opacity: .5; cursor: not-allowed; }
+
+/* ---------------- Layout ---------------- */
+.layout {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr) 430px;
+  gap: 14px;
+  padding: 14px;
+  align-items: start;
+}
+.paneel {
+  background: var(--paneel);
+  border: 1px solid var(--rand);
+  border-radius: var(--radius);
+  box-shadow: var(--schaduw);
+  padding: 14px;
+}
+.zijde { position: sticky; top: 76px; max-height: calc(100vh - 92px); overflow-y: auto; }
+.offertepaneel { position: sticky; top: 76px; max-height: calc(100vh - 92px); overflow-y: auto; }
+
+/* ---------------- Tabs ---------------- */
+.tabs { display: flex; gap: 4px; margin-bottom: 14px; background: var(--grijs-zacht); padding: 4px; border-radius: 8px; }
+.tab {
+  flex: 1;
+  font: inherit;
+  font-size: .85rem;
+  font-weight: 600;
+  border: none;
+  background: transparent;
+  color: var(--tekst-dim);
+  padding: 7px 4px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.tab.actief { background: var(--paneel); color: var(--accent); box-shadow: var(--schaduw); }
+.tabpaneel { display: none; }
+.tabpaneel.actief { display: block; }
+
+h2 { font-size: .95rem; text-transform: uppercase; letter-spacing: .04em; color: var(--tekst-dim); margin: 4px 0 10px; }
+h2:not(:first-child) { margin-top: 20px; }
+
+/* ---------------- Velden ---------------- */
+.veld { display: block; margin-bottom: 10px; }
+.veld > span { display: block; font-size: .78rem; font-weight: 600; color: var(--tekst-dim); margin-bottom: 3px; }
+input[type=text], input[type=number], input[type=date], textarea, select {
+  font: inherit;
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--rand-sterk);
+  border-radius: 7px;
+  background: var(--paneel);
+  color: var(--tekst);
+}
+input:focus, textarea:focus, select:focus {
+  outline: 2px solid var(--accent-zacht);
+  border-color: var(--accent);
+}
+textarea { resize: vertical; }
+.rij { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.hint { font-size: .78rem; color: var(--tekst-dim); margin: 8px 0 12px; }
+
+.keuze { display: flex; flex-direction: column; gap: 8px; }
+.radio {
+  display: flex; gap: 9px; align-items: flex-start;
+  border: 1px solid var(--rand); border-radius: 8px; padding: 9px 11px; cursor: pointer;
+}
+.radio:has(input:checked) { border-color: var(--accent); background: var(--accent-zacht); }
+.radio input { margin-top: 3px; accent-color: var(--accent); }
+.radio small { color: var(--tekst-dim); font-size: .78rem; }
+
+/* ---------------- Ruimtes ---------------- */
+.ruimtechips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+.ruimtechip {
+  font: inherit; font-size: .86rem; font-weight: 600;
+  border: 1px solid var(--rand-sterk); background: var(--paneel); color: var(--tekst);
+  padding: 7px 13px; border-radius: 999px; cursor: pointer;
+}
+.ruimtechip.actief { background: var(--accent); border-color: var(--accent); color: #fff; }
+.ruimtechip:hover:not(.actief) { background: var(--grijs-zacht); }
+
+.ruimtekaart { border: 1px solid var(--rand); border-radius: var(--radius); padding: 13px; margin-bottom: 14px; background: var(--paneel-2); }
+.ruimtekaart header { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+.ruimtekaart header h3 { font-size: 1rem; flex: 1; }
+.maten { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.maten .veld { margin-bottom: 0; }
+
+.openings { margin-top: 13px; }
+.openings table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+.openings th { text-align: left; font-size: .74rem; text-transform: uppercase; letter-spacing: .04em; color: var(--tekst-dim); padding-bottom: 5px; font-weight: 600; }
+.openings td { padding: 3px 4px 3px 0; }
+.openings input, .openings select { padding: 6px 8px; }
+.openings .verwijder { background: none; border: none; color: var(--rood); cursor: pointer; font-size: 1rem; padding: 2px 6px; }
+.openings-acties { display: flex; gap: 8px; margin-top: 9px; }
+
+/* ---------------- Oppervlakken ---------------- */
+.oppervlakken { margin: 16px 0; }
+.oppervlakken h3 { font-size: .9rem; margin-bottom: 8px; }
+table.opp { width: 100%; border-collapse: collapse; font-size: .88rem; }
+table.opp th { text-align: left; font-size: .74rem; text-transform: uppercase; letter-spacing: .04em; color: var(--tekst-dim); border-bottom: 1px solid var(--rand); padding: 6px 8px 6px 0; font-weight: 600; }
+table.opp td { padding: 7px 8px 7px 0; border-bottom: 1px solid var(--grijs-zacht); }
+table.opp td.num, table.opp th.num { text-align: right; font-variant-numeric: tabular-nums; }
+table.opp tr.vlak-muur td:first-child { border-left: 3px solid var(--accent-2); padding-left: 9px; }
+table.opp tr.vlak-plafond td:first-child { border-left: 3px solid var(--groen); padding-left: 9px; }
+table.opp tr.vlak-vloer td:first-child { border-left: 3px solid var(--rand-sterk); padding-left: 9px; }
+.klein-muted { font-size: .78rem; color: var(--tekst-dim); }
+
+/* ---------------- Werkregels ---------------- */
+.regels { display: flex; flex-direction: column; gap: 12px; }
+.regelkaart { border: 1px solid var(--rand); border-left: 4px solid var(--accent); border-radius: var(--radius); background: var(--paneel); }
+.regelkaart > header { display: flex; gap: 9px; align-items: center; padding: 11px 13px; flex-wrap: wrap; }
+.regelkaart > header .titel { font-weight: 700; font-size: .95rem; flex: 1; min-width: 200px; }
+.regelkaart > header select { width: auto; max-width: 260px; }
+.regelopties { display: flex; gap: 12px; flex-wrap: wrap; padding: 0 13px 11px; }
+.regelopties label { font-size: .78rem; color: var(--tekst-dim); }
+.regelopties select { margin-top: 2px; font-size: .84rem; padding: 6px 8px; }
+.regelprijs { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; padding: 10px 13px; background: var(--paneel-2); border-top: 1px solid var(--grijs-zacht); font-size: .85rem; }
+.regelprijs .totaal { margin-left: auto; font-weight: 700; font-size: 1.02rem; color: var(--accent); font-variant-numeric: tabular-nums; }
+.regelprijs .deel { color: var(--tekst-dim); }
+.regelprijs .deel b { color: var(--tekst); font-weight: 600; }
+details.details { border-top: 1px solid var(--grijs-zacht); }
+details.details > summary { cursor: pointer; padding: 9px 13px; font-size: .82rem; font-weight: 600; color: var(--accent-2); list-style: none; }
+details.details > summary::-webkit-details-marker { display: none; }
+details.details > summary::before { content: "▸ "; }
+details.details[open] > summary::before { content: "▾ "; }
+details.details table { width: 100%; border-collapse: collapse; font-size: .82rem; padding: 0; }
+details.details td { padding: 4px 13px; }
+details.details td.num { text-align: right; font-variant-numeric: tabular-nums; width: 90px; }
+details.details td.eenheid { width: 52px; color: var(--tekst-dim); }
+details.details tr.sectie td { background: var(--grijs-zacht); font-weight: 700; font-size: .76rem; text-transform: uppercase; letter-spacing: .04em; color: var(--tekst-dim); padding-top: 8px; padding-bottom: 5px; }
+details.details tr.totaal td { border-top: 1px solid var(--rand); font-weight: 700; padding-top: 7px; }
+
+/* ---------------- Offerte (document) ---------------- */
+.offerte { background: #fff; }
+.offerte-kop { border-bottom: 2px solid var(--tekst); padding-bottom: 12px; margin-bottom: 14px; }
+.offerte-kop h2 { font-size: 1.25rem; text-transform: none; letter-spacing: 0; color: var(--tekst); margin: 0 0 4px; }
+.offerte-kop .meta { display: flex; justify-content: space-between; gap: 12px; font-size: .82rem; color: var(--tekst-dim); flex-wrap: wrap; }
+.offerte-partijen { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; font-size: .85rem; }
+.offerte-partijen h4 { font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; color: var(--tekst-dim); margin-bottom: 4px; }
+.offerte-partijen p { margin-bottom: 2px; }
+table.offerte-tabel { width: 100%; border-collapse: collapse; font-size: .85rem; margin-bottom: 14px; }
+table.offerte-tabel th { text-align: left; font-size: .72rem; text-transform: uppercase; letter-spacing: .04em; color: var(--tekst-dim); border-bottom: 1px solid var(--rand); padding: 5px 6px 5px 0; }
+table.offerte-tabel td { padding: 7px 6px 7px 0; border-bottom: 1px solid var(--grijs-zacht); vertical-align: top; }
+table.offerte-tabel td.num, table.offerte-tabel th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+table.offerte-tabel tr.ruimte-kop td { background: var(--paneel-2); font-weight: 700; font-size: .8rem; text-transform: uppercase; letter-spacing: .03em; padding: 7px 6px; }
+.offerte-totaal { margin-left: auto; width: 300px; max-width: 100%; font-size: .88rem; }
+.offerte-totaal div { display: flex; justify-content: space-between; gap: 12px; padding: 4px 0; }
+.offerte-totaal .groot { font-weight: 700; font-size: .95rem; }
+.offerte-totaal .eind { border-top: 2px solid var(--tekst); margin-top: 6px; padding-top: 9px; font-weight: 800; font-size: 1.15rem; }
+.offerte-totaal .eind span:last-child { color: var(--accent); }
+.offerte-noot { font-size: .78rem; color: var(--tekst-dim); margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--grijs-zacht); white-space: pre-wrap; }
+.leeg-melding { text-align: center; padding: 40px 14px; color: var(--tekst-dim); }
+.leeg-melding .groot-emoji { font-size: 2.2rem; display: block; margin-bottom: 8px; }
+
+/* ---------------- Tarievenlijst ---------------- */
+.tarievenlijst { display: flex; flex-direction: column; gap: 4px; }
+.tarief-groep { font-size: .74rem; text-transform: uppercase; letter-spacing: .05em; color: var(--tekst-dim); font-weight: 700; margin: 12px 0 4px; }
+.tarief { display: grid; grid-template-columns: 1fr 88px 52px; gap: 7px; align-items: center; font-size: .8rem; }
+.tarief input { padding: 5px 7px; text-align: right; font-variant-numeric: tabular-nums; }
+.tarief .eenheid { color: var(--tekst-dim); font-size: .75rem; }
+.tarief .naam { color: var(--tekst); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tarief.is-taak .naam { color: var(--accent-2); }
+.tarief.is-m2 .naam { color: var(--amber); }
+
+/* ---------------- Modal & toast ---------------- */
+.modal-achtergrond { position: fixed; inset: 0; background: rgba(16, 26, 40, .45); display: flex; align-items: center; justify-content: center; z-index: 60; padding: 20px; }
+.modal { background: var(--paneel); border-radius: 12px; padding: 18px; width: min(560px, 100%); max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,.3); }
+.modal h2 { color: var(--tekst); text-transform: none; letter-spacing: 0; font-size: 1.05rem; }
+.modal-acties { display: flex; justify-content: flex-end; margin-top: 16px; }
+.projectlijst { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+.projectregel { display: flex; align-items: center; gap: 10px; border: 1px solid var(--rand); border-radius: 8px; padding: 9px 11px; }
+.projectregel .naam { font-weight: 600; flex: 1; }
+.projectregel .meta { font-size: .78rem; color: var(--tekst-dim); }
+
+.toast {
+  position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+  background: var(--tekst); color: #fff; padding: 11px 18px; border-radius: 999px;
+  font-size: .87rem; font-weight: 600; z-index: 80; box-shadow: 0 8px 24px rgba(0,0,0,.25);
+}
+
+/* ---------------- Responsief ---------------- */
+@media (max-width: 1280px) {
+  .layout { grid-template-columns: 290px minmax(0, 1fr); }
+  .offertepaneel { grid-column: 1 / -1; position: static; max-height: none; }
+}
+@media (max-width: 860px) {
+  .layout { grid-template-columns: 1fr; }
+  .zijde { position: static; max-height: none; }
+  .topbar { position: static; }
+  .offerte-partijen { grid-template-columns: 1fr; }
+  .maten { grid-template-columns: 1fr 1fr 1fr; }
+}
+
+/* ---------------- Print: alleen de offerte ---------------- */
+@media print {
+  @page { margin: 14mm; }
+  body { background: #fff; }
+  body > *:not(.layout) { display: none !important; }
+  .layout { display: block; padding: 0; }
+  .zijde, .werkvlak { display: none !important; }
+  .offertepaneel { border: none; box-shadow: none; padding: 0; max-height: none; position: static; }
+  .offerte { font-size: 11pt; }
+  table.offerte-tabel { font-size: 9.5pt; }
+  .offerte-totaal { width: 260px; }
+  tr, .offerte-partijen, .offerte-totaal { break-inside: avoid; }
+  .offerte-kop h2 { font-size: 15pt; }
+}
+
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="merk">
+    <span class="logo">🏗️</span>
+    <div>
+      <h1>Bouwprijscalculator</h1>
+      <p>Gyproc · isolatie · afwerking — prijs per m² uit je eigen maten</p>
+    </div>
+  </div>
+  <div class="topbar-acties">
+    <span class="status" id="status" aria-live="polite"></span>
+    <button type="button" class="knop" id="btn-nieuw">🆕 Nieuw</button>
+    <button type="button" class="knop" id="btn-opslaan">💾 Opslaan</button>
+    <button type="button" class="knop" id="btn-openen">📂 Openen</button>
+    <button type="button" class="knop primair" id="btn-print">🖨 Offerte printen</button>
+  </div>
+</header>
+
+<main class="layout">
+
+  <!-- ================= LINKERZIJDE: project, instellingen, tarieven ================= -->
+  <aside class="paneel zijde" id="zijde">
+    <nav class="tabs" role="tablist">
+      <button class="tab actief" data-tab="project" role="tab">Project</button>
+      <button class="tab" data-tab="instellingen" role="tab">Prijzen</button>
+      <button class="tab" data-tab="tarieven" role="tab">Tarieven</button>
+    </nav>
+
+    <section class="tabpaneel actief" data-paneel="project">
+      <h2>Offertegegevens</h2>
+      <label class="veld">
+        <span>Project / offerte</span>
+        <input type="text" data-project="naam" data-fokus="p_naam" placeholder="Verbouwing woonhuis">
+      </label>
+      <label class="veld">
+        <span>Klant</span>
+        <input type="text" data-project="klant" data-fokus="p_klant" placeholder="Familie Janssens">
+      </label>
+      <label class="veld">
+        <span>Adres</span>
+        <input type="text" data-project="adres" data-fokus="p_adres" placeholder="Kerkstraat 12, 8500 Waregem">
+      </label>
+      <div class="rij">
+        <label class="veld">
+          <span>Offerte-nummer</span>
+          <input type="text" data-project="offerte_nummer" data-fokus="p_num" placeholder="O-2026-001">
+        </label>
+        <label class="veld">
+          <span>Datum</span>
+          <input type="date" data-project="datum" data-fokus="p_datum">
+        </label>
+      </div>
+      <label class="veld">
+        <span>Aannemer (jouw naam/bedrijf)</span>
+        <input type="text" data-project="aannemer" data-fokus="p_aannemer" placeholder="J. Peeters">
+      </label>
+      <label class="veld">
+        <span>Opmerking op de offerte</span>
+        <textarea data-project="opmerking" data-fokus="p_opm" rows="3"
+                  placeholder="Prijsberekening op basis van de opgegeven maten. Werkzaamheden conform de gangbare normen."></textarea>
+      </label>
+      <div class="openings-acties" style="margin-top:6px">
+        <button type="button" class="knop klein" id="btn-export">⬇ Exporteer JSON</button>
+        <button type="button" class="knop klein" id="btn-import">⬆ Importeer JSON</button>
+        <input type="file" id="import-bestand" accept="application/json" hidden>
+      </div>
+    </section>
+
+    <section class="tabpaneel" data-paneel="instellingen">
+      <h2>Uurtarief & marges</h2>
+      <div class="rij">
+        <label class="veld">
+          <span>Uurtarief (€/uur)</span>
+          <input type="number" step="0.5" min="0" data-project="uurtarief" data-fokus="s_uur">
+        </label>
+        <label class="veld">
+          <span>Marge materiaal (%)</span>
+          <input type="number" step="1" min="0" max="200" data-project="marge_pct" data-fokus="s_marge">
+        </label>
+      </div>
+      <div class="rij">
+        <label class="veld">
+          <span>Korting (%)</span>
+          <input type="number" step="0.5" min="0" max="100" data-project="korting_pct" data-fokus="s_korting">
+        </label>
+        <label class="veld">
+          <span>BTW (%)</span>
+          <input type="number" step="0.5" min="0" max="100" data-project="btw_pct" data-fokus="s_btw">
+        </label>
+      </div>
+      <h2>Prijsmodus</h2>
+      <div class="keuze">
+        <label class="radio">
+          <input type="radio" name="prijsmodus" value="detail" data-fokus="m_detail">
+          <span><strong>Detailschuif</strong><br><small>Volledige materiaalnamen (take-off) en uren per taak.</small></span>
+        </label>
+        <label class="radio">
+          <input type="radio" name="prijsmodus" value="m2" data-fokus="m_m2">
+          <span><strong>Snelle m²-prijs</strong><br><small>Eén prijs per m² — snel op de werf, geen namenlijst.</small></span>
+        </label>
+      </div>
+      <p class="hint">De m²-prijzen worden afgeleid uit de standaardtarieven, dus ze blijven
+        altijd kloppen met de detailschuif. Je kan ze per project aanpassen onder
+        <em>Tarieven</em>.</p>
+    </section>
+
+    <section class="tabpaneel" data-paneel="tarieven">
+      <h2>Prijsboek</h2>
+      <p class="hint">Pas de prijzen aan op jouw inkoop. De waarde wordt meteen doorberekend
+        in de offerte.</p>
+      <div id="tarieven-lijst" class="tarievenlijst"></div>
+    </section>
+  </aside>
+
+  <!-- ================= MIDDEN: ruimtes, oppervlakken, werkregels ================= -->
+  <section class="paneel werkvlak" id="werkvlak">
+    <div class="ruimtechips" id="ruimtechips"></div>
+    <article class="ruimtekaart" id="ruimtekaart"></article>
+    <div class="oppervlakken" id="oppervlakken"></div>
+    <div class="regels" id="regels"></div>
+  </section>
+
+  <!-- ================= RECHTERZIJDE: de offerte ================= -->
+  <aside class="paneel offertepaneel" id="offertepaneel">
+    <div id="offerte" class="offerte"></div>
+  </aside>
+
+</main>
+
+<div class="modal-achtergrond" id="modal-achtergrond" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-titel">
+    <h2 id="modal-titel">Opgeslagen offertes</h2>
+    <div id="modal-inhoud"></div>
+    <div class="modal-acties">
+      <button type="button" class="knop" id="modal-sluiten">Sluiten</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script>
+
+(function () {
+// ==========================================================
+// PRIJSBOEK — gegenereerd uit bouw/tarieven.py
+// (bouwcalculator/tools/maak_prijsboek.py)
+// NIET HANDMATIG AANPASSEN: wijzig de Python-bron en draai
+// het script opnieuw, anders lopen Python en JS uiteen.
+// ==========================================================
+const TARIEVEN = {
+  "plaat_gyproc_12_5": {
+    "naam": "Gyproc gipsplaat 12,5 mm · 1200×2600",
+    "eenheid": "st",
+    "prijs": 9.5,
+    "soort": "materiaal",
+    "per_eenheid": 3.12,
+    "per_eenheid_eenheid": "m2"
+  },
+  "plaat_gyproc_15": {
+    "naam": "Gyproc gipsplaat 15 mm · 1200×2600",
+    "eenheid": "st",
+    "prijs": 12.0,
+    "soort": "materiaal",
+    "per_eenheid": 3.12,
+    "per_eenheid_eenheid": "m2"
+  },
+  "plaat_ggl_30": {
+    "naam": "Gyproc GGL 30 mm (geïsoleerd) · 1200×2400",
+    "eenheid": "st",
+    "prijs": 24.0,
+    "soort": "materiaal",
+    "per_eenheid": 2.88,
+    "per_eenheid_eenheid": "m2"
+  },
+  "profiel_c75": {
+    "naam": "C-profiel 75 mm · 3 m",
+    "eenheid": "st",
+    "prijs": 3.6,
+    "soort": "materiaal",
+    "per_eenheid": 3.0,
+    "per_eenheid_eenheid": "m"
+  },
+  "profiel_c100": {
+    "naam": "C-profiel 100 mm · 3 m",
+    "eenheid": "st",
+    "prijs": 4.8,
+    "soort": "materiaal",
+    "per_eenheid": 3.0,
+    "per_eenheid_eenheid": "m"
+  },
+  "profiel_u25": {
+    "naam": "U-profiel 25 mm (vloerprofiel) · 3 m",
+    "eenheid": "st",
+    "prijs": 1.9,
+    "soort": "materiaal",
+    "per_eenheid": 3.0,
+    "per_eenheid_eenheid": "m"
+  },
+  "profiel_vlakband": {
+    "naam": "Vlakke band 27 mm · 3 m",
+    "eenheid": "st",
+    "prijs": 2.2,
+    "soort": "materiaal",
+    "per_eenheid": 3.0,
+    "per_eenheid_eenheid": "m"
+  },
+  "hanghaak": {
+    "naam": "Veerhanger / plafondhanger",
+    "eenheid": "st",
+    "prijs": 1.4,
+    "soort": "materiaal"
+  },
+  "schroef": {
+    "naam": "Gyproc schroef 3,5×25 mm · doos 1000",
+    "eenheid": "doos",
+    "prijs": 11.0,
+    "soort": "materiaal",
+    "per_eenheid": 1000,
+    "per_eenheid_eenheid": "st"
+  },
+  "tape": {
+    "naam": "Voegband · rol 50 m",
+    "eenheid": "rol",
+    "prijs": 8.5,
+    "soort": "materiaal",
+    "per_eenheid": 50.0,
+    "per_eenheid_eenheid": "m"
+  },
+  "compound": {
+    "naam": "Voegmiddel (Ready-mix) · emmer 25 kg",
+    "eenheid": "emmer",
+    "prijs": 26.0,
+    "soort": "materiaal",
+    "per_eenheid": 25.0,
+    "per_eenheid_eenheid": "kg"
+  },
+  "lijm": {
+    "naam": "Gipslijm · zak 25 kg",
+    "eenheid": "zak",
+    "prijs": 18.0,
+    "soort": "materiaal",
+    "per_eenheid": 25.0,
+    "per_eenheid_eenheid": "kg"
+  },
+  "isolatie_wol": {
+    "naam": "Mineralen wol 75 mm",
+    "eenheid": "m2",
+    "prijs": 12.5,
+    "soort": "materiaal"
+  },
+  "isolatie_pir": {
+    "naam": "PIR-isolatieplaat 60 mm",
+    "eenheid": "m2",
+    "prijs": 21.0,
+    "soort": "materiaal"
+  },
+  "primer": {
+    "naam": "Primer voor gipsplaten · 10 L",
+    "eenheid": "emmer",
+    "prijs": 42.0,
+    "soort": "materiaal",
+    "per_eenheid": 120.0,
+    "per_eenheid_eenheid": "m2"
+  },
+  "verf": {
+    "naam": "Muurverf · 10 L",
+    "eenheid": "emmer",
+    "prijs": 55.0,
+    "soort": "materiaal",
+    "per_eenheid": 120.0,
+    "per_eenheid_eenheid": "m2"
+  },
+  "uur_wand_opmeten": {
+    "naam": "Wand: opmeten en uitsetten",
+    "eenheid": "uur/m2",
+    "prijs": 0.05,
+    "soort": "taak"
+  },
+  "uur_wand_profielen": {
+    "naam": "Wand: profielen plaatsen",
+    "eenheid": "uur/m2",
+    "prijs": 0.3,
+    "soort": "taak"
+  },
+  "uur_wand_isolatie": {
+    "naam": "Wand: isolatie plaatsen",
+    "eenheid": "uur/m2",
+    "prijs": 0.1,
+    "soort": "taak"
+  },
+  "uur_wand_platen": {
+    "naam": "Wand: platen bevestigen",
+    "eenheid": "uur/m2",
+    "prijs": 0.22,
+    "soort": "taak"
+  },
+  "uur_wand_voegen": {
+    "naam": "Wand: voegen en afwerken",
+    "eenheid": "uur/m2",
+    "prijs": 0.3,
+    "soort": "taak"
+  },
+  "uur_plafond_ophangen": {
+    "naam": "Plafond: profielen ophangen",
+    "eenheid": "uur/m2",
+    "prijs": 0.35,
+    "soort": "taak"
+  },
+  "uur_plafond_isolatie": {
+    "naam": "Plafond: isolatie plaatsen",
+    "eenheid": "uur/m2",
+    "prijs": 0.08,
+    "soort": "taak"
+  },
+  "uur_plafond_platen": {
+    "naam": "Plafond: platen bevestigen",
+    "eenheid": "uur/m2",
+    "prijs": 0.25,
+    "soort": "taak"
+  },
+  "uur_plafond_voegen": {
+    "naam": "Plafond: voegen en afwerken",
+    "eenheid": "uur/m2",
+    "prijs": 0.3,
+    "soort": "taak"
+  },
+  "uur_direct_platen": {
+    "naam": "Direct: platen verlijmen",
+    "eenheid": "uur/m2",
+    "prijs": 0.3,
+    "soort": "taak"
+  },
+  "uur_direct_voegen": {
+    "naam": "Direct: voegen en afwerken",
+    "eenheid": "uur/m2",
+    "prijs": 0.3,
+    "soort": "taak"
+  },
+  "uur_voegafwerking": {
+    "naam": "Alleen voegen en afwerken",
+    "eenheid": "uur/m2",
+    "prijs": 0.45,
+    "soort": "taak"
+  },
+  "uur_schilderen": {
+    "naam": "Schilderen: primer + 2 lagen",
+    "eenheid": "uur/m2",
+    "prijs": 0.35,
+    "soort": "taak"
+  }
+};
+const PAKKETTEN = [
+  {
+    "id": "gyproc_wand_profiel",
+    "naam": "Gyproc wand op metaalprofiel",
+    "categorie": "Gyproc wanden",
+    "eenheid": "m2",
+    "beschrijving": "C-profiel, optioneel isolatie, gipsplaten, voegafwerking.",
+    "opties": [
+      {
+        "id": "zijden",
+        "label": "Beplanking",
+        "keuzes": [
+          "1 zijde",
+          "2 zijden"
+        ],
+        "standaard": "1 zijde"
+      },
+      {
+        "id": "plaat",
+        "label": "Gipsplaat",
+        "keuzes": [
+          "12,5 mm",
+          "15 mm",
+          "GGL 30 mm"
+        ],
+        "standaard": "12,5 mm"
+      },
+      {
+        "id": "profiel",
+        "label": "Profiel",
+        "keuzes": [
+          "C75",
+          "C100"
+        ],
+        "standaard": "C75"
+      },
+      {
+        "id": "isolatie",
+        "label": "Isolatie",
+        "keuzes": [
+          "geen",
+          "mineralen wol 75 mm",
+          "PIR 60 mm"
+        ],
+        "standaard": "geen"
+      }
+    ]
+  },
+  {
+    "id": "gyproc_plafond",
+    "naam": "Gyproc plafond op profielen",
+    "categorie": "Gyproc plafonds",
+    "eenheid": "m2",
+    "beschrijving": "Ophangen profielen met veerhangers, isolatie, gipsplaten, voegafwerking.",
+    "opties": [
+      {
+        "id": "plaat",
+        "label": "Gipsplaat",
+        "keuzes": [
+          "12,5 mm",
+          "15 mm"
+        ],
+        "standaard": "12,5 mm"
+      },
+      {
+        "id": "profiel",
+        "label": "Profiel",
+        "keuzes": [
+          "C75",
+          "C100"
+        ],
+        "standaard": "C75"
+      },
+      {
+        "id": "isolatie",
+        "label": "Isolatie",
+        "keuzes": [
+          "geen",
+          "mineralen wol 75 mm"
+        ],
+        "standaard": "geen"
+      }
+    ]
+  },
+  {
+    "id": "gyproc_direct",
+    "naam": "Gyproc direct op metswerk (verlijmd)",
+    "categorie": "Gyproc wanden",
+    "eenheid": "m2",
+    "beschrijving": "Gipsplaten met gipslijm op bestaand metswerk, voegafwerking.",
+    "opties": [
+      {
+        "id": "plaat",
+        "label": "Gipsplaat",
+        "keuzes": [
+          "GGL 30 mm",
+          "12,5 mm"
+        ],
+        "standaard": "GGL 30 mm"
+      }
+    ]
+  },
+  {
+    "id": "gyproc_voegafwerking",
+    "naam": "Alleen voegen & afwerken Gyproc",
+    "categorie": "Gyproc afwerking",
+    "eenheid": "m2",
+    "beschrijving": "Voegband, voegmiddel en schuren op bestaande gipsplaten.",
+    "opties": []
+  },
+  {
+    "id": "schilderen_gyproc",
+    "naam": "Schilderen op gipsplaat",
+    "categorie": "Afwerking",
+    "eenheid": "m2",
+    "beschrijving": "Primer plus twee lagen muurverf.",
+    "opties": []
+  }
+];
+const PAKKET_OP_ID = Object.fromEntries(PAKKETTEN.map((p) => [p.id, p]));
+
+// ==========================================================
+// REKENKERN — JavaScript-port van bouw/bereken.py
+//
+// Deze port draait op Cloudflare Workers (geen Python daar).
+// De Python-kern blijft de referentie; een pariteitstest
+// (bouwcalculator/tests/test_pariteit.py) vergelijkt beide
+// uitkomsten regel voor regel.
+//
+// Wijzig bij voorkeur de Python-versie en werk deze file
+// daarna bij — de prijsboek wordt gegenereerd (prijsboek.js).
+// ==========================================================
+
+/* ---------------- normen uit de praktijk ---------------- */
+const SPOORAFSTAND = 0.40;
+const HANGERAFSTAND = 0.80;
+const PLAAT_VERSPILLING = 0.10;
+const PROFIEL_VERSPILLING = 0.05;
+const SCHROEVEN_PER_M2 = 20;
+const TAPE_M_PER_M2 = 1.4;
+const COMPOUND_KG_PER_M2 = 0.5;
+const LIJM_KG_PER_M2 = 0.4;
+const PROFIEL_LENGTE = 3.0;
+
+const MUURZIJDEN = ["noord", "zuid", "oost", "west"];
+const ZIJDE_NAMEN = {
+  noord: "Wand noord", zuid: "Wand zuid", oost: "Wand oost",
+  west: "Wand west", plafond: "Plafond", vloer: "Vloer",
+};
+const PLAAT_KEYS = {
+  "12,5 mm": "plaat_gyproc_12_5",
+  "15 mm": "plaat_gyproc_15",
+  "GGL 30 mm": "plaat_ggl_30",
+};
+const ISOLATIE_KEYS = {
+  "mineralen wol 75 mm": "isolatie_wol",
+  "PIR 60 mm": "isolatie_pir",
+};
+
+/* ---------------- hulpmiddelen ---------------- */
+function money(waarde, decimalen = 2) {
+  const factor = 10 ** decimalen;
+  const afgerond = Math.floor(Math.abs(waarde) * factor + 0.5) / factor;
+  return waarde < 0 ? -afgerond : afgerond;
+}
+
+const ceil = (x) => Math.ceil(x - 1e-9);
+
+function getal(waarde, standaard = 0) {
+  const n = parseFloat(String(waarde ?? "").replace(",", "."));
+  return Number.isFinite(n) ? n : standaard;
+}
+
+function tekst(waarde, standaard = "") {
+  if (waarde === null || waarde === undefined) return standaard;
+  return String(waarde);
+}
+
+/* ---------------- model (spiegel van bouw/model.py) ---------------- */
+function openingVanDict(d = {}) {
+  let muur = tekst(d.muur, "noord").toLowerCase();
+  if (!MUURZIJDEN.includes(muur)) muur = "noord";
+  const aantal = Math.trunc(getal(d.aantal, 1)) || 1;
+  return {
+    naam: tekst(d.naam, "Deur") || "Deur",
+    muur,
+    breedte: getal(d.breedte, 0.9),
+    hoogte: getal(d.hoogte, 2.1),
+    aantal,
+  };
+}
+
+function ruimteVanDict(d = {}) {
+  return {
+    id: tekst(d.id) || Math.random().toString(36).slice(2, 10),
+    naam: tekst(d.naam, "Ruimte") || "Ruimte",
+    lengte: getal(d.lengte, 4.0),
+    breedte: getal(d.breedte, 3.0),
+    hoogte: getal(d.hoogte, 2.5),
+    openingen: (d.openingen || []).map(openingVanDict),
+  };
+}
+
+function regelVanDict(d = {}) {
+  let hoeveelheid = d.hoeveelheid;
+  if (hoeveelheid === null || hoeveelheid === undefined || hoeveelheid === "") {
+    hoeveelheid = null;
+  } else {
+    const n = parseFloat(String(hoeveelheid).replace(",", "."));
+    hoeveelheid = Number.isFinite(n) ? n : null;
+  }
+  const opties = {};
+  for (const [k, v] of Object.entries(d.opties || {})) opties[String(k)] = String(v);
+  return {
+    id: tekst(d.id) || Math.random().toString(36).slice(2, 10),
+    ruimte_id: tekst(d.ruimte_id),
+    oppervlak: tekst(d.oppervlak, "noord"),
+    pakket_id: tekst(d.pakket_id, "gyproc_wand_profiel"),
+    opties,
+    hoeveelheid,
+    notitie: tekst(d.notitie),
+  };
+}
+
+function projectVanDict(d = {}) {
+  const project = {
+    naam: tekst(d.naam, "Nieuwe offerte") || "Nieuwe offerte",
+    klant: tekst(d.klant),
+    adres: tekst(d.adres),
+    datum: tekst(d.datum),
+    offerte_nummer: tekst(d.offerte_nummer),
+    ruimtes: (d.ruimtes || []).map(ruimteVanDict),
+    regels: (d.regels || []).map(regelVanDict),
+    uurtarief: getal(d.uurtarief, 45.0),
+    marge_pct: getal(d.marge_pct, 15.0),
+    korting_pct: getal(d.korting_pct, 0.0),
+    btw_pct: getal(d.btw_pct, 21.0),
+    prijsmodus: tekst(d.prijsmodus) === "m2" ? "m2" : "detail",
+    tarieven: {},
+    aannemer: tekst(d.aannemer),
+    opmerking: tekst(d.opmerking),
+  };
+  for (const [k, v] of Object.entries(d.tarieven || {})) project.tarieven[String(k)] = getal(v);
+  if (project.ruimtes.length && !project.regels.some((r) => r.ruimte_id)) {
+    for (const regel of project.regels) regel.ruimte_id = project.ruimtes[0].id;
+  }
+  return project;
+}
+
+/* ---------------- tarieven ---------------- */
+class Tarieven {
+  constructor(overrides = {}, referentie = {}) {
+    this.standaard = {};
+    for (const [sleutel, meta] of Object.entries(TARIEVEN)) this.standaard[sleutel] = meta.prijs;
+    Object.assign(this.standaard, referentie || {});
+    this.waarden = { ...this.standaard };
+    for (const [sleutel, waarde] of Object.entries(overrides || {})) {
+      if (!(sleutel in this.waarden)) continue;
+      const n = parseFloat(String(waarde).replace(",", "."));
+      if (Number.isFinite(n)) this.waarden[sleutel] = n;
+    }
+  }
+  prijs(sleutel) { return this.waarden[sleutel] ?? 0.0; }
+  meta(sleutel) { return TARIEVEN[sleutel] || {}; }
+  naam(sleutel) { return this.meta(sleutel).naam ?? sleutel; }
+  eenheid(sleutel) { return this.meta(sleutel).eenheid ?? ""; }
+  perEenheid(sleutel) { return this.meta(sleutel).per_eenheid ?? null; }
+  overzicht() {
+    return Object.entries(TARIEVEN).map(([sleutel, meta]) => ({
+      sleutel,
+      naam: meta.naam,
+      eenheid: meta.eenheid,
+      prijs: this.prijs(sleutel),
+      standaard: meta.prijs,
+      soort: meta.soort ?? "materiaal",
+    }));
+  }
+}
+
+/* ---------------- oppervlakken ---------------- */
+function ruimteOppervlakken(ruimte) {
+  const { lengte, breedte, hoogte } = ruimte;
+  const perMuur = { noord: { opening: 0, aantal: 0 }, zuid: { opening: 0, aantal: 0 },
+                    oost: { opening: 0, aantal: 0 }, west: { opening: 0, aantal: 0 } };
+  for (const opening of ruimte.openingen) {
+    if (perMuur[opening.muur]) {
+      perMuur[opening.muur].opening += opening.breedte * opening.hoogte * Math.max(1, opening.aantal);
+      perMuur[opening.muur].aantal += Math.max(1, opening.aantal);
+    }
+  }
+  const vlakken = [];
+  const muur = (sleutel, muurlengte) => {
+    const bruto = muurlengte * hoogte;
+    const opening = perMuur[sleutel].opening;
+    vlakken.push({
+      sleutel, naam: ZIJDE_NAMEN[sleutel], soort: "muur",
+      bruto, opening, netto: Math.max(0, bruto - opening),
+      lengte: muurlengte, hoogte, openingen: perMuur[sleutel].aantal,
+    });
+  };
+  muur("noord", lengte); muur("zuid", lengte);
+  muur("oost", breedte); muur("west", breedte);
+  vlakken.push({
+    sleutel: "plafond", naam: ZIJDE_NAMEN.plafond, soort: "plafond",
+    bruto: lengte * breedte, opening: 0, netto: lengte * breedte,
+    lengte, breedte, hoogte, openingen: 0,
+  });
+  vlakken.push({
+    sleutel: "vloer", naam: ZIJDE_NAMEN.vloer, soort: "vloer",
+    bruto: lengte * breedte, opening: 0, netto: lengte * breedte,
+    lengte, breedte, hoogte, openingen: 0,
+  });
+  return vlakken;
+}
+
+/* ---------------- materiaal- en taakregels ---------------- */
+function materiaal(omschrijving, aantal, sleutel, tarieven, eenheid = null, decimaal = 2) {
+  const a = money(Number(aantal), decimaal);
+  const eenheidsprijs = tarieven.prijs(sleutel);
+  return {
+    omschrijving,
+    aantal: a,
+    eenheid: eenheid || tarieven.eenheid(sleutel),
+    prijs_sleutel: sleutel,
+    eenheidsprijs,
+    totaal: money(a * eenheidsprijs),
+    soort: "materiaal",
+  };
+}
+
+function taak(sleutel, hoeveelheid, tarieven, uurtarief) {
+  const urenPerM2 = tarieven.prijs(sleutel);
+  const uren = money(urenPerM2 * hoeveelheid);
+  return {
+    omschrijving: tarieven.naam(sleutel),
+    uren_per_m2: urenPerM2,
+    uren,
+    tarief: uurtarief,
+    totaal: money(uren * uurtarief),
+    soort: "taak",
+  };
+}
+
+function platen(ctx, m2, plaatKey) {
+  const plaatOpp = ctx.tarieven.perEenheid(plaatKey) || 3.12;
+  const stuks = m2 > 0 ? ceil(m2 / plaatOpp) : 0;
+  const naam = ctx.tarieven.naam(plaatKey);
+  return materiaal(`${naam} · ${m2.toFixed(1)} m²`, stuks, plaatKey, ctx.tarieven, null, 0);
+}
+
+function afwerking(ctx, m2Plaat) {
+  return [
+    materiaal("Schroeven (20/m²)", ceil(m2Plaat * SCHROEVEN_PER_M2 / 1000), "schroef", ctx.tarieven, null, 0),
+    materiaal(`Voegband (${TAPE_M_PER_M2} m/m²)`, ceil(m2Plaat * TAPE_M_PER_M2 / 50), "tape", ctx.tarieven, null, 0),
+    materiaal(`Voegmiddel (${COMPOUND_KG_PER_M2} kg/m²)`, ceil(m2Plaat * COMPOUND_KG_PER_M2 / 25), "compound", ctx.tarieven, null, 0),
+  ];
+}
+
+/* ---------------- berekening per werkpakket ---------------- */
+function gyprocWandProfiel(ctx) {
+  const vlak = ctx.oppervlak, opt = ctx.opties, tar = ctx.tarieven, opp = ctx.aantal;
+  if (opp <= 0) return { materiaal: [], taken: [] };
+  const zijden = opt.zijden === "2 zijden" ? 2 : 1;
+  const plaatKey = PLAAT_KEYS[opt.plaat] || "plaat_gyproc_12_5";
+  const profielKey = opt.profiel === "C100" ? "profiel_c100" : "profiel_c75";
+  const isolatieKey = ISOLATIE_KEYS[opt.isolatie];
+  const muurlengte = vlak.lengte || 0;
+  const muurhoogte = vlak.hoogte || 0;
+  const aantalOpeningen = vlak.openingen || 0;
+
+  const materiaalRegels = [], taken = [];
+  const m2Plaat = opp * zijden * (1 + PLAAT_VERSPILLING);
+  materiaalRegels.push(platen(ctx, m2Plaat, plaatKey));
+
+  if (muurlengte > 0 && muurhoogte > 0) {
+    const nStuks = ceil(muurlengte / SPOORAFSTAND) + 1 + 2 * aantalOpeningen;
+    const profielM = nStuks * muurhoogte * (1 + PROFIEL_VERSPILLING);
+    materiaalRegels.push(materiaal(`C-profiel ${opt.profiel || "C75"} · ${nStuks} stuks`,
+      ceil(profielM / PROFIEL_LENGTE), profielKey, tar, null, 0));
+    materiaalRegels.push(materiaal("U-profiel (vloer)",
+      ceil(muurlengte / PROFIEL_LENGTE), "profiel_u25", tar, null, 0));
+    materiaalRegels.push(materiaal("Vlakke band (plafond)",
+      ceil(muurlengte / PROFIEL_LENGTE), "profiel_vlakband", tar, null, 0));
+  }
+  if (isolatieKey) {
+    materiaalRegels.push(materiaal(`Isolatie · ${opt.isolatie}`,
+      opp * (1 + PROFIEL_VERSPILLING), isolatieKey, tar, "m2", 1));
+  }
+  materiaalRegels.push(...afwerking(ctx, m2Plaat));
+
+  taken.push(taak("uur_wand_opmeten", opp, tar, ctx.uurtarief));
+  taken.push(taak("uur_wand_profielen", opp, tar, ctx.uurtarief));
+  if (isolatieKey) taken.push(taak("uur_wand_isolatie", opp, tar, ctx.uurtarief));
+  taken.push(taak("uur_wand_platen", opp * zijden, tar, ctx.uurtarief));
+  taken.push(taak("uur_wand_voegen", opp * zijden, tar, ctx.uurtarief));
+  return { materiaal: materiaalRegels, taken };
+}
+
+function gyprocPlafond(ctx) {
+  const vlak = ctx.oppervlak, opt = ctx.opties, tar = ctx.tarieven, opp = ctx.aantal;
+  if (opp <= 0) return { materiaal: [], taken: [] };
+  const plaatKey = PLAAT_KEYS[opt.plaat] || "plaat_gyproc_12_5";
+  const profielKey = opt.profiel === "C100" ? "profiel_c100" : "profiel_c75";
+  const isolatieKey = ISOLATIE_KEYS[opt.isolatie];
+  const lengte = vlak.lengte || 0;
+  const breedte = vlak.breedte || 0;
+
+  const materiaalRegels = [], taken = [];
+  const m2Plaat = opp * (1 + PLAAT_VERSPILLING);
+  materiaalRegels.push(platen(ctx, m2Plaat, plaatKey));
+
+  if (lengte > 0 && breedte > 0) {
+    const nProfielen = ceil(lengte / SPOORAFSTAND);
+    const profielM = nProfielen * breedte * (1 + PROFIEL_VERSPILLING);
+    materiaalRegels.push(materiaal(`C-profiel ${opt.profiel || "C75"} · ${nProfielen} profielen`,
+      ceil(profielM / PROFIEL_LENGTE), profielKey, tar, null, 0));
+    materiaalRegels.push(materiaal("Vlakke band (rondom)",
+      ceil(2 * (lengte + breedte) / PROFIEL_LENGTE), "profiel_vlakband", tar, null, 0));
+    materiaalRegels.push(materiaal("Veerhangers",
+      nProfielen * ceil(breedte / HANGERAFSTAND), "hanghaak", tar, null, 0));
+  }
+  if (isolatieKey) {
+    materiaalRegels.push(materiaal(`Isolatie · ${opt.isolatie}`,
+      opp * (1 + PROFIEL_VERSPILLING), isolatieKey, tar, "m2", 1));
+  }
+  materiaalRegels.push(...afwerking(ctx, m2Plaat));
+
+  taken.push(taak("uur_plafond_ophangen", opp, tar, ctx.uurtarief));
+  if (isolatieKey) taken.push(taak("uur_plafond_isolatie", opp, tar, ctx.uurtarief));
+  taken.push(taak("uur_plafond_platen", opp, tar, ctx.uurtarief));
+  taken.push(taak("uur_plafond_voegen", opp, tar, ctx.uurtarief));
+  return { materiaal: materiaalRegels, taken };
+}
+
+function gyprocDirect(ctx) {
+  const opt = ctx.opties, tar = ctx.tarieven, opp = ctx.aantal;
+  if (opp <= 0) return { materiaal: [], taken: [] };
+  const plaatKey = PLAAT_KEYS[opt.plaat] || "plaat_ggl_30";
+  const m2Plaat = opp * (1 + PLAAT_VERSPILLING);
+  const materiaalRegels = [
+    platen(ctx, m2Plaat, plaatKey),
+    materiaal(`Gipslijm (${LIJM_KG_PER_M2} kg/m²)`, ceil(opp * LIJM_KG_PER_M2 / 25), "lijm", tar, null, 0),
+  ];
+  materiaalRegels.push(...afwerking(ctx, m2Plaat));
+  const taken = [
+    taak("uur_direct_platen", opp, tar, ctx.uurtarief),
+    taak("uur_direct_voegen", opp, tar, ctx.uurtarief),
+  ];
+  return { materiaal: materiaalRegels, taken };
+}
+
+function gyprocVoegafwerking(ctx) {
+  const tar = ctx.tarieven, opp = ctx.aantal;
+  if (opp <= 0) return { materiaal: [], taken: [] };
+  const materiaalRegels = [
+    materiaal(`Voegband (${TAPE_M_PER_M2} m/m²)`, ceil(opp * TAPE_M_PER_M2 / 50), "tape", tar, null, 0),
+    materiaal(`Voegmiddel (${COMPOUND_KG_PER_M2} kg/m²)`, ceil(opp * COMPOUND_KG_PER_M2 / 25), "compound", tar, null, 0),
+  ];
+  return { materiaal: materiaalRegels, taken: [taak("uur_voegafwerking", opp, tar, ctx.uurtarief)] };
+}
+
+function schilderenGyproc(ctx) {
+  const tar = ctx.tarieven, opp = ctx.aantal;
+  if (opp <= 0) return { materiaal: [], taken: [] };
+  const materiaalRegels = [
+    materiaal("Primer gipsplaten", ceil(opp / 120), "primer", tar, null, 0),
+    materiaal("Muurverf · 2 lagen", ceil(2 * opp / 120), "verf", tar, null, 0),
+  ];
+  return { materiaal: materiaalRegels, taken: [taak("uur_schilderen", opp, tar, ctx.uurtarief)] };
+}
+
+const BEREKENERS = {
+  gyproc_wand_profiel: gyprocWandProfiel,
+  gyproc_plafond: gyprocPlafond,
+  gyproc_direct: gyprocDirect,
+  gyproc_voegafwerking: gyprocVoegafwerking,
+  schilderen_gyproc: schilderenGyproc,
+};
+
+/* ---------------- één werkregel ---------------- */
+function standaardOpties(pakketId) {
+  const pakket = PAKKET_OP_ID[pakketId] || {};
+  const opties = {};
+  for (const o of pakket.opties || []) opties[o.id] = o.standaard;
+  return opties;
+}
+
+function optieLabel(pakket, optieId) {
+  for (const optie of pakket.opties || []) if (optie.id === optieId) return optie.label;
+  return optieId;
+}
+function berekenRegel(regel, vlak, project, tarieven) {
+  const pakket = PAKKET_OP_ID[regel.pakket_id];
+  if (!pakket) throw new Error(`Onbekend werkpakket: ${regel.pakket_id}`);
+  const berekenaar = BEREKENERS[regel.pakket_id];
+  if (!berekenaar) throw new Error(`Geen berekening voor werkpakket: ${regel.pakket_id}`);
+
+  const opties = standaardOpties(regel.pakket_id);
+  for (const [k, v] of Object.entries(regel.opties || {})) if (v) opties[k] = v;
+
+  const aantal = regel.hoeveelheid !== null && regel.hoeveelheid !== undefined
+    ? regel.hoeveelheid : vlak.netto;
+  const ctx = { oppervlak: vlak, opties, tarieven, aantal, uurtarief: project.uurtarief };
+  const { materiaal: materiaalRegels, taken } = berekenaar(ctx);
+
+  const materiaalKosten = money(materiaalRegels.reduce((s, l) => s + l.totaal, 0));
+  const uren = money(taken.reduce((s, t) => s + t.uren, 0));
+  const arbeidskosten = money(taken.reduce((s, t) => s + t.totaal, 0));
+  const marge = money(materiaalKosten * project.marge_pct / 100.0);
+
+  let omschrijving = pakket.naam;
+  if (vlak.naam) omschrijving = `${pakket.naam} — ${vlak.naam}`;
+  const optieTekst = Object.entries(opties)
+    .filter(([, waarde]) => waarde && waarde !== "geen" && waarde !== "1 zijde")
+    .map(([id, waarde]) => `${optieLabel(pakket, id)}: ${waarde}`)
+    .join(", ");
+  if (optieTekst) omschrijving += ` (${optieTekst})`;
+
+  return {
+    regel_id: regel.id,
+    pakket_id: regel.pakket_id,
+    pakket,
+    ruimte_id: regel.ruimte_id,
+    oppervlak: vlak.sleutel,
+    oppervlak_naam: vlak.naam,
+    omschrijving,
+    opties,
+    aantal: money(aantal),
+    eenheid: pakket.eenheid || "m2",
+    materiaal: materiaalRegels,
+    taken,
+    uren,
+    materiaal_kosten: materiaalKosten,
+    arbeidskosten,
+    marge,
+    totaal: money(materiaalKosten + arbeidskosten + marge),
+    notitie: regel.notitie,
+  };
+}
+
+function berekenM2(regel, vlak, project, tarieven) {
+  const pakket = PAKKET_OP_ID[regel.pakket_id];
+  const aantal = regel.hoeveelheid !== null && regel.hoeveelheid !== undefined
+    ? regel.hoeveelheid : vlak.netto;
+  const sleutelM = `m2_${regel.pakket_id}_materiaal`;
+  const sleutelA = `m2_${regel.pakket_id}_arbeid`;
+  const prijsM = tarieven.prijs(sleutelM);
+  const prijsA = tarieven.prijs(sleutelA);
+
+  const materiaalKosten = money(aantal * prijsM);
+  const arbeidskosten = money(aantal * prijsA);
+  const uren = project.uurtarief ? money(arbeidskosten / project.uurtarief) : 0.0;
+  const marge = money(materiaalKosten * project.marge_pct / 100.0);
+
+  return {
+    regel_id: regel.id,
+    pakket_id: regel.pakket_id,
+    pakket,
+    ruimte_id: regel.ruimte_id,
+    oppervlak: vlak.sleutel,
+    oppervlak_naam: vlak.naam,
+    omschrijving: `${pakket.naam} — ${vlak.naam} (snelle m²-prijs)`,
+    opties: { ...regel.opties },
+    aantal: money(aantal),
+    eenheid: pakket.eenheid || "m2",
+    materiaal: [{
+      omschrijving: `Materiaal — ${prijsM.toFixed(2)} €/m²`,
+      aantal: money(aantal),
+      eenheid: "m2",
+      prijs_sleutel: sleutelM,
+      eenheidsprijs: prijsM,
+      totaal: materiaalKosten,
+      soort: "materiaal",
+    }],
+    taken: [{
+      omschrijving: `Arbeid — ${prijsA.toFixed(2)} €/m²`,
+      uren_per_m2: project.uurtarief ? money(prijsA / project.uurtarief, 3) : 0.0,
+      uren,
+      tarief: project.uurtarief,
+      totaal: arbeidskosten,
+      soort: "taak",
+    }],
+    uren,
+    materiaal_kosten: materiaalKosten,
+    arbeidskosten,
+    marge,
+    totaal: money(materiaalKosten + arbeidskosten + marge),
+    notitie: regel.notitie,
+  };
+}
+
+/* ---------------- referentie (snelle m²-prijzen) ---------------- */
+const REFERENTIE_MUUR = {
+  sleutel: "noord", naam: ZIJDE_NAMEN.noord, soort: "muur",
+  bruto: 10.0, opening: 1.6, netto: 8.4, lengte: 4.0, hoogte: 2.5, openingen: 1,
+};
+const REFERENTIE_PLAFOND = {
+  sleutel: "plafond", naam: ZIJDE_NAMEN.plafond, soort: "plafond",
+  bruto: 12.0, opening: 0.0, netto: 12.0, lengte: 4.0, breedte: 3.0, hoogte: 2.5, openingen: 0,
+};
+function referentieTarieven() {
+  const tarieven = new Tarieven();
+  const referentie = {};
+  for (const pakketId of Object.keys(BEREKENERS)) {
+    const vlak = pakketId === "gyproc_plafond" ? REFERENTIE_PLAFOND : REFERENTIE_MUUR;
+    const ctx = {
+      oppervlak: vlak,
+      opties: standaardOpties(pakketId),
+      tarieven,
+      aantal: vlak.netto,
+      uurtarief: 45.0,
+    };
+    const { materiaal, taken } = BEREKENERS[pakketId](ctx);
+    const materiaalKosten = materiaal.reduce((s, l) => s + l.totaal, 0);
+    const arbeidskosten = taken.reduce((s, t) => s + t.totaal, 0);
+    referentie[`m2_${pakketId}_materiaal`] = money(materiaalKosten / vlak.netto);
+    referentie[`m2_${pakketId}_arbeid`] = money(arbeidskosten / vlak.netto);
+  }
+  return referentie;
+}
+
+/* ---------------- de offerte ---------------- */
+function tarievenOverzicht(tarieven, referentie) {
+  const overzicht = tarieven.overzicht();
+  for (const [pakketId, pakket] of Object.entries(PAKKET_OP_ID)) {
+    const sleutelM = `m2_${pakketId}_materiaal`;
+    const sleutelA = `m2_${pakketId}_arbeid`;
+    overzicht.push({
+      sleutel: sleutelM,
+      naam: `Snel ${pakket.naam} · materiaal`,
+      eenheid: "€/m2",
+      prijs: tarieven.prijs(sleutelM),
+      standaard: referentie[sleutelM] ?? 0.0,
+      soort: "m2",
+    });
+    overzicht.push({
+      sleutel: sleutelA,
+      naam: `Snel ${pakket.naam} · arbeid`,
+      eenheid: "€/m2",
+      prijs: tarieven.prijs(sleutelA),
+      standaard: referentie[sleutelA] ?? 0.0,
+      soort: "m2",
+    });
+  }
+  return overzicht;
+}
+function berekenOfferte(projectData = {}) {
+  const project = projectVanDict(projectData);
+  const referentie = referentieTarieven();
+  const tarieven = new Tarieven(project.tarieven, referentie);
+
+  const ruimtes = [];
+  const vlakkenPerRuimte = {};
+  for (const ruimte of project.ruimtes) {
+    const vlakken = ruimteOppervlakken(ruimte);
+    vlakkenPerRuimte[ruimte.id] = vlakken;
+    ruimtes.push({
+      id: ruimte.id,
+      naam: ruimte.naam,
+      lengte: ruimte.lengte,
+      breedte: ruimte.breedte,
+      hoogte: ruimte.hoogte,
+      openingen: ruimte.openingen.map((o) => ({ ...o })),
+      vlakken,
+      wandoppervlak: money(vlakken.filter((v) => v.soort === "muur")
+        .reduce((s, v) => s + v.netto, 0)),
+    });
+  }
+
+  const regels = [];
+  const waarschuwingen = [];
+  for (const regel of project.regels) {
+    const ruimte = project.ruimtes.find((r) => r.id === regel.ruimte_id);
+    if (!ruimte) {
+      waarschuwingen.push(`Werkregel '${regel.id}' hoort bij een onbekende ruimte en is overgeslagen.`);
+      continue;
+    }
+    const vlak = (vlakkenPerRuimte[ruimte.id] || []).find((v) => v.sleutel === regel.oppervlak);
+    if (!vlak) {
+      waarschuwingen.push(`Werkregel '${regel.id}' hoort bij een onbekend vlak (${regel.oppervlak}) en is overgeslagen.`);
+      continue;
+    }
+    if (!PAKKET_OP_ID[regel.pakket_id] || !BEREKENERS[regel.pakket_id]) {
+      waarschuwingen.push(`Werkpakket '${regel.pakket_id}' bestaat niet meer en is overgeslagen.`);
+      continue;
+    }
+    regels.push(project.prijsmodus === "m2"
+      ? berekenM2(regel, vlak, project, tarieven)
+      : berekenRegel(regel, vlak, project, tarieven));
+  }
+
+  const materiaal = money(regels.reduce((s, r) => s + r.materiaal_kosten, 0));
+  const arbeid = money(regels.reduce((s, r) => s + r.arbeidskosten, 0));
+  const uren = money(regels.reduce((s, r) => s + r.uren, 0));
+  const marge = money(regels.reduce((s, r) => s + r.marge, 0));
+  const subtotaal = money(materiaal + arbeid + marge);
+  const korting = money(subtotaal * project.korting_pct / 100.0);
+  const netto = money(subtotaal - korting);
+  const btw = money(netto * project.btw_pct / 100.0);
+  const totaal = money(netto + btw);
+
+  const perRuimte = {};
+  for (const regel of regels) {
+    const rij = perRuimte[regel.ruimte_id] || (perRuimte[regel.ruimte_id] = {
+      materiaal: 0, arbeid: 0, uren: 0, marge: 0, totaal: 0,
+    });
+    rij.materiaal += regel.materiaal_kosten;
+    rij.arbeid += regel.arbeidskosten;
+    rij.uren += regel.uren;
+    rij.marge += regel.marge;
+    rij.totaal += regel.totaal;
+  }
+  for (const rij of Object.values(perRuimte)) {
+    for (const sleutel of Object.keys(rij)) rij[sleutel] = money(rij[sleutel]);
+  }
+
+  return {
+    project: {
+      naam: project.naam, klant: project.klant, adres: project.adres,
+      datum: project.datum, offerte_nummer: project.offerte_nummer,
+      ruimtes: project.ruimtes.map((r) => ({
+        id: r.id, naam: r.naam, lengte: r.lengte, breedte: r.breedte, hoogte: r.hoogte,
+        openingen: r.openingen.map((o) => ({
+          naam: o.naam, muur: o.muur, breedte: o.breedte, hoogte: o.hoogte, aantal: o.aantal,
+        })),
+      })),
+      regels: project.regels.map((r) => ({
+        id: r.id, ruimte_id: r.ruimte_id, oppervlak: r.oppervlak, pakket_id: r.pakket_id,
+        opties: { ...r.opties }, hoeveelheid: r.hoeveelheid, notitie: r.notitie,
+      })),
+      uurtarief: project.uurtarief, marge_pct: project.marge_pct,
+      korting_pct: project.korting_pct, btw_pct: project.btw_pct,
+      prijsmodus: project.prijsmodus, tarieven: { ...project.tarieven },
+      aannemer: project.aannemer, opmerking: project.opmerking,
+    },
+    ruimtes,
+    regels,
+    totalen: {
+      materiaal, arbeid, uren, marge, subtotaal,
+      korting_pct: project.korting_pct, korting, btw_pct: project.btw_pct, btw, netto, totaal,
+    },
+    per_ruimte: perRuimte,
+    waarschuwingen,
+    tarieven: tarievenOverzicht(tarieven, referentie),
+    pakketten: PAKKETTEN,
+  };
+}
+function prijsboek() {
+  const referentie = referentieTarieven();
+  return {
+    tarieven: new Tarieven({}, referentie).overzicht(),
+    pakketten: PAKKETTEN,
+    referentie,
+    versie: "1.0.0",
+  };
+}
+
+// In de browser ook beschikbaar als window.BouwEngine, zodat de app kan
+// terugvallen op de lokale rekenkern als er geen API bereikbaar is.
+if (typeof window !== "undefined") {
+  window.BouwEngine = { berekenOfferte, berekenRegel, prijsboek, referentieTarieven, money };
+}
+
+})();
+
+</script>
+<script>
+/* ==========================================================
+   BOUWPRIJSCALCULATOR — consolelogica (presentatielaag)
+   De rekenkern draait server-side (Python). De browser stuurt
+   het project mee en tekent de uitkomst.
+
+   Vuistregel: een veld dat je aan het typen bent, wordt nooit
+   opnieuw opgebouwd. Daarom zijn het overzicht (ruimtekaart)
+   en de tabellen (oppervlakken, regels) apart te renderen.
+   ========================================================== */
+
+const $ = (sel) => document.querySelector(sel);
+const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+
+const OPSLAG_SLEUTEL = "bouwcalculator-project-v1";
+const OPSLAG_LIJST = "bouwcalculator-projecten-v1";
+const NR = new Intl.NumberFormat("nl-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const NRL = new Intl.NumberFormat("nl-BE", { maximumFractionDigits: 2 });
+
+const state = {
+  project: null,
+  projectId: null,
+  offerte: null,
+  prijsboek: null,
+  actieveRuimteId: null,
+  berekenTimer: null,
+  opslag: "server",   // "server" (Python-server) of "lokaal" (Worker: alleen browser)
+  engine: null,       // lokale rekenkern (fallback als er geen API is)
+};
+
+/* ---------------- hulpmiddelen ---------------- */
+const esc = (tekst) => String(tekst ?? "").replace(/[&<>"']/g, (c) => (
+  { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]
+));
+const eur = (bedrag) => `€&nbsp;${NR.format(Number(bedrag) || 0)}`;
+const getal = (waarde, standaard = 0) => {
+  const n = parseFloat(String(waarde ?? "").replace(",", "."));
+  return Number.isFinite(n) ? n : standaard;
+};
+const datumNu = () => new Date().toISOString().slice(0, 10);
+const uid = () => Math.random().toString(36).slice(2, 10);
+
+function bewaarFocus() {
+  const el = document.activeElement;
+  if (!el || !el.dataset || !el.dataset.fokus) return null;
+  return { key: el.dataset.fokus, start: el.selectionStart, end: el.selectionEnd };
+}
+function herstelFocus(focus) {
+  if (!focus) return;
+  const el = document.querySelector(`[data-fokus="${focus.key}"]`);
+  if (!el) return;
+  el.focus();
+  try { el.setSelectionRange(focus.start, focus.end); } catch (_) { /* getalvelden */ }
+}
+function toast(bericht) {
+  const el = $("#toast");
+  el.textContent = bericht;
+  el.hidden = false;
+  clearTimeout(el._timer);
+  el._timer = setTimeout(() => { el.hidden = true; }, 2600);
+}
+function status(bericht) { $("#status").textContent = bericht; }
+
+/* ---------------- project ---------------- */
+function nieuwProject() {
+  const ruimteId = uid();
+  return {
+    naam: "Nieuwe offerte",
+    klant: "",
+    adres: "",
+    datum: datumNu(),
+    offerte_nummer: `O-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 900) + 100)}`,
+    aannemer: "",
+    opmerking: "Prijsberekening op basis van de opgegeven maten. Werkzaamheden conform de gangbare normen.",
+    ruimtes: [{
+      id: ruimteId, naam: "Ruimte 1", lengte: 4, breedte: 3, hoogte: 2.5, openingen: [],
+    }],
+    regels: [],
+    uurtarief: 45,
+    marge_pct: 15,
+    korting_pct: 0,
+    btw_pct: 21,
+    prijsmodus: "detail",
+    tarieven: {},
+  };
+}
+
+function laadProject(project, id = null) {
+  state.project = project;
+  state.projectId = id;
+  state.actieveRuimteId = project.ruimtes.length ? project.ruimtes[0].id : null;
+  syncSidebar();
+  render();
+  bereken();
+}
+
+function bewaarLokaal() {
+  try {
+    localStorage.setItem(OPSLAG_SLEUTEL, JSON.stringify({ project: state.project, id: state.projectId }));
+  } catch (_) { /* opslag vol of niet beschikbaar */ }
+}
+
+function wijzig(actie) {
+  actie();
+  bewaarLokaal();
+  render();
+  bereken();
+}
+
+function planBerekening() {
+  clearTimeout(state.berekenTimer);
+  state.berekenTimer = setTimeout(bereken, 220);
+}
+
+async function bereken() {
+  clearTimeout(state.berekenTimer);
+  if (!state.project) return;
+  status("Berekenen…");
+  try {
+    if (state.engine) {
+      // Geen API bereikbaar: reken in de browser met de JS-rekenkern.
+      state.offerte = state.engine.berekenOfferte(state.project);
+    } else {
+      const antwoord = await fetch("/api/offerte", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ project: state.project }),
+      });
+      if (!antwoord.ok) throw new Error("serverfout");
+      state.offerte = await antwoord.json();
+    }
+    const focus = bewaarFocus();
+    renderOfferte();
+    renderOppervlakken();
+    renderRegelPrijzen();
+    renderTarieven();
+    herstelFocus(focus);
+    const waarschuwingen = state.offerte.waarschuwingen || [];
+    status(waarschuwingen.length ? "⚠ " + waarschuwingen[0] : "Offerte bijgewerkt");
+  } catch (fout) {
+    status("Berekening mislukt — is de server gestart?");
+    console.error(fout);
+  }
+}
+
+/* ---------------- zijbalk ---------------- */
+function syncSidebar() {
+  const project = state.project;
+  $$("[data-project]").forEach((el) => {
+    const waarde = project[el.dataset.project];
+    if (waarde !== undefined && document.activeElement !== el) el.value = waarde ?? "";
+  });
+  const radio = document.querySelector(`input[name="prijsmodus"][value="${project.prijsmodus}"]`);
+  if (radio) radio.checked = true;
+}
+
+/* ---------------- tarievenpaneel ---------------- */
+let tarievenSignatuur = "";
+
+function tarievenEntries() {
+  const entries = (state.prijsboek?.tarieven || []).slice();
+  const bekend = new Set(entries.map((t) => t.sleutel));
+  (state.offerte?.tarieven || []).forEach((t) => { if (!bekend.has(t.sleutel)) entries.push(t); });
+  return entries;
+}
+
+function renderTarieven() {
+  const lijst = $("#tarieven-lijst");
+  if (!lijst) return;
+  const entries = tarievenEntries();
+  const signatuur = entries.map((t) => t.sleutel).join("|");
+  if (signatuur === tarievenSignatuur) { renderTarievenWaarden(); return; }
+  tarievenSignatuur = signatuur;
+
+  const groepen = [
+    { soort: "materiaal", titel: "Materiaal", klasse: "" },
+    { soort: "taak", titel: "Uren per m²", klasse: "is-taak" },
+    { soort: "m2", titel: "Snelle m²-prijzen", klasse: "is-m2" },
+  ];
+
+  lijst.innerHTML = groepen.map((groep) => {
+    const regels = entries.filter((t) => t.soort === groep.soort);
+    if (!regels.length) return "";
+    return `<p class="tarief-groep">${groep.titel}</p>` + regels.map((t) => `
+      <label class="tarief ${groep.klasse}" title="${esc(t.naam)}">
+        <span class="naam">${esc(t.naam)}</span>
+        <input type="number" step="0.01" min="0" data-tarief="${esc(t.sleutel)}"
+               data-fokus="t_${esc(t.sleutel)}" value="${getal(state.project.tarieven[t.sleutel] ?? t.prijs)}">
+        <span class="eenheid">${esc(t.eenheid)}</span>
+      </label>`).join("");
+  }).join("") || '<p class="hint">Geen tarieven ontvangen.</p>';
+}
+
+function renderTarievenWaarden() {
+  const project = state.project;
+  $$("[data-tarief]").forEach((el) => {
+    if (document.activeElement === el) return;
+    const sleutel = el.dataset.tarief;
+    const standaard = tarievenEntries().find((t) => t.sleutel === sleutel)?.prijs;
+    el.value = getal(project.tarieven[sleutel] ?? standaard ?? 0);
+  });
+}
+
+/* ---------------- ruimtes ---------------- */
+function actieveRuimte() {
+  return state.project.ruimtes.find((r) => r.id === state.actieveRuimteId) || state.project.ruimtes[0];
+}
+
+function vlakkenVoor(ruimte) {
+  return state.offerte?.ruimtes.find((r) => r.id === ruimte.id)?.vlakken || [];
+}
+
+function renderRuimteChips() {
+  const container = $("#ruimtechips");
+  container.innerHTML = state.project.ruimtes.map((r) => `
+    <button type="button" class="ruimtechip ${r.id === state.actieveRuimteId ? "actief" : ""}"
+            data-actie="ruimte-kiezen" data-id="${esc(r.id)}"
+            data-fokus="chip_${esc(r.id)}">${esc(r.naam || "Ruimte")}</button>
+  `).join("") + `<button type="button" class="ruimtechip" data-actie="ruimte-toevoegen">＋ Ruimte</button>`;
+}
+
+function renderRuimtekaart(ruimte) {
+  const openingen = ruimte.openingen.map((o, i) => `
+    <tr>
+      <td><input type="text" value="${esc(o.naam)}" data-opening="${i}" data-opening-veld="naam"
+                 data-fokus="o_${ruimte.id}_${i}_naam"></td>
+      <td><select data-opening="${i}" data-opening-veld="muur" data-fokus="o_${ruimte.id}_${i}_muur">
+        ${["noord", "zuid", "oost", "west"].map((z) => `<option value="${z}" ${o.muur === z ? "selected" : ""}>${z}</option>`).join("")}
+      </select></td>
+      <td><input type="number" step="0.05" min="0" value="${esc(o.breedte)}" data-opening="${i}"
+                 data-opening-veld="breedte" data-fokus="o_${ruimte.id}_${i}_b" style="width:74px"></td>
+      <td><input type="number" step="0.05" min="0" value="${esc(o.hoogte)}" data-opening="${i}"
+                 data-opening-veld="hoogte" data-fokus="o_${ruimte.id}_${i}_h" style="width:74px"></td>
+      <td><button type="button" class="verwijder" data-actie="opening-verwijderen" data-index="${i}"
+                  title="Verwijderen">✕</button></td>
+    </tr>`).join("");
+
+  return `
+    <header>
+      <h3><input type="text" value="${esc(ruimte.naam)}" data-ruimte="naam"
+                 data-fokus="r_${ruimte.id}_naam"
+                 style="font-weight:700;font-size:1rem;border:0;background:transparent;padding:2px 0;width:220px"></h3>
+      <span class="klein-muted">lengte × breedte × hoogte (m)</span>
+      <button type="button" class="knop klein gevaar" data-actie="ruimte-verwijderen">🗑 Ruimte weg</button>
+    </header>
+    <div class="maten">
+      <label class="veld"><span>Lengte</span>
+        <input type="number" step="0.01" min="0" value="${esc(ruimte.lengte)}" data-ruimte="lengte"
+               data-fokus="r_${ruimte.id}_l"></label>
+      <label class="veld"><span>Breedte</span>
+        <input type="number" step="0.01" min="0" value="${esc(ruimte.breedte)}" data-ruimte="breedte"
+               data-fokus="r_${ruimte.id}_b"></label>
+      <label class="veld"><span>Hoogte</span>
+        <input type="number" step="0.01" min="0" value="${esc(ruimte.hoogte)}" data-ruimte="hoogte"
+               data-fokus="r_${ruimte.id}_h"></label>
+    </div>
+    <div class="openings">
+      <h3 style="font-size:.9rem;margin-bottom:6px">Openingen (deuren &amp; ramen)</h3>
+      ${openingen ? `<table>
+        <thead><tr><th>Naam</th><th>Muur</th><th>Breedte</th><th>Hoogte</th><th></th></tr></thead>
+        <tbody>${openingen}</tbody></table>`
+        : '<p class="klein-muted">Geen openingen. Klik hieronder om een deur of raam toe te voegen.</p>'}
+      <div class="openings-acties">
+        <button type="button" class="knop klein" data-actie="opening-toevoegen" data-soort="Deur">＋ Deur</button>
+        <button type="button" class="knop klein" data-actie="opening-toevoegen" data-soort="Raam">＋ Raam</button>
+      </div>
+    </div>`;
+}
+
+function renderOppervlakken() {
+  const container = $("#oppervlakken");
+  if (!container) return;
+  const ruimte = actieveRuimte();
+  if (!ruimte) { container.innerHTML = ""; return; }
+  const vlakken = vlakkenVoor(ruimte);
+  container.innerHTML = `
+    <h3>Oppervlakken van deze ruimte</h3>
+    <table class="opp">
+      <thead><tr><th>Vlak</th><th class="num">Bruto m²</th><th class="num">Opening</th>
+        <th class="num">Netto</th><th></th></tr></thead>
+      <tbody>${vlakken.map((v) => `
+        <tr class="vlak-${v.soort}">
+          <td>${esc(v.naam)}${v.openingen ? ` <span class="klein-muted">(${v.openingen} opening${v.openingen > 1 ? "en" : ""})</span>` : ""}</td>
+          <td class="num">${NRL.format(v.bruto)}</td>
+          <td class="num">${v.opening ? "−" + NRL.format(v.opening) : "—"}</td>
+          <td class="num"><b>${NRL.format(v.netto)}</b> m²</td>
+          <td class="num"><button type="button" class="knop klein" data-actie="regel-toevoegen"
+                    data-vlak="${esc(v.sleutel)}" data-soort="${esc(v.soort)}">+ werk</button></td>
+        </tr>`).join("")}</tbody>
+    </table>`;
+}
+
+function standaardPakket(soort) {
+  if (soort === "plafond") return "gyproc_plafond";
+  if (soort === "vloer") return "schilderen_gyproc";
+  return "gyproc_wand_profiel";
+}
+
+function renderRegelkaart(regel, vlakken) {
+  const pakketten = state.prijsboek?.pakketten || [];
+  const pakket = pakketten.find((p) => p.id === regel.pakket_id) || pakketten[0];
+  if (!pakket) return "";
+  const vlak = vlakken.find((v) => v.sleutel === regel.oppervlak);
+  const opties = {};
+  (pakket.opties || []).forEach((o) => { opties[o.id] = regel.opties[o.id] ?? o.standaard; });
+
+  const optieVelden = (pakket.opties || []).map((o) => `
+    <label>${esc(o.label)}
+      <select data-optie="${esc(o.id)}" data-fokus="r_${regel.id}_${esc(o.id)}">
+        ${o.keuzes.map((k) => `<option value="${esc(k)}" ${opties[o.id] === k ? "selected" : ""}>${esc(k)}</option>`).join("")}
+      </select>
+    </label>`).join("");
+
+  const auto = regel.hoeveelheid === null || regel.hoeveelheid === undefined;
+  const hoeveelheid = auto ? (vlak ? vlak.netto : 0) : regel.hoeveelheid;
+
+  return `
+  <div class="regelkaart" data-regel="${esc(regel.id)}">
+    <header>
+      <div class="titel">${esc(vlak ? vlak.naam : regel.oppervlak)}
+        <span class="klein-muted">· ${esc(pakket.categorie)}</span></div>
+      <select data-pakket data-fokus="r_${regel.id}_pakket">
+        ${pakketten.map((p) => `<option value="${esc(p.id)}" ${p.id === regel.pakket_id ? "selected" : ""}>${esc(p.naam)}</option>`).join("")}
+      </select>
+      <button type="button" class="knop klein gevaar" data-actie="regel-verwijderen"
+              data-id="${esc(regel.id)}">🗑</button>
+    </header>
+    <div class="regelopties">
+      ${optieVelden}
+      <label>Hoeveelheid (${esc(pakket.eenheid || "m2")})
+        <input type="number" step="0.01" min="0" value="${hoeveelheid}" data-hoeveelheid
+               data-fokus="r_${regel.id}_aantal" style="width:92px">
+      </label>
+      ${auto ? '<span class="klein-muted">= oppervlak van de wand</span>'
+             : '<button type="button" class="knop klein" data-actie="hoeveelheid-auto">opnieuw automatisch</button>'}
+    </div>
+    <div class="regelprijs" data-prijzen="${esc(regel.id)}"></div>
+    <details class="details">
+      <summary>Materialen &amp; uren</summary>
+      <div data-details="${esc(regel.id)}"></div>
+    </details>
+  </div>`;
+}
+
+function renderRegels() {
+  const container = $("#regels");
+  if (!container) return;
+  const ruimte = actieveRuimte();
+  if (!ruimte) { container.innerHTML = ""; return; }
+  const vlakken = vlakkenVoor(ruimte);
+  const regels = state.project.regels.filter((r) => r.ruimte_id === ruimte.id);
+  // Opengeklapte detailvensters blijven open staan na een herbouw.
+  const open = new Set(Array.from(container.querySelectorAll("details.details[open]"))
+    .map((d) => d.querySelector("[data-details]")?.dataset.details)
+    .filter(Boolean));
+
+  container.innerHTML = `<h3>Werk in deze ruimte</h3>` + (
+    regels.length
+      ? regels.map((r) => renderRegelkaart(r, vlakken)).join("")
+      : '<p class="hint">Nog geen werk gekozen. Klik bij een oppervlak op <b>+ werk</b>.</p>');
+
+  container.querySelectorAll("details.details").forEach((d) => {
+    const id = d.querySelector("[data-details]")?.dataset.details;
+    if (id && open.has(id)) d.open = true;
+  });
+}
+
+/* ---------------- prijzen per regel ---------------- */
+function renderRegelPrijzen() {
+  const regels = state.offerte?.regels || [];
+  for (const regel of regels) {
+    const doel = document.querySelector(`[data-prijzen="${regel.regel_id}"]`);
+    if (doel) {
+      doel.innerHTML = `
+        <span class="deel">Materiaal <b>${eur(regel.materiaal_kosten)}</b></span>
+        <span class="deel">Arbeid <b>${NRL.format(regel.uren)} u</b> · <b>${eur(regel.arbeidskosten)}</b></span>
+        <span class="deel">Marge <b>${eur(regel.marge)}</b></span>
+        <span class="totaal">${eur(regel.totaal)}</span>`;
+    }
+    const detail = document.querySelector(`[data-details="${regel.regel_id}"]`);
+    if (detail) detail.innerHTML = renderDetails(regel);
+  }
+}
+
+function renderDetails(regel) {
+  if (!regel.materiaal.length && !regel.taken.length) {
+    return '<p class="klein-muted" style="padding:8px 13px">Geen details beschikbaar.</p>';
+  }
+  const materiaal = regel.materiaal.map((l) => `
+    <tr><td>${esc(l.omschrijving)}</td>
+        <td class="eenheid">${esc(l.eenheid)}</td>
+        <td class="num">${NRL.format(l.aantal)}</td>
+        <td class="num">${eur(l.eenheidsprijs)}</td>
+        <td class="num">${eur(l.totaal)}</td></tr>`).join("");
+  const taken = regel.taken.map((t) => `
+    <tr><td>${esc(t.omschrijving)}</td>
+        <td class="eenheid">uur</td>
+        <td class="num">${NRL.format(t.uren)}</td>
+        <td class="num">${eur(t.tarief)}</td>
+        <td class="num">${eur(t.totaal)}</td></tr>`).join("");
+  return `<table>
+    <tbody>
+      <tr class="sectie"><td colspan="5">Materiaal</td></tr>
+      ${materiaal}
+      <tr class="sectie"><td colspan="5">Arbeid</td></tr>
+      ${taken}
+      <tr class="totaal"><td colspan="4">Totaal</td><td class="num">${eur(regel.totaal)}</td></tr>
+    </tbody></table>`;
+}
+
+/* ---------------- offerte (document) ---------------- */
+function renderOfferte() {
+  const container = $("#offerte");
+  const offerte = state.offerte;
+  if (!container) return;
+  if (!offerte) { container.innerHTML = ""; return; }
+  const project = state.project;
+  const totalen = offerte.totalen;
+
+  if (!offerte.regels.length) {
+    container.innerHTML = `
+      <div class="offerte-kop"><h2>Offerte</h2>
+        <div class="meta"><span>${esc(project.offerte_nummer)}</span><span>${esc(project.datum)}</span></div></div>
+      <div class="leeg-melding">
+        <span class="groot-emoji">📋</span>
+        Nog geen werk gekozen.<br>Voeg een ruimte toe en klik bij een oppervlak op <b>+ werk</b>.
+      </div>`;
+    return;
+  }
+
+  const perRuimte = new Map();
+  for (const regel of offerte.regels) {
+    if (!perRuimte.has(regel.ruimte_id)) perRuimte.set(regel.ruimte_id, []);
+    perRuimte.get(regel.ruimte_id).push(regel);
+  }
+
+  const rijen = [];
+  for (const ruimte of offerte.ruimtes) {
+    const regels = perRuimte.get(ruimte.id) || [];
+    if (!regels.length) continue;
+    rijen.push(`<tr class="ruimte-kop">
+        <td colspan="5">${esc(ruimte.naam)}
+          <span class="klein-muted">· ${NRL.format(ruimte.lengte)} × ${NRL.format(ruimte.breedte)} × ${NRL.format(ruimte.hoogte)} m</span>
+        </td></tr>`);
+    for (const regel of regels) {
+      const opties = Object.entries(regel.opties || {})
+        .filter(([, waarde]) => waarde && waarde !== "geen" && waarde !== "1 zijde")
+        .map(([id, waarde]) => `${id}: ${waarde}`).join(" · ");
+      rijen.push(`<tr>
+        <td>${esc(regel.omschrijving)}
+          ${opties ? `<br><span class="klein-muted">${esc(opties)}</span>` : ""}
+          ${regel.notitie ? `<br><span class="klein-muted">${esc(regel.notitie)}</span>` : ""}</td>
+        <td class="num">${NRL.format(regel.aantal)} ${esc(regel.eenheid)}</td>
+        <td class="num">${eur(regel.materiaal_kosten)}</td>
+        <td class="num">${eur(regel.arbeidskosten)}</td>
+        <td class="num"><b>${eur(regel.totaal)}</b></td></tr>`);
+    }
+  }
+
+  container.innerHTML = `
+    <div class="offerte-kop">
+      <h2>Offerte</h2>
+      <div class="meta">
+        <span>${esc(project.offerte_nummer || "—")}</span>
+        <span>${esc(project.datum || "")}</span>
+      </div>
+    </div>
+    <div class="offerte-partijen">
+      <div>
+        <h4>Aanbieder</h4>
+        <p><b>${esc(project.aannemer || "—")}</b></p>
+      </div>
+      <div>
+        <h4>Klant</h4>
+        <p><b>${esc(project.klant || "—")}</b></p>
+        ${project.adres ? `<p>${esc(project.adres)}</p>` : ""}
+      </div>
+    </div>
+    <p class="klein-muted" style="margin-bottom:12px">
+      <b>Project:</b> ${esc(project.naam)}</p>
+    <table class="offerte-tabel">
+      <thead><tr>
+        <th>Omschrijving</th><th class="num">Aantal</th>
+        <th class="num">Materiaal</th><th class="num">Arbeid</th><th class="num">Totaal</th>
+      </tr></thead>
+      <tbody>${rijen.join("")}</tbody>
+    </table>
+    <div class="offerte-totaal">
+      <div><span>Materiaal</span><span>${eur(totalen.materiaal)}</span></div>
+      <div><span>Arbeid (${NRL.format(totalen.uren)} u)</span><span>${eur(totalen.arbeid)}</span></div>
+      <div><span>Marge materiaal</span><span>${eur(totalen.marge)}</span></div>
+      <div class="groot"><span>Subtotaal</span><span>${eur(totalen.subtotaal)}</span></div>
+      ${totalen.korting ? `<div><span>Korting (${NRL.format(totalen.korting_pct)}%)</span><span>−${eur(totalen.korting)}</span></div>` : ""}
+      <div><span>BTW ${NRL.format(totalen.btw_pct)}%</span><span>${eur(totalen.btw)}</span></div>
+      <div class="eind"><span>Totaal</span><span>${eur(totalen.totaal)}</span></div>
+    </div>
+    ${project.opmerking ? `<p class="offerte-noot">${esc(project.opmerking)}</p>` : ""}`;
+}
+
+/* ---------------- render ---------------- */
+function render() {
+  const focus = bewaarFocus();
+  renderRuimteChips();
+  const ruimte = actieveRuimte();
+  const kaart = $("#ruimtekaart");
+  if (kaart) kaart.innerHTML = ruimte ? renderRuimtekaart(ruimte) : "";
+  renderOppervlakken();
+  renderRegels();
+  renderOfferte();
+  renderRegelPrijzen();
+  herstelFocus(focus);
+}
+
+/* ---------------- acties ---------------- */
+function regelToevoegen(oppervlak, soort) {
+  const ruimte = actieveRuimte();
+  if (!ruimte) return;
+  state.project.regels.push({
+    id: uid(),
+    ruimte_id: ruimte.id,
+    oppervlak,
+    pakket_id: standaardPakket(soort),
+    opties: {},
+    hoeveelheid: null,
+    notitie: "",
+  });
+}
+
+/* --- opslag: op de server (Python) of alleen in de browser (Worker) --- */
+function lokaleProjecten() {
+  try { return JSON.parse(localStorage.getItem(OPSLAG_LIJST) || "[]"); } catch (_) { return []; }
+}
+
+function lokaalOpslaan(project, id) {
+  const lijst = lokaleProjecten();
+  const projectId = id || `${(project.naam || "offerte").toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${Date.now()}`;
+  const entry = {
+    id: projectId, naam: project.naam, klant: project.klant, datum: project.datum,
+    ruimtes: (project.ruimtes || []).length, regels: (project.regels || []).length,
+    gewijzigd: new Date().toISOString().slice(0, 16).replace("T", " "),
+    project,
+  };
+  const overig = lijst.filter((p) => p.id !== projectId);
+  localStorage.setItem(OPSLAG_LIJST, JSON.stringify([entry, ...overig].slice(0, 50)));
+  return projectId;
+}
+
+function lokaalVerwijderen(id) {
+  localStorage.setItem(OPSLAG_LIJST, JSON.stringify(lokaleProjecten().filter((p) => p.id !== id)));
+}
+
+async function opslaan() {
+  if (!state.project) return;
+  status("Opslaan…");
+  if (state.opslag === "lokaal") {
+    state.projectId = lokaalOpslaan(state.project, state.projectId);
+    bewaarLokaal();
+    status("Opgeslagen in deze browser");
+    toast("Offerte opgeslagen in deze browser");
+    return;
+  }
+  try {
+    const antwoord = await fetch("/api/projecten/opslaan", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ project: state.project, id: state.projectId }),
+    });
+    const data = await antwoord.json();
+    if (data.fout) throw new Error(data.fout);
+    state.projectId = data.id;
+    bewaarLokaal();
+    status("Opgeslagen");
+    toast(`Offerte opgeslagen (${data.id})`);
+  } catch (fout) {
+    status("Opslaan mislukt");
+    toast("Opslaan mislukt — is de server gestart?");
+  }
+}
+
+async function openenDialog() {
+  const inhoud = $("#modal-inhoud");
+  inhoud.innerHTML = "<p class='hint'>Bezig met laden…</p>";
+  $("#modal-achtergrond").hidden = false;
+
+  let projecten = [];
+  if (state.opslag === "lokaal") {
+    projecten = lokaleProjecten();
+  } else {
+    try {
+      const antwoord = await fetch("/api/projecten");
+      const data = await antwoord.json();
+      projecten = data.projecten || [];
+    } catch (fout) {
+      inhoud.innerHTML = "<p class='hint'>Laden mislukt — is de server gestart?</p>";
+      return;
+    }
+  }
+
+  inhoud.innerHTML = projecten.length
+    ? `<div class="projectlijst">${projecten.map((p) => `
+        <div class="projectregel">
+          <span class="naam">${esc(p.naam)}<br><span class="meta">${esc(p.klant || "—")} · ${esc(p.ruimtes)} ruimte(s) · ${esc(p.gewijzigd || "")}</span></span>
+          <button type="button" class="knop klein" data-actie="project-laden" data-id="${esc(p.id)}">Openen</button>
+          <button type="button" class="knop klein gevaar" data-actie="project-verwijderen" data-id="${esc(p.id)}">🗑</button>
+        </div>`).join("")}</div>`
+    : "<p class='hint'>Nog geen opgeslagen offertes. Sla je huidige offerte op met 💾.</p>";
+}
+
+function exporteerJson() {
+  const blob = new Blob([JSON.stringify(state.project, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${(state.project.naam || "offerte").replace(/[^\w-]+/g, "-")}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importeerJson(tekst) {
+  try {
+    const project = JSON.parse(tekst);
+    laadProject(project, null);
+    toast("Offerte geïmporteerd");
+  } catch (_) {
+    toast("Dit bestand is geen geldige offerte");
+  }
+}
+
+/* ---------------- events ---------------- */
+document.addEventListener("click", (e) => {
+  const knop = e.target.closest("[data-actie]");
+  if (knop) {
+    const actie = knop.dataset.actie;
+    if (actie === "ruimte-toevoegen") {
+      const id = uid();
+      wijzig(() => {
+        state.project.ruimtes.push({
+          id, naam: `Ruimte ${state.project.ruimtes.length + 1}`,
+          lengte: 4, breedte: 3, hoogte: 2.5, openingen: [],
+        });
+        state.actieveRuimteId = id;
+      });
+    } else if (actie === "ruimte-kiezen") {
+      state.actieveRuimteId = knop.dataset.id;
+      render();
+    } else if (actie === "ruimte-verwijderen") {
+      const ruimte = actieveRuimte();
+      if (!ruimte) return;
+      if (!confirm(`Ruimte "${ruimte.naam}" en al haar werk verwijderen?`)) return;
+      wijzig(() => {
+        state.project.ruimtes = state.project.ruimtes.filter((r) => r.id !== ruimte.id);
+        state.project.regels = state.project.regels.filter((r) => r.ruimte_id !== ruimte.id);
+        state.actieveRuimteId = state.project.ruimtes.length ? state.project.ruimtes[0].id : null;
+      });
+    } else if (actie === "opening-toevoegen") {
+      const ruimte = actieveRuimte();
+      wijzig(() => {
+        ruimte.openingen.push({
+          naam: knop.dataset.soort || "Deur",
+          muur: "noord",
+          breedte: knop.dataset.soort === "Raam" ? 1.2 : 0.9,
+          hoogte: knop.dataset.soort === "Raam" ? 1.2 : 2.1,
+          aantal: 1,
+        });
+      });
+    } else if (actie === "opening-verwijderen") {
+      const ruimte = actieveRuimte();
+      const index = Number(knop.dataset.index);
+      wijzig(() => { ruimte.openingen.splice(index, 1); });
+    } else if (actie === "regel-toevoegen") {
+      wijzig(() => regelToevoegen(knop.dataset.vlak, knop.dataset.soort));
+    } else if (actie === "regel-verwijderen") {
+      wijzig(() => {
+        state.project.regels = state.project.regels.filter((r) => r.id !== knop.dataset.id);
+      });
+    } else if (actie === "hoeveelheid-auto") {
+      wijzig(() => {
+        const regel = state.project.regels.find((r) => r.id === knop.closest("[data-regel]")?.dataset.regel);
+        if (regel) regel.hoeveelheid = null;
+      });
+    } else if (actie === "project-laden") {
+      if (state.opslag === "lokaal") {
+        const gevonden = lokaleProjecten().find((p) => p.id === knop.dataset.id);
+        if (gevonden?.project) {
+          laadProject(gevonden.project, gevonden.id);
+          $("#modal-achtergrond").hidden = true;
+          toast("Offerte geopend");
+        }
+      } else {
+        fetch(`/api/projecten/${knop.dataset.id}`).then((r) => r.json()).then((data) => {
+          if (data.project) {
+            laadProject(data.project, knop.dataset.id);
+            $("#modal-achtergrond").hidden = true;
+            toast("Offerte geopend");
+          }
+        });
+      }
+    } else if (actie === "project-verwijderen") {
+      if (!confirm("Deze offerte definitief verwijderen?")) return;
+      if (state.opslag === "lokaal") {
+        lokaalVerwijderen(knop.dataset.id);
+        openenDialog();
+        toast("Offerte verwijderd");
+      } else {
+        fetch("/api/projecten/verwijder", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: knop.dataset.id }),
+        }).then(() => { openenDialog(); toast("Offerte verwijderd"); });
+      }
+    }
+    return;
+  }
+
+  if (e.target.id === "btn-nieuw") {
+    if (!confirm("Een nieuwe offerte starten? Het huidige werk gaat verloren (tenzij je het opgeslagen hebt).")) return;
+    laadProject(nieuwProject(), null);
+    toast("Nieuwe offerte");
+  } else if (e.target.id === "btn-opslaan") {
+    opslaan();
+  } else if (e.target.id === "btn-openen") {
+    openenDialog();
+  } else if (e.target.id === "btn-print") {
+    window.print();
+  } else if (e.target.id === "modal-sluiten" || e.target.id === "modal-achtergrond") {
+    $("#modal-achtergrond").hidden = true;
+  } else if (e.target.id === "btn-export") {
+    exporteerJson();
+  } else if (e.target.id === "btn-import") {
+    $("#import-bestand").click();
+  }
+});
+
+/* Tijdens het typen: het model bijwerken, maar het veld zelf niet opnieuw bouwen. */
+document.addEventListener("input", (e) => {
+  const el = e.target;
+
+  if (el.dataset.project) {
+    const veld = el.dataset.project;
+    state.project[veld] = ["uurtarief", "marge_pct", "korting_pct", "btw_pct"].includes(veld)
+      ? getal(el.value) : el.value;
+    bewaarLokaal();
+    renderOfferte();
+    planBerekening();
+    return;
+  }
+
+  if (el.dataset.ruimte) {
+    const ruimte = actieveRuimte();
+    if (!ruimte) return;
+    const veld = el.dataset.ruimte;
+    ruimte[veld] = el.value;                       // ruwe tekst; normaliseren bij 'change'
+    bewaarLokaal();
+    if (veld === "naam") {
+      const chip = document.querySelector(`[data-actie="ruimte-kiezen"][data-id="${ruimte.id}"]`);
+      if (chip) chip.textContent = el.value || "Ruimte";
+    } else {
+      renderOppervlakken();
+    }
+    renderOfferte();
+    planBerekening();
+    return;
+  }
+
+  if (el.dataset.opening !== undefined) {
+    const ruimte = actieveRuimte();
+    const opening = ruimte?.openingen[Number(el.dataset.opening)];
+    if (!opening) return;
+    const veld = el.dataset.openingVeld;
+    opening[veld] = el.value;
+    bewaarLokaal();
+    renderOppervlakken();
+    renderOfferte();
+    planBerekening();
+    return;
+  }
+
+  if (el.dataset.tarief) {
+    state.project.tarieven[el.dataset.tarief] = getal(el.value);
+    bewaarLokaal();
+    planBerekening();
+    return;
+  }
+
+  if (el.dataset.hoeveelheid !== undefined) {
+    const id = el.closest("[data-regel]")?.dataset.regel;
+    const regel = state.project.regels.find((r) => r.id === id);
+    if (!regel) return;
+    regel.hoeveelheid = getal(el.value);
+    bewaarLokaal();
+    planBerekening();
+  }
+});
+
+/* Bij het verlaten van een veld: normaliseren en de kaart opnieuw opbouwen. */
+document.addEventListener("change", (e) => {
+  const el = e.target;
+
+  if (el.name === "prijsmodus") {
+    wijzig(() => { state.project.prijsmodus = el.value; });
+    return;
+  }
+
+  if (el.dataset.pakket !== undefined) {
+    const id = el.closest("[data-regel]")?.dataset.regel;
+    wijzig(() => {
+      const regel = state.project.regels.find((r) => r.id === id);
+      if (regel) { regel.pakket_id = el.value; regel.opties = {}; }
+    });
+    return;
+  }
+
+  if (el.dataset.optie) {
+    const id = el.closest("[data-regel]")?.dataset.regel;
+    wijzig(() => {
+      const regel = state.project.regels.find((r) => r.id === id);
+      if (regel) regel.opties[el.dataset.optie] = el.value;
+    });
+    return;
+  }
+
+  if (el.dataset.ruimte) {
+    const ruimte = actieveRuimte();
+    const veld = el.dataset.ruimte;
+    if (ruimte) ruimte[veld] = veld === "naam" ? el.value : getal(el.value, ruimte[veld]);
+    bewaarLokaal();
+    render();
+    bereken();
+    return;
+  }
+
+  if (el.dataset.opening !== undefined) {
+    const ruimte = actieveRuimte();
+    const opening = ruimte?.openingen[Number(el.dataset.opening)];
+    const veld = el.dataset.openingVeld;
+    if (opening) {
+      opening[veld] = (veld === "naam" || veld === "muur") ? el.value : getal(el.value, opening[veld]);
+    }
+    bewaarLokaal();
+    render();
+    bereken();
+    return;
+  }
+
+  if (el.dataset.hoeveelheid !== undefined) {
+    const id = el.closest("[data-regel]")?.dataset.regel;
+    const regel = state.project.regels.find((r) => r.id === id);
+    if (regel) regel.hoeveelheid = getal(el.value);
+    bewaarLokaal();
+    render();
+    bereken();
+    return;
+  }
+
+  if (el.id === "import-bestand" && el.files && el.files[0]) {
+    const bestand = el.files[0];
+    const lezer = new FileReader();
+    lezer.onload = () => importeerJson(String(lezer.result || ""));
+    lezer.readAsText(bestand);
+  }
+});
+
+/* ---------------- opstart ---------------- */
+async function laadLokaleEngine() {
+  // De engine wordt als module geladen (window.BouwEngine). Wacht daar even op.
+  for (let i = 0; i < 60; i++) {
+    if (window.BouwEngine) return window.BouwEngine;
+    await new Promise((r) => setTimeout(r, 50));
+  }
+  // In de één-bestand-versie is de engine al ingesloten.
+  return null;
+}
+
+async function init() {
+  $$(".tab").forEach((tab) => tab.addEventListener("click", () => {
+    $$(".tab").forEach((t) => t.classList.toggle("actief", t === tab));
+    $$(".tabpaneel").forEach((p) => p.classList.toggle("actief", p.dataset.paneel === tab.dataset.tab));
+  }));
+
+  try {
+    const antwoord = await fetch("/api/prijsboek");
+    state.prijsboek = await antwoord.json();
+    state.opslag = state.prijsboek.opslag || "server";
+  } catch (fout) {
+    // Geen API? Dan rekenen we gewoon in de browser met de JS-rekenkern.
+    status("Geen server bereikbaar — reken lokaal in de browser.");
+    const engine = await laadLokaleEngine();
+    if (engine) {
+      state.engine = engine;
+      state.prijsboek = engine.prijsboek();
+      state.opslag = "lokaal";
+    } else {
+      status("Kan de rekenkern niet laden.");
+      state.prijsboek = { tarieven: [], pakketten: [] };
+    }
+  }
+
+  let opgeslagen = null;
+  try { opgeslagen = JSON.parse(localStorage.getItem(OPSLAG_SLEUTEL) || "null"); } catch (_) { opgeslagen = null; }
+  laadProject(opgeslagen?.project || nieuwProject(), opgeslagen?.id || null);
+  renderTarieven();
+}
+
+init();
+
+</script>
+</body>
+</html>
