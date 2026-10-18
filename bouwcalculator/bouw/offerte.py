@@ -118,8 +118,15 @@ def bereken_offerte(project_data: Dict[str, Any]) -> Dict[str, Any]:
         else:
             regels.append(bereken_regel(regel, vlak, project, tarieven))
 
-    if any(r.contour or r.dak for r in project.ruimtes):
+    if any(r.contour or r.dak or r.wand_helling for r in project.ruimtes):
         waarschuwingen.append('Ruimtevorm: binnenmaten; oppervlakken volgen de contour en plafondhelling. Profielen en snijverlies blijven ramingsnormen, geen zaag- of uitvoeringsplan. Controleer objectplaatsing en openingen.')
+    if project.huis:
+        waarschuwingen.append('Huisplan: één verdieping met binnenmaten, zonder wanddikte. Gedeelde wanden worden per afwerkingszijde geoffreerd; dit is geen constructie- of uitvoeringsplan.')
+        apart = sum(r.huis_positie is None for r in project.ruimtes)
+        if apart:
+            waarschuwingen.append(f'{apart} ruimte(s) staan buiten het huisplan; hun werkposten tellen wel mee in deze offerte.')
+    if any(r.wand_helling for r in project.ruimtes):
+        waarschuwingen.append('Schuine wanden: naar binnen hellend bij vlak plafond en convexe contour. Wand- en openinghoogten langs de helling; offerte gebruikt echte trapeziumoppervlakken. Controleer passing van openingen en raming van profielen.')
     for ruimte in project.ruimtes:
         sleutels = {v['sleutel'] for v in vlakken_per_ruimte[ruimte.id]}
         for opening in ruimte.openingen:

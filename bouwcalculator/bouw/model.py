@@ -97,6 +97,8 @@ class Ruimte:
     openingen: List[Opening] = field(default_factory=list)
     contour: List[Dict[str, Any]] = field(default_factory=list)
     dak: Optional[Dict[str, Any]] = None
+    wand_helling: Dict[str, float] = field(default_factory=dict)
+    huis_positie: Optional[Dict[str, float]] = None
 
     @staticmethod
     def van_dict(d: Dict[str, Any]) -> "Ruimte":
@@ -115,7 +117,8 @@ class Ruimte:
                 not .05 <= vorm.number(v if d.get(k) is None else d[k]) <= 1000
                 for k, v in [('lengte', 4), ('breedte', 3)]):
             raise ValueError('Gebruik een lengte en breedte tussen 0,05 en 1000 meter.')
-        return Ruimte(
+        ruimte = Ruimte(
+            wand_helling=vorm.leaning(d.get("wand_helling")), huis_positie=vorm.position(d.get("huis_positie")),
             contour=contour, dak=dak,
             id=_tekst(d.get("id")) or nieuw_id(),
             naam=_tekst(d.get("naam"), "Ruimte") or "Ruimte",
@@ -124,9 +127,17 @@ class Ruimte:
             hoogte=hoogte,
             openingen=[Opening.van_dict(o) for o in (d.get("openingen") or [])],
         )
+        if ruimte.huis_positie is not None or ruimte.wand_helling:
+            vorm.contour(vorm.points(ruimte), False)
+            if not .1 <= hoogte <= 100:
+                raise ValueError('Plafondhoogten moeten tussen 0,10 en 100 meter liggen.')
+        if ruimte.wand_helling:
+            vorm.top(ruimte)
+        return ruimte
 
     def naar_dict(self) -> Dict[str, Any]:
         return {
+            "wand_helling": dict(self.wand_helling), "huis_positie": dict(self.huis_positie) if self.huis_positie is not None else None,
             "id": self.id, "naam": self.naam, "lengte": self.lengte,
             "breedte": self.breedte, "hoogte": self.hoogte,
             "openingen": [o.naar_dict() for o in self.openingen],
@@ -196,6 +207,8 @@ class Project:
     aannemer: str = ""
     opmerking: str = ""
 
+    huis: Optional[Dict[str, Any]] = None
+
     # -- serialisatie -------------------------------------------------------
     @staticmethod
     def van_dict(d: Dict[str, Any]) -> "Project":
@@ -217,6 +230,13 @@ class Project:
             aannemer=_tekst(d.get("aannemer")),
             opmerking=_tekst(d.get("opmerking")),
         )
+        if d.get('huis') is not None:
+            if not isinstance(d['huis'], dict):
+                raise ValueError('Ongeldige huiscontour.')
+            h = Ruimte.van_dict(dict(d['huis'], id='huis', naam='Woning', openingen=[], wand_helling={}, huis_positie=None))
+            h = Ruimte.van_dict(dict(h.naar_dict(), contour=vorm.contour(vorm.points(h))))
+            project.huis = {k: h.naar_dict()[k] for k in ('contour', 'lengte', 'breedte', 'hoogte', 'dak')}
+        vorm.layout(project)
         # Regels zonder ruimte krijgen de eerste ruimte (of blijven zonder).
         if project.ruimtes and not any(r.ruimte_id for r in project.regels):
             for regel in project.regels:
@@ -225,6 +245,7 @@ class Project:
 
     def naar_dict(self) -> Dict[str, Any]:
         return {
+            "huis": self.huis,
             "naam": self.naam, "klant": self.klant, "adres": self.adres,
             "datum": self.datum, "offerte_nummer": self.offerte_nummer,
             "ruimtes": [r.naar_dict() for r in self.ruimtes],

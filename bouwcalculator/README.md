@@ -40,7 +40,7 @@ python3 bouwcalculator/tools/maak_standalone.py
 Tests:
 
 ```bash
-python3 -m unittest discover -s bouwcalculator/tests -v   # 49 tests
+python3 -m unittest discover -s bouwcalculator/tests -v   # 57 tests
 ```
 
 ---
@@ -349,6 +349,50 @@ open/gesloten panelen behouden; een herladen pagina start weer rustig ingeklapt.
 
 Optionele browsercontrole: `tools/studio_review.mjs` (Worker of offline bestand).
 
+## Eerst het hele huis, daarna per ruimte
+
+1. Kies **Hele huis → Huiscontour tekenen**. Gebruik een startvorm of teken de
+   hoeken zelf op maat. Dit is de binnencontour van één verdieping.
+2. Kies **Kamer splitsen**. Geef een exacte X- of Y-positie op, of gebruik
+   **Twee grenspunten kiezen** voor een schuine scheidingswand. Tikken klikt langs
+   de dichtstbijzijnde wand op 5 cm. Geef beide kamers een naam en pas toe.
+3. Herhaal tot de indeling klopt. Selecteer een kamer op het plan, in de kamerlijst
+   of met Tab/Enter. **Open geselecteerde ruimte** opent de bestaande werkstudio
+   met Gyproc, installaties, openingen, eigen maten en offerteposten.
+4. **2D / 3D** toont het hele huis, inclusief schuine wanden, ramen/deuren en
+   schematische werk-/tracémarkeringen. Met **+ / − / Passend** zoom je rond de
+   geselecteerde kamer. Het huisoverzicht staat ook in de geprinte offerte.
+
+Een lege startruimte wordt alleen na bevestiging de onverdeelde woning. Bestaande
+kamers met werkposten blijven behouden buiten het huisplan én blijven meetellen
+in de offerte; dat wordt expliciet vermeld. Via **Kamers op het huisplan & plaatsing**
+kun je kamers exact plaatsen/verplaatsen of alleen van het plan halen zonder
+werken te wissen. Kamers mogen grenzen delen, niet overlappen of buiten de woning
+liggen. Er is geen automatische wanddikte of constructieve gedeelde-wandcalculatie:
+afwerking op beide zijden is werk in twee afzonderlijke kamers.
+
+Splitsen kan alleen vóór werkposten, openingen en wandhellingen in de betreffende
+kamer zijn toegevoegd. Zo is er geen onveilige automatische verdeling of stil
+verlies van bestaande posten. Een tekening wijzigen, splitsen of plaatsing aanpassen
+is ongedaan te maken/opnieuw uit te voeren. JSON en lokale/serveropslag bewaren
+huiscontour, kamerpositie en schuine wanden.
+
+### Echt schuine wanden, niet alleen diagonale lijnen
+
+Open **Per ruimte → Ruimte tekenen → Schuine wanden (uit het lood)** en voer per
+wand de **insprong bovenaan** in meters in. Bijvoorbeeld: 1,00 m bij 2,50 m verticale
+ruimtehoogte. De bovenkant komt naar binnen; 0 betekent een rechte wand. Het
+plafond wordt kleiner, de zijwanden worden trapezia en de offerte gebruikt de
+werkelijke schuine oppervlakken. Dit zie je in 2D (gestippelde bovencontour),
+3D, vlakaanzicht en meetstaat. Openingen en objecten volgen het wandvlak;
+**Langs helling** is de echte afstand over het schuine vlak.
+
+Dit model ondersteunt naar binnen hellende wanden bij een vlak plafond en een
+convexe contour. Combinatie met een hellend plafond of concave L/U-kamer wordt
+expliciet geweigerd: deel zo'n vorm eerst op in geschikte kamers. Te grote insprong
+of een wegvallend plafond wordt ook geweigerd. Profiel- en materiaalnormen blijven
+ramingen, geen gecertificeerde plaatindeling, stabiliteitsberekening of uitvoeringsplan.
+
 ## Ruimtes zelf tekenen, extra hoeken en schuine plafonds
 
 Klik **Ruimte tekenen** boven het plan, of bij Ruimtematen & openingen.
@@ -380,8 +424,8 @@ contouren worden afgewezen. Lengte/breedte zijn bij vrije vormen het omhullende
 bereik; hoogte is bij een helling de maximale hoogte. Wijzigen gebeurt via de
 editor, niet door deze afgeleide waarden afzonderlijk te veranderen.
 
-**Beperkingen:** geen ronde wanden, gaten, schuine vloeren, uit het lood hellende
-wanden of meerdere dakvlakken/nokken. Plaatsingen zijn schematisch: controleer
+**Beperkingen:** geen ronde wanden, gaten, schuine vloeren of meerdere dakvlakken/nokken.
+Uit het lood hellende wanden zijn apart beschikbaar bij een vlak plafond en een convexe kamer. Plaatsingen zijn schematisch: controleer
 openingen, tracés en objecten na een vormwijziging. De geselecteerde plaatsing
 waarschuwt bij overschrijding van contour/plafond. Profielen en snijverlies
 blijven ramingsnormen, geen gecertificeerd uitvoerings- of zaagplan.

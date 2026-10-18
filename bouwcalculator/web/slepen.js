@@ -46,10 +46,11 @@
   const note = text => {const el=document.querySelector('#plan-sleepstatus'); if(el) el.textContent=text;};
   function planeFor(surface,isOpening=false) {
     if (planWeergave === 'aanzicht') return window.BouwPlan.aanzichtProjectie(actieveRuimte(),planVlak).plane;
+    if(planWeergave==='isometrie'&&Object.keys(actieveRuimte()?.wand_helling||{}).length && BouwVorm.edges(actieveRuimte()).some(e=>e.id===surface))return 'wand';
     if (planWeergave !== 'isometrie') return 'xy';
     const requested = document.querySelector('#plan-sleepvlak')?.value;
     if (!isOpening && ['xy','xz','yz'].includes(requested)) return requested;
-    if((actieveRuimte()?.contour?.length || actieveRuimte()?.dak) && BouwVorm.edges(actieveRuimte()).some(e=>e.id===surface))return 'wand';
+    if((actieveRuimte()?.contour?.length || actieveRuimte()?.dak || Object.keys(actieveRuimte()?.wand_helling||{}).length) && BouwVorm.edges(actieveRuimte()).some(e=>e.id===surface))return 'wand';
     return ['noord','zuid'].includes(surface) ? 'xz' : ['west','oost'].includes(surface) ? 'yz' : 'xy';
   }
   function svgPoint(e) {
@@ -72,8 +73,8 @@
     const endpoint = target.closest?.('[data-plan-end]')?.dataset.planEnd || null;
     const route = r?.pakket.eenheid === 'm';
     const P=(planWeergave==='aanzicht' ? window.BouwPlan.aanzichtProjectie(room,planVlak) : planWeergave==='isometrie' ? window.BouwPlan.projectie(room,planCamera.hoek) : window.BouwPlan.planProjectie(room)).P;
-    const edge=(room.contour?.length || room.dak) && BouwVorm.edges(room).find(e=>e.id===(isOpening?geom.zijde:r.oppervlak));
-    if(edge)P.basis=[edge.u,[0,0,1]];
+    const edge=(room.contour?.length || room.dak || Object.keys(room.wand_helling||{}).length) && BouwVorm.edges(room).find(e=>e.id===(isOpening?geom.zijde:r.oppervlak));
+    if(edge)P.basis=[edge.u,BouwVorm.wallFrame(room,edge.id).v];
     return {room,model,r,index,isOpening,geom,endpoint,route,
       original:copy(model), plane:planeFor(isOpening ? geom.zijde : r.oppervlak,isOpening),
       P};
@@ -85,7 +86,7 @@
       const value = (n,change,max) => coord(Math.max(0,Math.min(max,step && Math.abs(change)>1e-9 ? Math.round((n+change)/step)*step : n+change)));
       m.positie=value(g.start ?? g.a[axis],g.u?delta[0]*g.u[0]+delta[1]*g.u[1]:delta[axis],Math.max(0,g.lengte-g.breedte));
       if (planWeergave!=='plattegrond' && !/^deur/i.test(m.naam || '')) {
-        m.borstwering=value(g.a[2],delta[2],Math.max(0,g.H-g.hoogte));
+        m.borstwering=value(g.onder ?? g.a[2],g.v?delta.reduce((s,n,i)=>s+n*g.v[i],0):delta[2],Math.max(0,g.H-g.hoogte));
       }
       note(`Opening: ${m.positie.toFixed(2)} m langs de wand · onderkant ${Number(m.borstwering || 0).toFixed(2)} m.`);
     } else {
@@ -97,6 +98,9 @@
       const nextA=a.map((n,i)=>coord(n+da[i])),nextB=b.map((n,i)=>coord(n+db[i]));
       m.visualisatie={...(d.original.visualisatie || {}),x:nextA[0],y:nextA[1],z:nextA[2]};
       if (d.route) Object.assign(m.visualisatie,{x2:nextB[0],y2:nextB[1],z2:nextB[2]});
+      if(Object.keys(d.room.wand_helling||{}).length&&BouwVorm.edges(d.room).some(e=>e.id===d.r.oppervlak)){
+        const fixed=BouwPlan.werkGeometrie({...d.r,visualisatie:m.visualisatie},d.room);Object.assign(m.visualisatie,{x:fixed.a[0],y:fixed.a[1],z:fixed.a[2]});if(d.route)Object.assign(m.visualisatie,{x2:fixed.b[0],y2:fixed.b[1],z2:fixed.b[2]});
+      }
       const active=d.endpoint==='b' ? nextB : nextA;
       note(`Positie X ${active[0].toFixed(2)} · Y ${active[1].toFixed(2)} · Z ${active[2].toFixed(2)} m.`);
     }
@@ -179,7 +183,7 @@
     if(e.key==='ArrowLeft')delta[axes[0]]=-step;
     if(e.key==='ArrowUp')delta[axes[1]]=axes[1]===2 ? step : -step;
     if(e.key==='ArrowDown')delta[axes[1]]=axes[1]===2 ? -step : step;
-    if(d.plane==='wand'){const along=delta[0];delta[0]=along*d.P.basis[0][0];delta[1]=along*d.P.basis[0][1];}
+    if(d.plane==='wand'){const along=delta[0],up=delta[2];for(let i=0;i<3;i++)delta[i]=along*(d.P.basis[0][i]||0)+up*d.P.basis[1][i];}
     if(planWeergave==='aanzicht')delta[axes[0]]*=window.BouwPlan.aanzichtProjectie(d.room,planVlak).teken;
     if(d.isOpening && !d.geom.u && planWeergave==='plattegrond') {
       if(['noord','zuid'].includes(d.geom.zijde))delta[1]=0;else delta[0]=0;

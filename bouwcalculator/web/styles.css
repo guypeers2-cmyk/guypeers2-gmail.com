@@ -1488,3 +1488,39 @@ polyline.vorm-schets { fill:none; stroke-dasharray:7 5; }
 .vorm-wand-invoer summary { cursor:pointer; padding:12px 0; font-weight:600; }
 .vorm-wand-invoer label,#vorm-koppeling-velden label { display:block; margin:10px 0; font-size:.85rem; }
 #vorm-koppelingen { margin:14px 0; padding:12px; background:var(--goud-zacht); border:1px solid var(--goud-rand); border-radius:10px; }
+
+/* House-first workflow; keep the room workstation out of the way. */
+.huis-navigatie{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.7rem}
+.huis-navigatie .hint{flex-basis:100%;margin:0}
+.huis-navigatie .actief{background:var(--accent);color:var(--wit,#fff)}
+.huisstand>#ruimtechips,.huisstand>#ruimte-invoer,.huisstand>#tekening,.huisstand>#installatie-invoer,.huisstand>#werk-invoer{display:none}
+.huis-uitleg,.huis-statistiek,#huis-melding,.huis-acties,#huis-splits-invoer,#huis-kamers{margin:.8rem 1rem}
+.huis-statistiek{font-weight:650;font-size:.88rem}
+#huis-plan{min-height:180px;background:var(--papier,#f7f8f5)}
+#huis-plan svg{display:block;width:100%;height:auto;max-height:65vh}
+.huis-leeg{padding:3rem 1rem;text-align:center}
+.huis-acties,#huis-splits-form,#huis-plaats-form,#huis-kamerlijst{display:flex;gap:.6rem;flex-wrap:wrap;align-items:end}
+#huis-kamerlijst{margin:.7rem 0}
+#huis-splits-form,#huis-plaats-form{padding:.8rem 0}
+#huis-splits-form label,#huis-plaats-form label{display:flex;flex-direction:column;gap:.3rem;flex:1 1 130px;min-width:0;font-size:.84rem}
+#huis-paneel details>summary{cursor:pointer;padding:.6rem 0;font-weight:650}
+.huis-buiten{fill:#f2f4f0;stroke:#354940;stroke-width:4;stroke-linejoin:round}
+.huis-vloer{fill:#e4eee7;stroke:#5e7668;stroke-width:2;stroke-linejoin:round}
+.huis-kamer{cursor:pointer;outline:none}
+.huis-kamer.geselecteerd .huis-vloer,.huis-kamer:focus .huis-vloer{fill:#c5e2cd;stroke:#117440;stroke-width:4}
+.huis-wand{fill:#d4dfd6;fill-opacity:.55;stroke:#6d8375;stroke-width:1}
+.huis-dak{fill:#c3d4c7;fill-opacity:.12;stroke:#597a65;stroke-dasharray:5 4}
+.huis-label,.huis-oppervlak,.huis-maat{fill:#193f2b;paint-order:stroke;stroke:#f6f9f5;stroke-width:3;stroke-linejoin:round;font:600 15px system-ui;pointer-events:none}
+.huis-oppervlak{font-size:13px;font-weight:400}
+.huis-maat{font-size:12px}
+.huis-snede-punt{fill:#d34e27;stroke:white;stroke-width:2;pointer-events:none}
+.huis-snede-lijn{stroke:#d34e27;stroke-width:3;stroke-dasharray:8 4;pointer-events:none}
+.vorm-topcontour{fill:none;stroke:#c07829;stroke-width:2;stroke-dasharray:7 4;pointer-events:none}
+#vorm-wandhellingen summary{cursor:pointer;font-weight:650;padding:.6rem 0}
+@media(max-width:600px){#huis-paneel .plankop{gap:.5rem}.huis-acties>.knop{flex:1 1 100%}#huis-plan svg{min-height:220px}.huis-navigatie>.knop{flex:1}}
+@media print{.huis-navigatie,#huis-paneel{display:none!important}}
+body.huisstand-actief .object-snelknop,body.huisstand-actief .tekening-snelknop{display:none!important}
+.huis-object{fill:#2464bd;stroke:white;stroke-width:1.5;pointer-events:none}
+.huis-object line{stroke:#2464bd;stroke-width:3;stroke-dasharray:6 3}
+.huis-opening{stroke:#ab6b24;stroke-width:5;fill:#e9cda6;fill-opacity:.7;pointer-events:none}
+.huis-opening-vlak{stroke-width:2}

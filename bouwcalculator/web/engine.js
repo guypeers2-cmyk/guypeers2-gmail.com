@@ -75,12 +75,12 @@ function openingVanDict(d = {}) {
 }
 
 function ruimteVanDict(d = {}) {
-  const contour=Vorm.contour(d.contour),dak=Vorm.roof(d.dak);
+  const contour=Vorm.contour(d.contour),dak=Vorm.roof(d.dak),wand_helling=Vorm.leaning(d.wand_helling),huis_positie=Vorm.position(d.huis_positie);
   const hoogte=dak?Math.max(dak.start,dak.eind):contour.length?Vorm.number(d.hoogte ?? 2.5):getal(d.hoogte,2.5);
   if(dak && !contour.length && [Vorm.number(d.lengte ?? 4),Vorm.number(d.breedte ?? 3)].some(n=>!Number.isFinite(n)||n<.05||n>1000))throw Error('Gebruik een lengte en breedte tussen 0,05 en 1000 meter.');
   if((contour.length||dak) && (!Number.isFinite(hoogte)||hoogte<.1||hoogte>100))throw Error('Plafondhoogten moeten tussen 0,10 en 100 meter liggen.');
-  return {
-    contour,dak,
+  const room={
+    contour,dak,wand_helling,huis_positie,
     id: tekst(d.id) || Math.random().toString(36).slice(2, 10),
     naam: tekst(d.naam, "Ruimte") || "Ruimte",
     lengte: contour.length?Math.max(...contour.map(p=>p.x)):getal(d.lengte,4.0),
@@ -88,6 +88,9 @@ function ruimteVanDict(d = {}) {
     hoogte,
     openingen: (d.openingen || []).map(openingVanDict),
   };
+  if(huis_positie||Object.keys(wand_helling).length){Vorm.contour(Vorm.points(room),false);if(!Number.isFinite(hoogte)||hoogte<.1||hoogte>100)throw Error('Plafondhoogten moeten tussen 0,10 en 100 meter liggen.');}
+  if(Object.keys(wand_helling).length)Vorm.top(room);
+  return room;
 }
 
 function regelVanDict(d = {}) {
@@ -133,6 +136,14 @@ function projectVanDict(d = {}) {
     opmerking: tekst(d.opmerking),
   };
   for (const [k, v] of Object.entries(d.tarieven || {})) project.tarieven[String(k)] = getal(v);
+  project.huis=null;
+  if(d.huis!=null){
+    if(typeof d.huis!=='object'||Array.isArray(d.huis))throw Error('Ongeldige huiscontour.');
+    let h=ruimteVanDict({...d.huis,id:'huis',naam:'Woning',openingen:[],wand_helling:{},huis_positie:null});
+    h=ruimteVanDict({...h,contour:Vorm.contour(Vorm.points(h))});
+    project.huis={contour:h.contour,lengte:h.lengte,breedte:h.breedte,hoogte:h.hoogte,dak:h.dak};
+  }
+  Vorm.layout(project);
   if (project.ruimtes.length && !project.regels.some((r) => r.ruimte_id)) {
     for (const regel of project.regels) regel.ruimte_id = project.ruimtes[0].id;
   }
@@ -171,7 +182,7 @@ class Tarieven {
 
 /* ---------------- oppervlakken ---------------- */
 export function ruimteOppervlakken(ruimte) {
-  if(ruimte.contour?.length || ruimte.dak)return Vorm.surfaces(ruimte);
+  if(ruimte.contour?.length || ruimte.dak || Object.keys(ruimte.wand_helling||{}).length)return Vorm.surfaces(ruimte);
   const { lengte, breedte, hoogte } = ruimte;
   const perMuur = { noord: { opening: 0, aantal: 0 }, zuid: { opening: 0, aantal: 0 },
                     oost: { opening: 0, aantal: 0 }, west: { opening: 0, aantal: 0 } };
@@ -603,7 +614,9 @@ export function berekenOfferte(projectData = {}) {
       : berekenRegel(regel, vlak, project, tarieven));
   }
 
-  if(project.ruimtes.some(r=>r.contour.length||r.dak))waarschuwingen.push('Ruimtevorm: binnenmaten; oppervlakken volgen de contour en plafondhelling. Profielen en snijverlies blijven ramingsnormen, geen zaag- of uitvoeringsplan. Controleer objectplaatsing en openingen.');
+  if(project.ruimtes.some(r=>r.contour.length||r.dak||Object.keys(r.wand_helling).length))waarschuwingen.push('Ruimtevorm: binnenmaten; oppervlakken volgen de contour en plafondhelling. Profielen en snijverlies blijven ramingsnormen, geen zaag- of uitvoeringsplan. Controleer objectplaatsing en openingen.');
+  if(project.huis){waarschuwingen.push('Huisplan: één verdieping met binnenmaten, zonder wanddikte. Gedeelde wanden worden per afwerkingszijde geoffreerd; dit is geen constructie- of uitvoeringsplan.');const apart=project.ruimtes.filter(r=>!r.huis_positie).length;if(apart)waarschuwingen.push(`${apart} ruimte(s) staan buiten het huisplan; hun werkposten tellen wel mee in deze offerte.`);}
+  if(project.ruimtes.some(r=>Object.keys(r.wand_helling).length))waarschuwingen.push('Schuine wanden: naar binnen hellend bij vlak plafond en convexe contour. Wand- en openinghoogten langs de helling; offerte gebruikt echte trapeziumoppervlakken. Controleer passing van openingen en raming van profielen.');
   for(const ruimte of project.ruimtes)for(const opening of ruimte.openingen){if(!vlakkenPerRuimte[ruimte.id].some(v=>v.sleutel===opening.muur))waarschuwingen.push(`Opening '${opening.naam}' hoort bij een onbekende wand en is niet afgetrokken.`);}
   if (regels.some(r => r.pakket.categorie === "Elektriciteit")) {
     waarschuwingen.push("Elektriciteit: indicatieve raming. Kabel, sleuf en aansluitpunten apart tellen. Zonder verdeelkast, keuring, schema’s of conformiteitscontrole; laat ontwerp en uitvoering door een vakbekwaam elektricien beoordelen.");
@@ -638,11 +651,12 @@ export function berekenOfferte(projectData = {}) {
 
   return {
     project: {
+      huis:project.huis,
       naam: project.naam, klant: project.klant, adres: project.adres,
       datum: project.datum, offerte_nummer: project.offerte_nummer,
       ruimtes: project.ruimtes.map((r) => ({
         id: r.id, naam: r.naam, lengte: r.lengte, breedte: r.breedte, hoogte: r.hoogte,
-        contour:r.contour.map(p=>({...p})),dak:r.dak?{...r.dak}:null,
+        contour:r.contour.map(p=>({...p})),dak:r.dak?{...r.dak}:null,wand_helling:{...r.wand_helling},huis_positie:r.huis_positie?{...r.huis_positie}:null,
         openingen: r.openingen.map((o) => ({
           naam: o.naam, muur: o.muur, breedte: o.breedte, hoogte: o.hoogte, aantal: o.aantal,
           positie: o.positie, borstwering: o.borstwering,

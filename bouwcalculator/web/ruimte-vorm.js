@@ -2,7 +2,7 @@
 (function(){
   'use strict';
   const $=s=>document.querySelector(s),dialog=$('#ruimte-vorm'),canvas=$('#vorm-canvas');
-  let punten=[],gesloten=true,stappen=[],drag=null,roomId=null,koppelingen=Object.create(null);
+  let punten=[],gesloten=true,stappen=[],drag=null,roomId=null,koppelingen=Object.create(null),hellingen={},huisTarget=null;
   const clone=v=>JSON.parse(JSON.stringify(v));
   const remember=()=>{stappen.push({punten:clone(punten),gesloten});if(stappen.length>60)stappen.shift();};
   const fail=s=>$('#vorm-fout').textContent=s;
@@ -14,7 +14,10 @@
     if(!gesloten)throw Error('Sluit de contour met de knop of tik opnieuw op de eerste hoek.');
     const contour=BouwVorm.contour(punten),dak=roof(),hoogte=dak?Math.max(dak.start,dak.eind):Number($('#vorm-hoogte').value);
     if(!Number.isFinite(hoogte)||hoogte<.1||hoogte>100)throw Error('Gebruik een hoogte tussen 0,10 en 100 meter.');
-    return {contour,dak,hoogte,lengte:Math.max(...contour.map(p=>p.x)),breedte:Math.max(...contour.map(p=>p.y)),openingen:[]};
+    const ids=new Set(contour.map(p=>p.id)),wand_helling={};
+    if(!huisTarget)for(const [id,v] of Object.entries(hellingen)){const key=ids.has(id)?id:koppelingen[id];if(key&&ids.has(key)&&v){if(wand_helling[key]!=null&&wand_helling[key]!==v)throw Error('Gekoppelde schuine wanden hebben verschillende insprongen.');wand_helling[key]=v;}}
+    const m={wand_helling,contour,dak,hoogte,lengte:Math.max(...contour.map(p=>p.x)),breedte:Math.max(...contour.map(p=>p.y)),openingen:[]};
+    BouwVorm.top(m);return m;
   }
   function render(){
     const q=project(),[L,B]=size(),P=p=>[q.x+p.x*q.s,q.y+p.y*q.s];
@@ -24,11 +27,13 @@
     let error='',stats='';
     try{const r=model(),v=BouwVorm.surfaces(r);stats=`${punten.length} wanden · vloer ${NR.format(v.find(v=>v.sleutel==='vloer').netto)} m² · plafond ${NR.format(v.find(v=>v.sleutel==='plafond').netto)} m² · omtrek ${NR.format(v.filter(v=>v.soort==='muur').reduce((s,v)=>s+v.lengte,0))} m`;if(r.dak){const as=r.dak.as,span=as==='x'?r.lengte:r.breedte;stats+=` · helling ${NRL.format(Math.atan((r.dak.eind-r.dak.start)/span)*180/Math.PI)}°`;$('#vorm-start').parentElement.firstChild.textContent=`Hoogte bij ${as.toUpperCase()} = 0 (m)`;$('#vorm-eind').parentElement.firstChild.textContent=`Hoogte bij ${as.toUpperCase()} = ${NRL.format(span)} m`;}}catch(e){error=e.message;}
     $('#vorm-samenvatting').textContent=stats;fail(error);
-    const r=actieveRuimte(),ids=new Set(punten.map(p=>p.id));
-    const used=r?[...state.project.regels.filter(x=>x.ruimte_id===r.id).map(x=>x.oppervlak),...(r.openingen||[]).map(o=>o.muur)]:[];
+    const r=huisTarget?null:actieveRuimte(),ids=new Set(punten.map(p=>p.id));
+    const used=r?[...state.project.regels.filter(x=>x.ruimte_id===r.id).map(x=>x.oppervlak),...(r.openingen||[]).map(o=>o.muur),...Object.keys(hellingen).filter(id=>hellingen[id])]:[];
     const missing=[...new Set(used.filter(id=>!['vloer','plafond'].includes(id)&&!ids.has(id)))];
     $('#vorm-koppelingen').hidden=!gesloten||!missing.length;
     if(!$('#vorm-koppeling-velden').contains(document.activeElement))$('#vorm-koppeling-velden').innerHTML=missing.map(id=>`<label>${esc(ruimteWanden(r).find(v=>v.sleutel===id)?.naam || id)} →<select data-wand-oud="${esc(id)}"><option value="">Kies een nieuwe wand…</option>${punten.map((p,i)=>`<option value="${esc(p.id)}" ${koppelingen[id]===p.id?'selected':''}>Wand ${i+1}</option>`).join('')}</select></label>`).join('');
+    $('#vorm-wandhellingen').hidden=!!huisTarget;
+    if(!$('#vorm-wandhelling-velden').contains(document.activeElement))$('#vorm-wandhelling-velden').innerHTML=punten.map((p,i)=>`<label>Wand ${i+1} · insprong bovenaan (m)<input data-wand-insprong="${esc(p.id)}" type="number" min="0" max="100" step="any" value="${hellingen[p.id]||0}"></label>`).join('');
     $('#vorm-wand-add').disabled=gesloten||punten.length>=64;
     $('#vorm-wand-lengte').disabled=$('#vorm-wand-richting').disabled=gesloten;
     $('#vorm-punt').disabled=punten.length>=64;
@@ -51,14 +56,16 @@
     canvas.innerHTML=svg;
     if(!$('#vorm-punten').contains(document.activeElement)||!document.activeElement.matches('[data-vorm-coord]'))$('#vorm-punten').innerHTML=punten.map((p,i)=>`<div class="vorm-punt-rij"><strong>${i+1}</strong><label>X (m)<input data-vorm-coord="x" data-index="${i}" type="number" min="0" max="1000" step="any" value="${p.x}" required></label><label>Y (m)<input data-vorm-coord="y" data-index="${i}" type="number" min="0" max="1000" step="any" value="${p.y}" required></label><button type="button" class="knop klein" data-hoek-split="${i}" aria-label="Wand na hoek ${i+1} splitsen">+</button><button type="button" class="knop klein" data-hoek-weg="${i}" aria-label="Hoek ${i+1} verwijderen">−</button></div>`).join('');
   }
-  function open(){
-    const r=actieveRuimte();if(!r){toast('Voeg eerst een ruimte toe.');return;}
-    roomId=r.id;koppelingen=Object.create(null);punten=clone(BouwVorm.points(r));gesloten=true;stappen=[];drag=null;
+  function open(target=null){
+    huisTarget=target;const r=target?.model||actieveRuimte();if(!r){toast('Voeg eerst een ruimte toe.');return;}
+    $('#vorm-titel').textContent=target?'Teken het hele huis':'Teken je ruimte';$('#vorm-toepassen').textContent=target?'Huiscontour toepassen':'Ruimtevorm toepassen';
+    hellingen=clone(r.wand_helling||{});roomId=r.id;koppelingen=Object.create(null);punten=clone(BouwVorm.points(r));gesloten=true;stappen=[];drag=null;
     $('#vorm-bereik-x').value=Math.max(.2,Number(r.lengte)||4);$('#vorm-bereik-y').value=Math.max(.2,Number(r.breedte)||3);
     $('#vorm-dak').value=r.dak?.as||'vlak';$('#vorm-hoogte').value=r.hoogte;
     $('#vorm-start').value=r.dak?.start ?? r.hoogte;$('#vorm-eind').value=r.dak?.eind ?? r.hoogte;
     dialog.showModal();render();
   }
+  window.BouwRuimteVorm={openHouse:(model,apply)=>open({model,apply})};
   function preset(type){
     remember();koppelingen=Object.create(null);const [L,B]=size();
     const shapes={rechthoek:[[0,0],[L,0],[L,B],[0,B]],l:[[0,0],[L,0],[L,B/2],[L/2,B/2],[L/2,B],[0,B]],t:[[0,0],[L,0],[L,B*.35],[L*.65,B*.35],[L*.65,B],[L*.35,B],[L*.35,B*.35],[0,B*.35]],u:[[0,0],[L,0],[L,B],[L*.65,B],[L*.65,B*.4],[L*.35,B*.4],[L*.35,B],[0,B]],trapezium:[[0,0],[L,0],[L*.8,B],[L*.2,B]],afgeschuind:[[0,0],[L*.8,0],[L,B*.2],[L,B],[0,B]],achthoek:[[L*.2,0],[L*.8,0],[L,B*.2],[L,B*.8],[L*.8,B],[L*.2,B],[0,B*.8],[0,B*.2]],driehoek:[[0,0],[L,0],[L/2,B]],vrij:[]};
@@ -84,6 +91,7 @@
     if(split||weg){remember();const i=Number((split||weg).dataset[split?'hoekSplit':'hoekWeg']);if(weg)punten.splice(i,1);else{const a=punten[i],b=punten[(i+1)%punten.length];punten.splice(i+1,0,{id:newId(),x:(a.x+b.x)/2,y:(a.y+b.y)/2});}if(punten.length<3)gesloten=false;render();}
   });
   dialog.addEventListener('change',e=>{
+    if(e.target.dataset.wandInsprong){if(!e.target.reportValidity())return;hellingen[e.target.dataset.wandInsprong]=Number(e.target.value);}
     if(e.target.dataset.wandOud)koppelingen[e.target.dataset.wandOud]=e.target.value;
     if(e.target.dataset.vormCoord){if(!e.target.reportValidity())return;remember();punten[Number(e.target.dataset.index)][e.target.dataset.vormCoord]=Number(e.target.value);}
     render();
@@ -122,17 +130,19 @@
   $('#vorm-form').addEventListener('submit',e=>{
     e.preventDefault();if(!e.target.reportValidity())return;
     try{
+      if(huisTarget){huisTarget.apply(model());dialog.close();return;}
       const r=actieveRuimte();if(!r||r.id!==roomId)throw Error('De actieve ruimte is gewijzigd. Open de editor opnieuw.');
       const m=model(),ids=new Set(m.contour.map(p=>p.id)),regels=state.project.regels.filter(x=>x.ruimte_id===r.id);
-      const gebruikt=[...regels.map(x=>x.oppervlak),...(r.openingen||[]).map(o=>o.muur)].filter(id=>!['vloer','plafond'].includes(id));
+      const gebruikt=[...regels.map(x=>x.oppervlak),...(r.openingen||[]).map(o=>o.muur),...Object.keys(hellingen).filter(id=>hellingen[id])].filter(id=>!['vloer','plafond'].includes(id));
       if(gebruikt.some(id=>!ids.has(id)&&!ids.has(koppelingen[id])))throw Error('Een verwijderde wand wordt nog gebruikt. Kies bij Bestaande wanden koppelen een nieuwe wand voor de werkregels/openingen, of annuleer en verwijder ze eerst. Er wordt niets stilzwijgend weggegooid.');
+      BouwVorm.layout({...state.project,ruimtes:state.project.ruimtes.map(x=>x.id===r.id?{...x,...m}:x)});
       if((regels.length||(r.openingen||[]).length)&&!confirm('Ruimtevorm en/of plafond wijzigen? Dit herberekent oppervlakken en offerteprijzen. Bestaande objecten worden niet automatisch opnieuw geplaatst. Controleer wandtoewijzing, tracés en openingen.'))return;
       // Retain the classic rectangle path (and its legacy opening directions).
       const rect=m.contour.length===4 && m.contour.every((p,i)=>p.id===['noord','oost','zuid','west'][i] && p.x===[0,m.lengte,m.lengte,0][i] && p.y===[0,0,m.breedte,m.breedte][i]);
       wijzig(()=>{
         regels.forEach(regel=>{if(!ids.has(regel.oppervlak)&&koppelingen[regel.oppervlak])regel.oppervlak=koppelingen[regel.oppervlak];});
         (r.openingen||[]).forEach(o=>{if(!ids.has(o.muur)&&koppelingen[o.muur])o.muur=koppelingen[o.muur];});
-        Object.assign(r,{contour:rect?[]:m.contour,dak:m.dak,hoogte:m.hoogte,lengte:m.lengte,breedte:m.breedte});
+        Object.assign(r,{wand_helling:m.wand_helling,contour:rect?[]:m.contour,dak:m.dak,hoogte:m.hoogte,lengte:m.lengte,breedte:m.breedte});
       });
       planCamera.zoom=1;planCamera.panX=0;planCamera.panY=0;planSelectie=null;planInspectieOpen=false;
       window.BouwMeten?.reset();renderPlan();dialog.close();$('#ruimte-tekenen').focus();toast('Ruimtevorm opgeslagen. Controleer de meetstaat en objectplaatsingen.');

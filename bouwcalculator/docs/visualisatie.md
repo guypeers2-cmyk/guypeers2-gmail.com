@@ -292,3 +292,60 @@ Materialen/uren gebruiken bestaande pakketnormen. Profielen voor trapeziumwanden
 gebruiken de maximale wandhoogte als ramingsbasis; plafondprofielen gebruiken een
 omhullende maat met de hellingscorrectie. Dit is geen exacte plaatindeling of
 snijoptimalisatie, wat expliciet als offertewaarschuwing wordt vermeld.
+
+## Huisindeling en naar binnen hellende wanden
+
+`Project.huis` is `null` of `{contour, lengte, breedte, hoogte, dak}`. Het is een
+geometrische binnencontour van één verdieping, geen extra te offreren ruimte.
+`Ruimte.huis_positie` is `null` of `{x,y}` in meter, de oorsprong van de lokale
+kamercontour op dat huisplan. Ongeplaatste kamers blijven in de offerte en krijgen
+bij een huisplan een waarschuwing. Python en JS controleren kamersegmenten binnen
+de woning (dus ook bij concave uitsparingen) en niet-overlappende interieurs.
+Gedeelde grenzen zijn toegestaan; de geometrische grenscontrole gebruikt 1 µm
+tolerantie vanwege de canonieke afronding op zes coördinaatdecimalen.
+
+De huiseditor hergebruikt de transactionele contour-editor. Splitsen maakt twee
+polygonen langs een rechte koorde, met behoud van totale vloeroppervlakte en
+globale posities. Rechte X/Y-sneden moeten precies twee unieke grenssnijpunten
+hebben; voor concave kamers kan een andere snede of expliciete koorde nodig zijn.
+Een planair plafond wordt per deel opnieuw naar het lokale bereik vertaald,
+waardoor dezelfde wereldhelling behouden blijft. Alleen lege kamers kunnen worden
+gesplitst: geen automatische gok bij het verdelen van werkregels, openingen of
+schuine wanden. Dit is één historiewijziging. Huiscontour aanpassen schaalt bestaande
+kamers niet ongemerkt mee; ongeldige ligging wordt vóór toepassen geweigerd.
+
+`Ruimte.wand_helling` is een map wand-ID → horizontale insprong bovenaan (m).
+Een ontbrekende/lege map betekent verticale wanden. Positieve insprong verschuift
+de bovenrand naar binnen. In eerste instantie alleen bij een vlak plafond en een
+convexe contour; dakhelling + wandinsprong of concave contour geeft een fout.
+Aansluitende collineaire wanddelen vereisen dezelfde insprong.
+
+De topcontour komt uit snijpunten van evenwijdig naar binnen verschoven wandlijnen.
+Zij moet geldig blijven, dezelfde omlopen hebben en elke bovenrand moet in dezelfde
+richting als haar vloerrand lopen. De bovencontour wordt **niet** opnieuw naar
+(0,0) genormaliseerd. Plafond = oppervlak topcontour; vloer blijft onveranderd.
+Wandoppervlak = `(onderlengte + bovenlengte) / 2 × hypot(verticale hoogte, insprong)`.
+Hierdoor veranderen ook de aangrenzende verticale zijwanden. Openingmaten zijn
+rechthoekige maten langs het wandvlak; aftrek blijft breedte × hoogte × aantal.
+Niet-passende openingen worden visueel begrensd en gemeld, niet stil uit de offerte
+verwijderd of met andere ingevoerde maten geprijsd.
+
+Een wand heeft een orthonormale U/V-basis: U langs de vloerrand, V langs de helling.
+3D, vlakaanzicht, slepen en lokale controlemaat gebruiken diezelfde basis. Bij
+openingen zijn borstwering en hoogte afstanden langs het wandvlak. Werkregel-
+`visualisatie.z` blijft wereld-Z om bestaande plaatsingsdata te behouden; de
+weergave projecteert wandobjecten op hun toegewezen vlak en begrenst ze op het
+trapezium. Slepen slaat de getoonde positie op. Vloer-/plafondmarkeringen blijven
+schematisch, zonder volledige collision engine.
+
+Huis-2D/3D gebruikt eigen SVG-selectie, niet de pointerhandlers van de actieve
+kamer. Open de geselecteerde kamer om objecten te bewerken. Werkmarkeringen en
+openingen gebruiken wel dezelfde geometriefuncties als de kamerstudio. Het huisplan
+wordt ongezoomd vóór de kamerplannen afgedrukt. Zoom en ontwerpniveau zijn geen
+prijsgegevens. Afwerking aan twee zijden van een gedeelde wand blijft twee kamerposten;
+er is geen BIM-topologie, wandvolume, verdiepingenstapel of constructieve deduplicatie.
+
+Regressie: `test_huis.py` voor oppervlakken, validatie, gedeelde grenzen, roundtrip,
+JS/Python-pariteit en sneden; `tools/huis_review.mjs` voor de echte huis→kamers→werk-
+workflow, numerieke/vrije sneden, schuine objecten/openingen, bescherming van werk,
+historie, herladen en mobiele Chromiumviewport. Draait ook op de offline HTML.

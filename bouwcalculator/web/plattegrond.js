@@ -185,7 +185,7 @@
     return svg;
   }
 
-  const complex = r=>!!(r.contour?.length || r.dak);
+  const complex = r=>!!(r.contour?.length || r.dak || Object.keys(r.wand_helling||{}).length);
   function vormWerk(r,ruimte) {
     const V=window.BouwVorm,edge=V.edges(ruimte).find(e=>e.id===r.oppervlak),v=r.visualisatie||{};
     const t=.18+((r.nummer||1)*.173%.64),L=Number(ruimte.lengte),B=Number(ruimte.breedte),H=Number(ruimte.hoogte);
@@ -196,6 +196,7 @@
     const end=edge?[edge.a.x+edge.u[0]*edge.lengte*.82,edge.a.y+edge.u[1]*edge.lengte*.82]:[L*.82,B/2];
     const endXY=[begrens(get(v.x2,end[0]),L),begrens(get(v.y2,end[1]),B)];
     const b=[...endXY,begrens(get(v.z2,r.oppervlak==='plafond'?V.height(ruimte,...endXY):a[2]),H)];
+    if(edge&&Object.keys(ruimte.wand_helling||{}).length){const f=V.wallFrame(ruimte,edge.id);for(const p of [a,b]){const s=(p[0]-f.a.x)*f.u[0]+(p[1]-f.a.y)*f.u[1];p.splice(0,3,...V.wallPoint(ruimte,edge.id,s,p[2]/f.v[2]));}}
     return {a,b,L,B,H};
   }
   function vormOpening(ruimte,index) {
@@ -203,24 +204,30 @@
     const e=window.BouwVorm.edges(ruimte).find(e=>e.id===bron.muur);if(!e)return null;
     const per=(ruimte.openingen||[]).map((o,i)=>({...o,_index:i})).filter(o=>o.muur===e.id);
     const o=openingLayout(per,e.lengte).find(o=>o._index===index),V=window.BouwVorm;
+    if(Object.keys(ruimte.wand_helling||{}).length){
+      const f=V.wallFrame(ruimte,e.id),hoogte=Math.min(f.height,Math.max(0,get(bron.hoogte))),onder=begrens(get(bron.borstwering),Math.max(0,f.height-hoogte));
+      const low=V.wallRange(ruimte,e.id,onder),high=V.wallRange(ruimte,e.id,onder+hoogte),lo=Math.max(low[0],high[0]),hi=Math.min(low[1],high[1]),breedte=Math.min(o.tekenBreedte,Math.max(0,hi-lo)),start=Math.max(lo,Math.min(hi-breedte,o.start));
+      const p=(s,t)=>V.wallPoint(ruimte,e.id,s,t);
+      return {a:p(start,onder),b:p(start+breedte,onder),c:p(start+breedte,onder+hoogte),d:p(start,onder+hoogte),u:f.u,v:f.v,onder,start,zijde:e.id,lengte:e.lengte,breedte,hoogte,L:Number(ruimte.lengte),B:Number(ruimte.breedte),H:f.height};
+    }
     const start=o.start,breedte=o.tekenBreedte,p=s=>[e.a.x+e.u[0]*s,e.a.y+e.u[1]*s];
     const left=p(start),right=p(start+breedte),cap=Math.max(0,Math.min(V.height(ruimte,...left),V.height(ruimte,...right)));
     const hoogte=Math.min(cap,Math.max(0,get(bron.hoogte))),onder=begrens(get(bron.borstwering),Math.max(0,cap-hoogte));
     return {a:[...left,onder],b:[...right,onder],c:[...right,onder+hoogte],d:[...left,onder+hoogte],u:e.u,start,zijde:e.id,lengte:e.lengte,breedte,hoogte,L:Number(ruimte.lengte),B:Number(ruimte.breedte),H:Number(ruimte.hoogte)};
   }
   function vormAanzicht(ruimte,vlak) {
-    const e=window.BouwVorm.edges(ruimte).find(e=>e.id===vlak);
+    const e=window.BouwVorm.wallFrame(ruimte,vlak);
     if(!e)return {...planProjectie(ruimte),vlak,plane:'xy',teken:1};
-    const H=Math.max(e.h0,e.h1),schaal=Math.min(600/e.lengte,350/H),links=(780-e.lengte*schaal)/2,boven=104+(350-H*schaal)/2;
-    const P=(x,y,z=0)=>[links+((x-e.a.x)*e.u[0]+(y-e.a.y)*e.u[1])*schaal,boven+(H-z)*schaal];
-    P.basis=[e.u,[0,0,1]];
+    const H=e.height,schaal=Math.min(600/e.lengte,350/H),links=(780-e.lengte*schaal)/2,boven=104+(350-H*schaal)/2;
+    const P=(x,y,z=0)=>[links+((x-e.a.x)*e.u[0]+(y-e.a.y)*e.u[1])*schaal,boven+(H-((x-e.a.x)*e.v[0]+(y-e.a.y)*e.v[1]+z*e.v[2]))*schaal];
+    P.basis=[e.u,e.v];
     return {P,vlak,plane:'wand',teken:1,wand:e,breedte:e.lengte,hoogte:H,schaal,links,boven};
   }
   function vormTekening(ruimte,vlakken,werk,opties,mode) {
     const V=window.BouwVorm,p=V.points(ruimte),edges=V.edges(ruimte),vm=vlakMap(vlakken),front=mode==='aanzicht',iso=mode==='isometrie';
     const g=front?vormAanzicht(ruimte,opties.vlak):iso?projectie(ruimte,opties.hoek):planProjectie(ruimte),P=g.P;
-    const roof=p.map(a=>[a.x,a.y,V.height(ruimte,a.x,a.y)]),floor=p.map(a=>[a.x,a.y,0]);
-    const wall=e=>[[e.a.x,e.a.y,0],[e.b.x,e.b.y,0],[e.b.x,e.b.y,e.h1],[e.a.x,e.a.y,e.h0]];
+    const roof=V.top(ruimte).map(a=>[a.x,a.y,a.z]),floor=p.map(a=>[a.x,a.y,0]);
+    const wall=e=>V.wallFrame(ruimte,e.id).quad;
     const shape=ps=>punten(ps.map(a=>P(...a)));
     const poly=(ps,cls,attrs='')=>`<polygon class="${cls}" points="${shape(ps)}" ${attrs}/>`;
     const text=(pt,s,cls='vorm-maat')=>{const q=P(...pt);return `<text class="${cls}" x="${R(q[0])}" y="${R(q[1])}" text-anchor="middle">${esc(s)}</text>`;};
@@ -250,6 +257,7 @@
       svg+='</g>';
     }
     if(iso)svg+=poly(roof,'vorm-dak');
+    if(!front&&!iso&&Object.keys(ruimte.wand_helling||{}).length)svg+=poly(roof,'vorm-topcontour');
     (ruimte.openingen||[]).forEach((o,i)=>{
       if(front && (!g.wand || o.muur!==opties.vlak))return;
       const a=vormOpening(ruimte,i);if(!a)return;
@@ -287,7 +295,7 @@
       return [ox + (u - v) * K * schaal, oy + (u + v) * S * schaal - z * 0.9 * schaal];
     };
     if(complex(ruimte)){
-      const v=window.BouwVorm,ps=v.points(ruimte).flatMap(p=>[P(p.x,p.y,0),P(p.x,p.y,v.height(ruimte,p.x,p.y))]);
+      const v=window.BouwVorm,ps=[...v.points(ruimte).map(p=>P(p.x,p.y,0)),...v.top(ruimte).map(p=>P(p.x,p.y,p.z))];
       const xs=ps.map(p=>p[0]),ys=ps.map(p=>p[1]),minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys);
       const factor=Math.min(620/Math.max(1,maxX-minX),390/Math.max(1,maxY-minY));
       return {P:(x,y,z=0)=>{const q=P(x,y,z);return [(q[0]-(minX+maxX)/2)*factor+390,(q[1]-(minY+maxY)/2)*factor+280];},W,HP};

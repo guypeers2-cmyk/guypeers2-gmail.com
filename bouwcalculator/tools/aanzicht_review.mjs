@@ -91,11 +91,11 @@ await page.mouse.move(b.x+b.width/2,b.y+b.height/2);await page.mouse.down();awai
 assert(await page.evaluate(()=>state.project.ruimtes[0].openingen[1].borstwering>1.2));
 assert.equal(await page.evaluate(()=>state.project.ruimtes[0].openingen[1].breedte),1.2);
 await page.waitForFunction(t=>state.offerte.totalen.totaal===t,{},total);
-await (await page.$('.plankaart')).screenshot({path:path.join(out,'vooraanzicht-desktop.png')});
+await (await page.$('#tekening')).screenshot({path:path.join(out,'vooraanzicht-desktop.png')});
 await page.setViewport({width:390,height:844,isMobile:true,hasTouch:true});
 await page.click('[data-plan="aanzicht"]');
 await page.click('[data-aanzicht-vlak="noord"]');
-await (await page.$('.plankaart')).screenshot({path:path.join(out,'vooraanzicht-mobiel.png')});
+await (await page.$('#tekening')).screenshot({path:path.join(out,'vooraanzicht-mobiel.png')});
 const touchSel='#plan [data-plan-regel="sock"] .werk-achtergrond';
 await page.$eval(touchSel,e=>e.scrollIntoView({block:'center'}));
 const tb=await (await page.$(touchSel)).boundingBox(),tx=tb.x+tb.width/2,ty=tb.y+tb.height/2;

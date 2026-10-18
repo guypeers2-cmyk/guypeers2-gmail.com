@@ -94,7 +94,7 @@ await page.click('#plan-redo');
 await page.waitForFunction(()=>document.querySelector('#status').textContent!=='Berekenen…');
 assert.equal(await page.evaluate(()=>actieveRuimte().openingen[0].borstwering),.8);
 await page.waitForFunction(t=>state.offerte.totalen.totaal===t,{},total);
-await (await page.$('.plankaart')).screenshot({path:path.join(out,'inline-eigenschappen.png')});
+await (await page.$('#tekening')).screenshot({path:path.join(out,'inline-eigenschappen.png')});
 await page.setViewport({width:390,height:844,isMobile:true,hasTouch:true});
 await page.waitForSelector('#plan [data-opening-index="0"]');
 await page.$eval('#plan [data-opening-index="0"]',e=>e.focus());await page.keyboard.press('Enter');

@@ -83,7 +83,7 @@ for(const p of [a,b]){
 await page.waitForFunction(()=>BouwMeten.status()?.klaar);
 assert(Math.abs(await page.evaluate(()=>BouwMeten.status().lengte)-2.5)<.01);
 assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth),390);
-await (await page.$('.plankaart')).screenshot({path:path.join(out,'meten-mobiel.png')});
+await (await page.$('#tekening')).screenshot({path:path.join(out,'meten-mobiel.png')});
 await page.$eval('#meet-paneel details',e=>e.open=true);
 for(const [name,value] of [['0_0',0],['0_1',0],['1_0',3],['1_1',0]])await page.$eval(`#meet-form [name="${name}"]`,(e,v)=>e.value=v,value);
 await page.click('#meet-form [type="submit"]');

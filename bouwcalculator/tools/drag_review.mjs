@@ -14,7 +14,7 @@ const chromium = cm?.default || cm;
 const out = process.env.REVIEW_OUTPUT || '/tmp/bouw-drag-review';
 await mkdir(out,{recursive:true});
 const browser=await puppeteer.launch({executablePath:process.env.CHROME_PATH || await chromium.executablePath(),args:chromium?.args || ["--no-sandbox"],defaultViewport:{width:1680,height:1100}});
-const page=await browser.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
+const page=await browser.newPage();page.setDefaultNavigationTimeout(60000);const errors=[];page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
 try{
 await page.goto(process.env.APP_URL || 'http://localhost:8094/',{waitUntil:'networkidle2'});
 await page.evaluate(()=>{
@@ -40,15 +40,16 @@ assert.equal(await page.$$eval('#plan .werk-object',es=>es.length),9);
 assert.equal(await page.$$eval('#plan .werk-vlak',es=>es.length),2);
 assert.equal(await page.$$eval('#plan-legenda [data-plan-regel]',es=>es.length),11);
 await page.addStyleTag({content:'.topbar{position:static!important}'});
-await (await page.$('.plankaart')).screenshot({path:path.join(out,'alles-2d.png')});
+await (await page.$('#tekening')).screenshot({path:path.join(out,'alles-2d.png')});
 await page.click('[data-plan="isometrie"]');
 assert.equal(await page.$$eval('#plan .werk-object',es=>es.length),9);
 assert(await page.$('#plan .werk-volume'));
-await (await page.$('.plankaart')).screenshot({path:path.join(out,'alles-3d.png')});
+await (await page.$('#tekening')).screenshot({path:path.join(out,'alles-3d.png')});
 const totaal=await page.evaluate(()=>state.offerte.totalen.totaal);
 const count=await page.evaluate(()=>state.project.regels.length);
 const rule=id=>page.evaluate(id=>state.project.regels.find(r=>r.id===id).visualisatie,id);
 async function dragBy(selector,delta,{cancel=false}={}) {
+ await page.waitForFunction(()=>document.querySelector('#status').textContent!=='Berekenen…');
  await page.$eval(selector,e=>e.scrollIntoView({block:'center'}));
  const b=await (await page.$(selector)).boundingBox();
  const shift=await page.evaluate(delta=>{
@@ -63,6 +64,7 @@ async function dragBy(selector,delta,{cancel=false}={}) {
  if(cancel) await page.keyboard.press('Escape');
  await page.mouse.up();
  await page.waitForFunction(()=>!document.querySelector('#plan.is-slepen'));
+ await page.waitForFunction(()=>document.querySelector('#status').textContent!=='Berekenen…');
 }
 await page.click('[data-plan="plattegrond"]');
 await dragBy('#plan [data-plan-regel="sock"] .werk-achtergrond',[.5,.5,0]);
@@ -113,6 +115,8 @@ await page.waitForFunction(expected=>state.offerte.totalen.totaal===expected,{},
 const saved=await rule('sock');await page.reload({waitUntil:'networkidle2'});
 assert.deepEqual(await rule('sock'),saved,'positions persist');
 await page.setViewport({width:390,height:844,isMobile:true,hasTouch:true});
+await page.reload({waitUntil:'networkidle2'});
+await page.waitForFunction(()=>!!state.offerte);
 await page.click('[data-plan="plattegrond"]');
 // Real touch events via Chrome's input domain (Pointer Events pointerType=touch).
 const sel='#plan [data-plan-regel="sock"] .werk-achtergrond';
