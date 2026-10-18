@@ -540,19 +540,32 @@ function lokaalOpslaan(project, id) {
     project,
   };
   const overig = lijst.filter((p) => p.id !== projectId);
-  localStorage.setItem(OPSLAG_LIJST, JSON.stringify([entry, ...overig].slice(0, 50)));
+  try {
+    localStorage.setItem(OPSLAG_LIJST, JSON.stringify([entry, ...overig].slice(0, 50)));
+  } catch (_) {
+    // Geen opslag beschikbaar (privacymodus, iframe, gekopieerd bestand).
+    status("Opslaan kan hier niet — deze browser blokkeert de opslag.");
+    return null;
+  }
   return projectId;
 }
 
 function lokaalVerwijderen(id) {
-  localStorage.setItem(OPSLAG_LIJST, JSON.stringify(lokaleProjecten().filter((p) => p.id !== id)));
+  try {
+    localStorage.setItem(OPSLAG_LIJST, JSON.stringify(lokaleProjecten().filter((p) => p.id !== id)));
+  } catch (_) { /* opslag niet beschikbaar */ }
 }
 
 async function opslaan() {
   if (!state.project) return;
   status("Opslaan…");
   if (state.opslag === "lokaal") {
-    state.projectId = lokaalOpslaan(state.project, state.projectId);
+    const nieuwId = lokaalOpslaan(state.project, state.projectId);
+    if (!nieuwId) {
+      toast("Kon niet opslaan — deze browser blokkeert de opslag");
+      return;
+    }
+    state.projectId = nieuwId;
     bewaarLokaal();
     status("Opgeslagen in deze browser");
     toast("Offerte opgeslagen in deze browser");
