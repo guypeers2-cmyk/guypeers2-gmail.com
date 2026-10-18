@@ -2,6 +2,9 @@
 
 **Prijzen berekenen voor bouwwerk op basis van maten — gestart met Gyproc.**
 
+> 🟢 **Live:** <https://patient-sun-c959.guypeers2.workers.dev>
+> Cloudflare Worker · zelf publiceren met `npx wrangler deploy`
+
 Een zelfstandige webapp (zonder dependencies, pure Python-stdlib) waarmee een
 bouwer of werknemer vanuit de maten van een ruimte een offerte opstelt:
 oppervlakken → materiaalname (take-off) → gewerkte uren → prijs → BTW.
