@@ -155,6 +155,11 @@
         <label><input type="checkbox" data-plan-laag="elektriciteit" checked> Elektriciteit</label>
         <label><input type="checkbox" data-plan-laag="sanitair" checked> Sanitair &amp; water</label>
       </div>
+      <div class="plan-sleepopties">
+        <label><input type="checkbox" id="plan-snap" checked> Vastklikken op 5 cm</label>
+        <label>3D verplaatsen in <select id="plan-sleepvlak"><option value="auto">Automatisch per wand/vloer</option><option value="xy">Vloervlak X/Y</option><option value="xz">Hoogte X/Z</option><option value="yz">Hoogte Y/Z</option></select></label>
+      </div>
+      <p class="hint" id="plan-sleepstatus" role="status" aria-live="polite">Sleep symbolen, tracés, eindpunten, deuren, ramen of vlaknummers. Pijltjes: 5 cm · Shift: 25 cm · Alt: 1 cm. Escape annuleert. Scroll de pagina buiten de tekening.</p>
       <div class="planhouder" id="plan"></div>
       <div id="plan-legenda" class="plan-legenda" aria-label="Werken in de tekening"></div>
       <p class="hint plan-voorbehoud">Schematische weergave, geen uitvoeringsplan. Eén symbool staat voor één werkregel (× aantal). Automatische posities zijn voorbeelden; stel de plaatsing in bij de werkregel. Tracés wijzigen geen offertehoeveelheden. Vlakmarkeringen tonen het gekozen werk, geen exacte gedeeltelijke dekking.</p>
@@ -208,5 +213,6 @@
 <script type="module" src="engine.js"></script>
 <script src="plattegrond.js"></script>
 <script src="app.js"></script>
+<script src="slepen.js"></script>
 </body>
 </html>

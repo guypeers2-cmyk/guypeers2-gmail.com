@@ -38,8 +38,8 @@
   /* Openingen per muur verzamelen. */
   function openingenPerMuur(ruimte) {
     const per = { noord: [], zuid: [], oost: [], west: [] };
-    (ruimte.openingen || []).forEach((o) => {
-      if (per[o.muur]) per[o.muur].push(o);
+    (ruimte.openingen || []).forEach((o, index) => {
+      if (per[o.muur]) per[o.muur].push({...o, _index:index});
     });
     return per;
   }
@@ -81,8 +81,14 @@
     if (zijde === 'zuid') y = Math.max(0, B - .12);
     if (zijde === 'west') x = .12;
     if (zijde === 'oost') x = Math.max(0, L - .12);
+    if (r.pakket?.eenheid === 'm2') {
+      if (zijde === 'noord') y = Math.min(.6,B*.2);
+      if (zijde === 'zuid') y = B-Math.min(.6,B*.2);
+      if (zijde === 'west') x = Math.min(.6,L*.2);
+      if (zijde === 'oost') x = L-Math.min(.6,L*.2);
+    }
     const standaardZ = zijde === 'plafond' ? H : zijde === 'vloer' ? 0
-      : /schakelaar/.test(r.pakket_id) ? 1.1 : /stopcontact/.test(r.pakket_id) ? .3 : .6;
+      : r.pakket?.eenheid === 'm2' ? H*.65 : /schakelaar/.test(r.pakket_id) ? 1.1 : /stopcontact/.test(r.pakket_id) ? .3 : .6;
     const v = r.visualisatie || {};
     const a = [begrens(get(v.x,x),L), begrens(get(v.y,y),B), begrens(get(v.z,standaardZ),H)];
     const b = [begrens(get(v.x2, zijde === 'west' || zijde === 'oost' ? a[0] : L * .82), L),
@@ -112,15 +118,16 @@
     let svg = '';
     // Objecten eerst op diepte sorteren voor een consistente 3D-tekening.
     const objecten = regels.filter(r => r.pakket.eenheid !== 'm2').map(r => ({r,g:werkGeometrie(r,ruimte)}));
-    if (iso) objecten.sort((a,b) => projecteer(...a.g.a)[1] - projecteer(...b.g.a)[1]);
+    objecten.sort((a,b) => (a.r.pakket.eenheid === 'm' ? 0 : 1) - (b.r.pakket.eenheid === 'm' ? 0 : 1)
+      || (iso ? projecteer(...a.g.a)[1] - projecteer(...b.g.a)[1] : 0));
     for (const {r,g} of objecten) {
       const a = projecteer(...g.a), b = projecteer(...g.b);
       const naam = `${r.nummer}. ${r.pakket.naam} · ${F(r.aantal)} ${r.pakket.eenheid}`;
-      svg += `<g class="werk-object tint-${tint(r)}" data-plan-regel="${esc(r.id)}" role="button" tabindex="0" aria-label="${esc(naam)} — werkregel bewerken"><title>${esc(naam)}; schematisch, niet op schaal</title>`;
+      svg += `<g class="werk-object tint-${tint(r)}" data-fokus="plan_${esc(r.id)}" data-plan-drag="regel" data-plan-regel="${esc(r.id)}" role="button" tabindex="0" aria-label="${esc(naam)} — werkregel bewerken"><title>${esc(naam)}; schematisch, niet op schaal</title>`;
       if (r.pakket.eenheid === 'm') {
         svg += `<line class="werk-trace-hit" x1="${R(a[0])}" y1="${R(a[1])}" x2="${R(b[0])}" y2="${R(b[1])}"/>`;
         svg += `<line class="werk-trace" x1="${R(a[0])}" y1="${R(a[1])}" x2="${R(b[0])}" y2="${R(b[1])}"/>`;
-        for (const p of [a,b]) svg += `<circle class="werk-eind" cx="${R(p[0])}" cy="${R(p[1])}" r="3"/>`;
+        for (const [i,p] of [a,b].entries()) svg += `<circle class="sleep-hit" data-fokus="plan_${esc(r.id)}_eind_${i}" data-plan-end="${i ? 'b' : 'a'}" tabindex="0" role="button" aria-label="${i ? 'Eindpunt' : 'Startpunt'} van tracé ${r.nummer} verplaatsen" cx="${R(p[0])}" cy="${R(p[1])}" r="6"/><circle class="werk-eind" cx="${R(p[0])}" cy="${R(p[1])}" r="6" style="pointer-events:none"/>`;
         const fractie = .18 + .65 * (((r.nummer || 1) * .31) % 1);
         svg += `<text class="werk-route-label" x="${R(a[0]+(b[0]-a[0])*fractie)}" y="${R(a[1]+(b[1]-a[1])*fractie-9)}" text-anchor="middle">${r.nummer} · ${F(r.aantal)} m</text>`;
       } else {
@@ -134,7 +141,7 @@
           svg += `<polygon class="werk-volume voor" points="${punten([P(w,0,0),P(w,d,0),P(w,d,h),P(w,0,h)])}"/>`;
           svg += `<polygon class="werk-volume boven" points="${punten([P(0,0,h),P(w,0,h),P(w,d,h),P(0,d,h)])}"/>`;
         }
-        svg += `<g class="werk-symbool" transform="translate(${R(a[0])} ${R(a[1])})"><circle class="werk-achtergrond" r="17"/>${icon(r)}<text class="werk-nummer" x="17" y="-13">${r.nummer}</text>`;
+        svg += `<g class="werk-symbool" transform="translate(${R(a[0])} ${R(a[1])})"><circle class="sleep-hit" r="17"/><circle class="werk-achtergrond" r="17"/>${icon(r)}<text class="werk-nummer" x="17" y="-13">${r.nummer}</text>`;
         if (r.aantal !== 1) svg += `<text class="werk-aantal" x="0" y="29" text-anchor="middle">× ${F(r.aantal)}</text>`;
         svg += '</g>';
       }
@@ -151,22 +158,52 @@
       west:[[0,0,0],[0,B,0],[0,B,H],[0,0,H]], oost:[[L,0,0],[L,B,0],[L,B,H],[L,0,H]],
       vloer:[[0,0,0],[L,0,0],[L,B,0],[0,B,0]], plafond:[[0,0,H],[L,0,H],[L,B,H],[0,B,H]],
     };
-    const nummers = {};
     for (const r of opties.regels || []) {
       if (r.pakket?.eenheid !== 'm2' || r.aantal <= 0 || opties.lagen?.afwerking === false) continue;
       if (zichtbaar && !zichtbaar.includes(r.oppervlak) && !['vloer','plafond'].includes(r.oppervlak)) continue;
       const vlak = vlakken[r.oppervlak];
       if (!vlak) continue;
       const punten2d = vlak.map(p => projecteer(...p));
-      const index = nummers[r.oppervlak] || 0; nummers[r.oppervlak] = index+1;
-      const centrum = zichtbaar ? [punten2d[0][0]*.65+punten2d[2][0]*.35,punten2d[0][1]*.65+punten2d[2][1]*.35]
-        : [(punten2d[0][0]+punten2d[2][0])/2,(punten2d[0][1]+punten2d[2][1])/2];
-      const x = centrum[0]+index*26, y = centrum[1]+(zichtbaar ? 0 : r.oppervlak === 'plafond' ? -18 : 16);
-      svg += `<g class="werk-vlak" data-plan-regel="${esc(r.id)}" tabindex="0" role="button" aria-label="${esc(r.pakket.naam)} — werkregel bewerken"><title>${esc(r.pakket.naam)} · ${F(r.aantal)} m²; vlakmarkering, geen exacte dekking</title>`;
+      const anker = werkGeometrie(r,ruimte).a;
+      const [x,y] = projecteer(...anker);
+      svg += `<g class="werk-vlak" data-fokus="plan_${esc(r.id)}" data-plan-drag="marker" data-plan-regel="${esc(r.id)}" tabindex="0" role="button" aria-label="${esc(r.pakket.naam)} — werkregel bewerken"><title>${esc(r.pakket.naam)} · ${F(r.aantal)} m²; vlakmarkering, geen exacte dekking</title>`;
       svg += `<polygon class="werk-vlak-markering" points="${punten(punten2d)}"/>`;
-      svg += `<circle class="werk-vlak-badge" cx="${R(x)}" cy="${R(y)}" r="11"/><text class="werk-vlak-nummer" x="${R(x)}" y="${R(y+4)}" text-anchor="middle">${r.nummer}</text></g>`;
+      svg += `<circle class="sleep-hit" cx="${R(x)}" cy="${R(y)}" r="11"/><circle class="werk-vlak-badge" cx="${R(x)}" cy="${R(y)}" r="11"/><text class="werk-vlak-nummer" x="${R(x)}" y="${R(y+4)}" text-anchor="middle">${r.nummer}</text></g>`;
     }
     return svg;
+  }
+
+  function projectie(ruimte, hoek = 0) {
+    const L = Math.max(.2,get(ruimte.lengte,.2)), B = Math.max(.2,get(ruimte.breedte,.2)), H = Math.max(.2,get(ruimte.hoogte,.2));
+    hoek = ((Math.trunc(hoek) % 4) + 4) % 4;
+    const W = 780, HP = 560, K = Math.cos(Math.PI / 6), S = 0.5;
+    const LX = hoek % 2 ? B : L, BY = hoek % 2 ? L : B;
+    const schaal = Math.min(620 / ((LX + BY) * K), 390 / (H * 0.9 + (LX + BY) * S));
+    const ox = (W - (LX + BY) * K * schaal) / 2 + BY * K * schaal;
+    const oy = (HP - (H * 0.9 + (LX + BY) * S) * schaal) / 2 + H * 0.9 * schaal;
+    // Rotatie in modelcoördinaten; afstanden van openingen blijven aan hun eigen wand gekoppeld.
+    const draai = (x, y) => [[x, y], [y, L - x], [L - x, B - y], [B - y, x]][hoek];
+    const P = (x, y, z = 0) => {
+      const [u, v] = draai(x, y);
+      return [ox + (u - v) * K * schaal, oy + (u + v) * S * schaal - z * 0.9 * schaal];
+    };
+    return {P,W,HP};
+  }
+  function planProjectie(ruimte) {
+    const L = Math.max(.2,get(ruimte.lengte,.2)), B = Math.max(.2,get(ruimte.breedte,.2));
+    const schaal = Math.min(572/L,396/B);
+    const rx = 104+(572-L*schaal)/2, ry=58+(396-B*schaal)/2;
+    return {P:(x,y,z=0)=>[rx+x*schaal,ry+y*schaal]};
+  }
+  function openingGeometrie(ruimte,index) {
+    const bron = ruimte.openingen?.[index];
+    if (!bron || !ZIJDEN.includes(bron.muur)) return null;
+    const L=Math.max(.2,get(ruimte.lengte,.2)), B=Math.max(.2,get(ruimte.breedte,.2)), H=Math.max(.2,get(ruimte.hoogte,.2));
+    const lengte = ['noord','zuid'].includes(bron.muur) ? L : B;
+    const o = openingLayout(openingenPerMuur(ruimte)[bron.muur],lengte).find(o=>o._index===index);
+    const onder = begrens(get(bron.borstwering), Math.max(0,H-Math.max(0,get(bron.hoogte))));
+    const a = {noord:[o.start,0,onder],zuid:[o.start,B,onder],west:[0,o.start,onder],oost:[L,o.start,onder]}[bron.muur];
+    return {a,zijde:bron.muur,lengte,breedte:o.tekenBreedte,hoogte:Math.max(0,get(bron.hoogte)),L,B,H};
   }
 
   /* ==================================================================
@@ -249,6 +286,7 @@
         const a = [m.p0[0] + m.d[0] * s0, m.p0[1] + m.d[1] * s0];
         const b = [m.p0[0] + m.d[0] * s1, m.p0[1] + m.d[1] * s1];
 
+        openingGroep.push(`<g data-fokus="opening_sleep_${o._index}" data-plan-drag="opening" data-opening-index="${o._index}" tabindex="0" role="button" aria-label="${esc(o.naam)} verplaatsen"><line class="sleep-opening-hit" x1="${R(a[0])}" y1="${R(a[1])}" x2="${R(b[0])}" y2="${R(b[1])}"/>`);
         if (isDeur) {
           const tip = [a[0] + m.n[0] * bw, a[1] + m.n[1] * bw];
           const aN = Math.atan2(m.n[1], m.n[0]);
@@ -263,6 +301,7 @@
           const nx = m.n[0] * 5, ny = m.n[1] * 5;
           openingGroep.push(`<line class="plan-raam" x1="${R(a[0] + nx)}" y1="${R(a[1] + ny)}" x2="${R(b[0] + nx)}" y2="${R(b[1] + ny)}"/>`);
         }
+        openingGroep.push('</g>');
       });
 
       /* naam + oppervlakte binnen de ruimte */
@@ -318,8 +357,8 @@
     svg += `<text class="plan-hoogte" x="${R(rx + w)}" y="${R(ry + h + ((opties.regels || []).length ? 83 : 70))}" text-anchor="end">hoogte ${F(H)} m</text>`;
 
     const projecteer = (x,y,z) => [rx+x*schaal, ry+y*schaal];
-    svg += vlakMarkeringen(ruimte, opties, projecteer);
     svg += werkOverlay(ruimte, opties, projecteer);
+    svg += vlakMarkeringen(ruimte, opties, projecteer);
     return `<svg class="plan" viewBox="0 0 ${W} ${HP}" role="group" aria-label="Plattegrond van ${esc(ruimte.naam || "ruimte")}">${svg}</svg>`;
   }
 
@@ -332,17 +371,7 @@
     const hoek = ((Math.trunc(opties.hoek || 0) % 4) + 4) % 4;
     const zoom = Math.max(0.75, Math.min(1.6, Number(opties.zoom) || 1));
     const maten = opties.maten !== false;
-    const W = 780, HP = 560, K = Math.cos(Math.PI / 6), S = 0.5;
-    const LX = hoek % 2 ? B : L, BY = hoek % 2 ? L : B;
-    const schaal = Math.min(620 / ((LX + BY) * K), 390 / (H * 0.9 + (LX + BY) * S));
-    const ox = (W - (LX + BY) * K * schaal) / 2 + BY * K * schaal;
-    const oy = (HP - (H * 0.9 + (LX + BY) * S) * schaal) / 2 + H * 0.9 * schaal;
-    // Rotatie in modelcoördinaten; afstanden van openingen blijven aan hun eigen wand gekoppeld.
-    const draai = (x, y) => [[x, y], [y, L - x], [L - x, B - y], [B - y, x]][hoek];
-    const P = (x, y, z = 0) => {
-      const [u, v] = draai(x, y);
-      return [ox + (u - v) * K * schaal, oy + (u + v) * S * schaal - z * 0.9 * schaal];
-    };
+    const {P,W,HP} = projectie(ruimte, hoek);
     const lijn = (a, b, cls) => `<line class="${cls}" x1="${R(a[0])}" y1="${R(a[1])}" x2="${R(b[0])}" y2="${R(b[1])}"/>`;
     const poly = (ps, cls) => `<polygon class="${cls}" points="${punten(ps)}"/>`;
     const tekst = (p, inhoud, cls) => `<text class="${cls}" x="${R(p[0])}" y="${R(p[1])}" text-anchor="middle">${esc(inhoud)}</text>`;
@@ -378,6 +407,7 @@
       svg += lijn(p(0,H), p(m.len,H), 'iso-bovenrand');
       gaten.forEach(({o, onder, boven, ps}) => {
         const deur = /^deur/i.test(o.naam || '');
+        svg += `<g data-fokus="opening_sleep_${o._index}" data-plan-drag="opening" data-opening-index="${o._index}" tabindex="0" role="button" aria-label="${esc(o.naam)} verplaatsen">`;
         svg += poly(ps, `iso-opening ${deur ? 'iso-deurblad' : 'iso-glas'}`);
         if (!deur) {
           const mid = o.start + o.tekenBreedte / 2;
@@ -387,6 +417,7 @@
           const hand = p(o.start + o.tekenBreedte * 0.8, onder + (boven-onder)*0.48);
           svg += `<circle class="iso-klink" cx="${R(hand[0])}" cy="${R(hand[1])}" r="2.5"/>`;
         }
+        svg += '</g>';
       });
       // Los label boven de bovenrand blijft leesbaar bij grote ramen/deuren.
       const lp = p(m.len / 2, H);
@@ -403,11 +434,11 @@
       svg += tekst([(c[0]+d[0])/2,(c[1]+d[1])/2+23], `${F(B)} m`, 'iso-maat');
       svg += tekst([W/2, HP-17], `Hoogte ${F(H)} m · Vloer ${F(L*B)} m² · Volume ${F(L*B*H)} m³`, 'iso-samenvatting');
     }
-    svg += vlakMarkeringen(ruimte, opties, P, zichtbaar);
     svg += werkOverlay(ruimte, opties, P, true);
+    svg += vlakMarkeringen(ruimte, opties, P, zichtbaar);
     const vw = W/zoom, vh = HP/zoom;
     return `<svg class="plan iso" viewBox="${R((W-vw)/2)} ${R((HP-vh)/2)} ${R(vw)} ${R(vh)}" role="group" aria-label="3D-ruimte ${esc(ruimte.naam || '')}. Klik op een wand om werk toe te voegen.">${svg}</svg>`;
   }
 
-  window.BouwPlan = { plattegrond, isometrie, laag, werkGeometrie, tint };
+  window.BouwPlan = { plattegrond, isometrie, laag, werkGeometrie, tint, projectie, planProjectie, openingGeometrie };
 })();

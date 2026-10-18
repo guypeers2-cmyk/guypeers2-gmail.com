@@ -68,7 +68,7 @@ function bewaarFocus() {
 }
 function herstelFocus(focus) {
   if (!focus) return;
-  const el = document.querySelector(`[data-fokus="${focus.key}"]`);
+  const el = $$("[data-fokus]").find(el => el.dataset.fokus === focus.key);
   if (!el) return;
   el.focus();
   try { el.setSelectionRange(focus.start, focus.end); } catch (_) { /* getalvelden */ }

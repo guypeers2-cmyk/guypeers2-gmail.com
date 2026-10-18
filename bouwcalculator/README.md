@@ -343,6 +343,12 @@ Meterposten hebben bovendien eindcoördinaten **X2/Y2/Z2**. Lege velden krijgen
 een duidelijk aangeduide automatische voorbeeldpositie. De tekening begrenst
 coördinaten tot de ruimte; de ingevoerde waarden blijven bewaard.
 
+Symbolen, hele tracés, eindpunten, deuren, ramen en genummerde vlakmarkeringen
+kun je met muis of vinger **naar hun positie slepen**. Er is 5 cm vastklikken,
+Escape om te annuleren en toetsenbordbediening (pijltjes, Shift, Alt). In 3D
+volgt het automatische sleepvlak de wand/vloer; kies X/Y, X/Z of Y/Z voor een
+andere verplaatsingsrichting. Wandmaten en openingmaten blijven numerieke velden.
+
 **De plaatsing verandert geen prijzen of gemeten hoeveelheden.** Een rechte
 tracélijn is geen automatische leidinglengteberekening. Vlakmarkeringen zijn
 geen exacte gedeeltelijke oppervlakbedekking; sanitaire volumes zijn geen
@@ -469,6 +475,7 @@ bouwcalculator/
 │   ├── styles.css       # stijl + print-opmaak voor de offerte
 │   ├── app.js           # presentatielaag (alleen weergave)
 │   ├── plattegrond.js   # 2D-bovenaanzicht en 3D-weergave (SVG)
+│   ├── slepen.js        # Muis/touch/toetsenbord: objecten positioneren
 │   ├── engine.js        # JS-rekenkern (Worker + browser-fallback)
 │   └── prijsboek.js     # gegenereerd uit bouw/tarieven.py
 ├── worker/
@@ -523,7 +530,7 @@ Daarom zijn er twee varianten:
 
 - **meerbestanden** (`bouwcalculator/web/`) — voor onze eigen Worker, Pages en
   de lokale server. De rekenkern is een ES-module.
-- **één bestand** (`bouwcalculator/bouwcalculator.html`, 86 KiB) — alles inline,
+- **één bestand** (`bouwcalculator/bouwcalculator.html`, circa 199 KiB) — alles inline,
   dus het werkt ook op hosts die HTML als `text/plain` teruggeven of op een
   stickie/schijf. De app rekent dan in de browser.
 

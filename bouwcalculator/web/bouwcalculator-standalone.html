@@ -1210,6 +1210,31 @@ input[type="search"] { width: 100%; min-height: 38px; font: inherit; color: var(
 .tint-sanitair { --werk-kleur: var(--groen); }
 .tint-afwerking { --werk-kleur: var(--accent); }
 
+/* Movable plan geometry and route handles. */
+[data-plan-drag], [data-plan-end] { cursor: grab; touch-action: none; }
+#plan.is-slepen, #plan.is-slepen * { cursor: grabbing !important; user-select: none; }
+.werk-eind { stroke-width: 3; }
+.sleep-hit:hover + .werk-eind, .sleep-hit:focus-visible + .werk-eind { r: 9; stroke-width: 4; outline: none; }
+.plan-sleepopties { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 4px 0 8px; font-size: .8rem; }
+.plan-sleepopties label { display: flex; align-items: center; gap: 6px; min-height: 44px; }
+.plan-sleepopties select { width: auto; max-width: 100%; }
+#plan-sleepstatus { margin-bottom: 8px; }
+@media (max-width: 600px) {
+  .plan-sleepopties label { flex-wrap: wrap; }
+  .plan-sleepopties select { width: 100%; }
+}
+/* Stable gesture surface: SVG children are replaced while dragging. Reserve
+   touches inside the drawing; scroll the page using the surrounding cards. */
+#plan { touch-action: none; }
+.sleep-hit { fill: transparent; stroke: transparent; stroke-width: 0; vector-effect: non-scaling-stroke; pointer-events: all; touch-action: none; }
+.sleep-opening-hit { stroke: transparent; stroke-width: 24; vector-effect: non-scaling-stroke; pointer-events: stroke; }
+.sleep-hit:focus-visible { stroke: var(--accent); stroke-opacity: .2; outline: none; }
+
+@media (pointer: coarse) { .sleep-hit { stroke-width: 32; } }
+/* Live coordinates must not move the canvas under an active pointer. */
+#plan-sleepstatus { min-block-size: 3em; }
+@media (max-width: 640px) { #plan-sleepstatus { min-block-size: 6em; } }
+
 </style>
 </head>
 <body>
@@ -1359,6 +1384,11 @@ input[type="search"] { width: 100%; min-height: 38px; font: inherit; color: var(
         <label><input type="checkbox" data-plan-laag="elektriciteit" checked> Elektriciteit</label>
         <label><input type="checkbox" data-plan-laag="sanitair" checked> Sanitair &amp; water</label>
       </div>
+      <div class="plan-sleepopties">
+        <label><input type="checkbox" id="plan-snap" checked> Vastklikken op 5 cm</label>
+        <label>3D verplaatsen in <select id="plan-sleepvlak"><option value="auto">Automatisch per wand/vloer</option><option value="xy">Vloervlak X/Y</option><option value="xz">Hoogte X/Z</option><option value="yz">Hoogte Y/Z</option></select></label>
+      </div>
+      <p class="hint" id="plan-sleepstatus" role="status" aria-live="polite">Sleep symbolen, tracés, eindpunten, deuren, ramen of vlaknummers. Pijltjes: 5 cm · Shift: 25 cm · Alt: 1 cm. Escape annuleert. Scroll de pagina buiten de tekening.</p>
       <div class="planhouder" id="plan"></div>
       <div id="plan-legenda" class="plan-legenda" aria-label="Werken in de tekening"></div>
       <p class="hint plan-voorbehoud">Schematische weergave, geen uitvoeringsplan. Eén symbool staat voor één werkregel (× aantal). Automatische posities zijn voorbeelden; stel de plaatsing in bij de werkregel. Tracés wijzigen geen offertehoeveelheden. Vlakmarkeringen tonen het gekozen werk, geen exacte gedeeltelijke dekking.</p>
@@ -2997,8 +3027,8 @@ if (typeof window !== "undefined") {
   /* Openingen per muur verzamelen. */
   function openingenPerMuur(ruimte) {
     const per = { noord: [], zuid: [], oost: [], west: [] };
-    (ruimte.openingen || []).forEach((o) => {
-      if (per[o.muur]) per[o.muur].push(o);
+    (ruimte.openingen || []).forEach((o, index) => {
+      if (per[o.muur]) per[o.muur].push({...o, _index:index});
     });
     return per;
   }
@@ -3040,8 +3070,14 @@ if (typeof window !== "undefined") {
     if (zijde === 'zuid') y = Math.max(0, B - .12);
     if (zijde === 'west') x = .12;
     if (zijde === 'oost') x = Math.max(0, L - .12);
+    if (r.pakket?.eenheid === 'm2') {
+      if (zijde === 'noord') y = Math.min(.6,B*.2);
+      if (zijde === 'zuid') y = B-Math.min(.6,B*.2);
+      if (zijde === 'west') x = Math.min(.6,L*.2);
+      if (zijde === 'oost') x = L-Math.min(.6,L*.2);
+    }
     const standaardZ = zijde === 'plafond' ? H : zijde === 'vloer' ? 0
-      : /schakelaar/.test(r.pakket_id) ? 1.1 : /stopcontact/.test(r.pakket_id) ? .3 : .6;
+      : r.pakket?.eenheid === 'm2' ? H*.65 : /schakelaar/.test(r.pakket_id) ? 1.1 : /stopcontact/.test(r.pakket_id) ? .3 : .6;
     const v = r.visualisatie || {};
     const a = [begrens(get(v.x,x),L), begrens(get(v.y,y),B), begrens(get(v.z,standaardZ),H)];
     const b = [begrens(get(v.x2, zijde === 'west' || zijde === 'oost' ? a[0] : L * .82), L),
@@ -3071,15 +3107,16 @@ if (typeof window !== "undefined") {
     let svg = '';
     // Objecten eerst op diepte sorteren voor een consistente 3D-tekening.
     const objecten = regels.filter(r => r.pakket.eenheid !== 'm2').map(r => ({r,g:werkGeometrie(r,ruimte)}));
-    if (iso) objecten.sort((a,b) => projecteer(...a.g.a)[1] - projecteer(...b.g.a)[1]);
+    objecten.sort((a,b) => (a.r.pakket.eenheid === 'm' ? 0 : 1) - (b.r.pakket.eenheid === 'm' ? 0 : 1)
+      || (iso ? projecteer(...a.g.a)[1] - projecteer(...b.g.a)[1] : 0));
     for (const {r,g} of objecten) {
       const a = projecteer(...g.a), b = projecteer(...g.b);
       const naam = `${r.nummer}. ${r.pakket.naam} · ${F(r.aantal)} ${r.pakket.eenheid}`;
-      svg += `<g class="werk-object tint-${tint(r)}" data-plan-regel="${esc(r.id)}" role="button" tabindex="0" aria-label="${esc(naam)} — werkregel bewerken"><title>${esc(naam)}; schematisch, niet op schaal</title>`;
+      svg += `<g class="werk-object tint-${tint(r)}" data-fokus="plan_${esc(r.id)}" data-plan-drag="regel" data-plan-regel="${esc(r.id)}" role="button" tabindex="0" aria-label="${esc(naam)} — werkregel bewerken"><title>${esc(naam)}; schematisch, niet op schaal</title>`;
       if (r.pakket.eenheid === 'm') {
         svg += `<line class="werk-trace-hit" x1="${R(a[0])}" y1="${R(a[1])}" x2="${R(b[0])}" y2="${R(b[1])}"/>`;
         svg += `<line class="werk-trace" x1="${R(a[0])}" y1="${R(a[1])}" x2="${R(b[0])}" y2="${R(b[1])}"/>`;
-        for (const p of [a,b]) svg += `<circle class="werk-eind" cx="${R(p[0])}" cy="${R(p[1])}" r="3"/>`;
+        for (const [i,p] of [a,b].entries()) svg += `<circle class="sleep-hit" data-fokus="plan_${esc(r.id)}_eind_${i}" data-plan-end="${i ? 'b' : 'a'}" tabindex="0" role="button" aria-label="${i ? 'Eindpunt' : 'Startpunt'} van tracé ${r.nummer} verplaatsen" cx="${R(p[0])}" cy="${R(p[1])}" r="6"/><circle class="werk-eind" cx="${R(p[0])}" cy="${R(p[1])}" r="6" style="pointer-events:none"/>`;
         const fractie = .18 + .65 * (((r.nummer || 1) * .31) % 1);
         svg += `<text class="werk-route-label" x="${R(a[0]+(b[0]-a[0])*fractie)}" y="${R(a[1]+(b[1]-a[1])*fractie-9)}" text-anchor="middle">${r.nummer} · ${F(r.aantal)} m</text>`;
       } else {
@@ -3093,7 +3130,7 @@ if (typeof window !== "undefined") {
           svg += `<polygon class="werk-volume voor" points="${punten([P(w,0,0),P(w,d,0),P(w,d,h),P(w,0,h)])}"/>`;
           svg += `<polygon class="werk-volume boven" points="${punten([P(0,0,h),P(w,0,h),P(w,d,h),P(0,d,h)])}"/>`;
         }
-        svg += `<g class="werk-symbool" transform="translate(${R(a[0])} ${R(a[1])})"><circle class="werk-achtergrond" r="17"/>${icon(r)}<text class="werk-nummer" x="17" y="-13">${r.nummer}</text>`;
+        svg += `<g class="werk-symbool" transform="translate(${R(a[0])} ${R(a[1])})"><circle class="sleep-hit" r="17"/><circle class="werk-achtergrond" r="17"/>${icon(r)}<text class="werk-nummer" x="17" y="-13">${r.nummer}</text>`;
         if (r.aantal !== 1) svg += `<text class="werk-aantal" x="0" y="29" text-anchor="middle">× ${F(r.aantal)}</text>`;
         svg += '</g>';
       }
@@ -3110,22 +3147,52 @@ if (typeof window !== "undefined") {
       west:[[0,0,0],[0,B,0],[0,B,H],[0,0,H]], oost:[[L,0,0],[L,B,0],[L,B,H],[L,0,H]],
       vloer:[[0,0,0],[L,0,0],[L,B,0],[0,B,0]], plafond:[[0,0,H],[L,0,H],[L,B,H],[0,B,H]],
     };
-    const nummers = {};
     for (const r of opties.regels || []) {
       if (r.pakket?.eenheid !== 'm2' || r.aantal <= 0 || opties.lagen?.afwerking === false) continue;
       if (zichtbaar && !zichtbaar.includes(r.oppervlak) && !['vloer','plafond'].includes(r.oppervlak)) continue;
       const vlak = vlakken[r.oppervlak];
       if (!vlak) continue;
       const punten2d = vlak.map(p => projecteer(...p));
-      const index = nummers[r.oppervlak] || 0; nummers[r.oppervlak] = index+1;
-      const centrum = zichtbaar ? [punten2d[0][0]*.65+punten2d[2][0]*.35,punten2d[0][1]*.65+punten2d[2][1]*.35]
-        : [(punten2d[0][0]+punten2d[2][0])/2,(punten2d[0][1]+punten2d[2][1])/2];
-      const x = centrum[0]+index*26, y = centrum[1]+(zichtbaar ? 0 : r.oppervlak === 'plafond' ? -18 : 16);
-      svg += `<g class="werk-vlak" data-plan-regel="${esc(r.id)}" tabindex="0" role="button" aria-label="${esc(r.pakket.naam)} — werkregel bewerken"><title>${esc(r.pakket.naam)} · ${F(r.aantal)} m²; vlakmarkering, geen exacte dekking</title>`;
+      const anker = werkGeometrie(r,ruimte).a;
+      const [x,y] = projecteer(...anker);
+      svg += `<g class="werk-vlak" data-fokus="plan_${esc(r.id)}" data-plan-drag="marker" data-plan-regel="${esc(r.id)}" tabindex="0" role="button" aria-label="${esc(r.pakket.naam)} — werkregel bewerken"><title>${esc(r.pakket.naam)} · ${F(r.aantal)} m²; vlakmarkering, geen exacte dekking</title>`;
       svg += `<polygon class="werk-vlak-markering" points="${punten(punten2d)}"/>`;
-      svg += `<circle class="werk-vlak-badge" cx="${R(x)}" cy="${R(y)}" r="11"/><text class="werk-vlak-nummer" x="${R(x)}" y="${R(y+4)}" text-anchor="middle">${r.nummer}</text></g>`;
+      svg += `<circle class="sleep-hit" cx="${R(x)}" cy="${R(y)}" r="11"/><circle class="werk-vlak-badge" cx="${R(x)}" cy="${R(y)}" r="11"/><text class="werk-vlak-nummer" x="${R(x)}" y="${R(y+4)}" text-anchor="middle">${r.nummer}</text></g>`;
     }
     return svg;
+  }
+
+  function projectie(ruimte, hoek = 0) {
+    const L = Math.max(.2,get(ruimte.lengte,.2)), B = Math.max(.2,get(ruimte.breedte,.2)), H = Math.max(.2,get(ruimte.hoogte,.2));
+    hoek = ((Math.trunc(hoek) % 4) + 4) % 4;
+    const W = 780, HP = 560, K = Math.cos(Math.PI / 6), S = 0.5;
+    const LX = hoek % 2 ? B : L, BY = hoek % 2 ? L : B;
+    const schaal = Math.min(620 / ((LX + BY) * K), 390 / (H * 0.9 + (LX + BY) * S));
+    const ox = (W - (LX + BY) * K * schaal) / 2 + BY * K * schaal;
+    const oy = (HP - (H * 0.9 + (LX + BY) * S) * schaal) / 2 + H * 0.9 * schaal;
+    // Rotatie in modelcoördinaten; afstanden van openingen blijven aan hun eigen wand gekoppeld.
+    const draai = (x, y) => [[x, y], [y, L - x], [L - x, B - y], [B - y, x]][hoek];
+    const P = (x, y, z = 0) => {
+      const [u, v] = draai(x, y);
+      return [ox + (u - v) * K * schaal, oy + (u + v) * S * schaal - z * 0.9 * schaal];
+    };
+    return {P,W,HP};
+  }
+  function planProjectie(ruimte) {
+    const L = Math.max(.2,get(ruimte.lengte,.2)), B = Math.max(.2,get(ruimte.breedte,.2));
+    const schaal = Math.min(572/L,396/B);
+    const rx = 104+(572-L*schaal)/2, ry=58+(396-B*schaal)/2;
+    return {P:(x,y,z=0)=>[rx+x*schaal,ry+y*schaal]};
+  }
+  function openingGeometrie(ruimte,index) {
+    const bron = ruimte.openingen?.[index];
+    if (!bron || !ZIJDEN.includes(bron.muur)) return null;
+    const L=Math.max(.2,get(ruimte.lengte,.2)), B=Math.max(.2,get(ruimte.breedte,.2)), H=Math.max(.2,get(ruimte.hoogte,.2));
+    const lengte = ['noord','zuid'].includes(bron.muur) ? L : B;
+    const o = openingLayout(openingenPerMuur(ruimte)[bron.muur],lengte).find(o=>o._index===index);
+    const onder = begrens(get(bron.borstwering), Math.max(0,H-Math.max(0,get(bron.hoogte))));
+    const a = {noord:[o.start,0,onder],zuid:[o.start,B,onder],west:[0,o.start,onder],oost:[L,o.start,onder]}[bron.muur];
+    return {a,zijde:bron.muur,lengte,breedte:o.tekenBreedte,hoogte:Math.max(0,get(bron.hoogte)),L,B,H};
   }
 
   /* ==================================================================
@@ -3208,6 +3275,7 @@ if (typeof window !== "undefined") {
         const a = [m.p0[0] + m.d[0] * s0, m.p0[1] + m.d[1] * s0];
         const b = [m.p0[0] + m.d[0] * s1, m.p0[1] + m.d[1] * s1];
 
+        openingGroep.push(`<g data-fokus="opening_sleep_${o._index}" data-plan-drag="opening" data-opening-index="${o._index}" tabindex="0" role="button" aria-label="${esc(o.naam)} verplaatsen"><line class="sleep-opening-hit" x1="${R(a[0])}" y1="${R(a[1])}" x2="${R(b[0])}" y2="${R(b[1])}"/>`);
         if (isDeur) {
           const tip = [a[0] + m.n[0] * bw, a[1] + m.n[1] * bw];
           const aN = Math.atan2(m.n[1], m.n[0]);
@@ -3222,6 +3290,7 @@ if (typeof window !== "undefined") {
           const nx = m.n[0] * 5, ny = m.n[1] * 5;
           openingGroep.push(`<line class="plan-raam" x1="${R(a[0] + nx)}" y1="${R(a[1] + ny)}" x2="${R(b[0] + nx)}" y2="${R(b[1] + ny)}"/>`);
         }
+        openingGroep.push('</g>');
       });
 
       /* naam + oppervlakte binnen de ruimte */
@@ -3277,8 +3346,8 @@ if (typeof window !== "undefined") {
     svg += `<text class="plan-hoogte" x="${R(rx + w)}" y="${R(ry + h + ((opties.regels || []).length ? 83 : 70))}" text-anchor="end">hoogte ${F(H)} m</text>`;
 
     const projecteer = (x,y,z) => [rx+x*schaal, ry+y*schaal];
-    svg += vlakMarkeringen(ruimte, opties, projecteer);
     svg += werkOverlay(ruimte, opties, projecteer);
+    svg += vlakMarkeringen(ruimte, opties, projecteer);
     return `<svg class="plan" viewBox="0 0 ${W} ${HP}" role="group" aria-label="Plattegrond van ${esc(ruimte.naam || "ruimte")}">${svg}</svg>`;
   }
 
@@ -3291,17 +3360,7 @@ if (typeof window !== "undefined") {
     const hoek = ((Math.trunc(opties.hoek || 0) % 4) + 4) % 4;
     const zoom = Math.max(0.75, Math.min(1.6, Number(opties.zoom) || 1));
     const maten = opties.maten !== false;
-    const W = 780, HP = 560, K = Math.cos(Math.PI / 6), S = 0.5;
-    const LX = hoek % 2 ? B : L, BY = hoek % 2 ? L : B;
-    const schaal = Math.min(620 / ((LX + BY) * K), 390 / (H * 0.9 + (LX + BY) * S));
-    const ox = (W - (LX + BY) * K * schaal) / 2 + BY * K * schaal;
-    const oy = (HP - (H * 0.9 + (LX + BY) * S) * schaal) / 2 + H * 0.9 * schaal;
-    // Rotatie in modelcoördinaten; afstanden van openingen blijven aan hun eigen wand gekoppeld.
-    const draai = (x, y) => [[x, y], [y, L - x], [L - x, B - y], [B - y, x]][hoek];
-    const P = (x, y, z = 0) => {
-      const [u, v] = draai(x, y);
-      return [ox + (u - v) * K * schaal, oy + (u + v) * S * schaal - z * 0.9 * schaal];
-    };
+    const {P,W,HP} = projectie(ruimte, hoek);
     const lijn = (a, b, cls) => `<line class="${cls}" x1="${R(a[0])}" y1="${R(a[1])}" x2="${R(b[0])}" y2="${R(b[1])}"/>`;
     const poly = (ps, cls) => `<polygon class="${cls}" points="${punten(ps)}"/>`;
     const tekst = (p, inhoud, cls) => `<text class="${cls}" x="${R(p[0])}" y="${R(p[1])}" text-anchor="middle">${esc(inhoud)}</text>`;
@@ -3337,6 +3396,7 @@ if (typeof window !== "undefined") {
       svg += lijn(p(0,H), p(m.len,H), 'iso-bovenrand');
       gaten.forEach(({o, onder, boven, ps}) => {
         const deur = /^deur/i.test(o.naam || '');
+        svg += `<g data-fokus="opening_sleep_${o._index}" data-plan-drag="opening" data-opening-index="${o._index}" tabindex="0" role="button" aria-label="${esc(o.naam)} verplaatsen">`;
         svg += poly(ps, `iso-opening ${deur ? 'iso-deurblad' : 'iso-glas'}`);
         if (!deur) {
           const mid = o.start + o.tekenBreedte / 2;
@@ -3346,6 +3406,7 @@ if (typeof window !== "undefined") {
           const hand = p(o.start + o.tekenBreedte * 0.8, onder + (boven-onder)*0.48);
           svg += `<circle class="iso-klink" cx="${R(hand[0])}" cy="${R(hand[1])}" r="2.5"/>`;
         }
+        svg += '</g>';
       });
       // Los label boven de bovenrand blijft leesbaar bij grote ramen/deuren.
       const lp = p(m.len / 2, H);
@@ -3362,13 +3423,13 @@ if (typeof window !== "undefined") {
       svg += tekst([(c[0]+d[0])/2,(c[1]+d[1])/2+23], `${F(B)} m`, 'iso-maat');
       svg += tekst([W/2, HP-17], `Hoogte ${F(H)} m · Vloer ${F(L*B)} m² · Volume ${F(L*B*H)} m³`, 'iso-samenvatting');
     }
-    svg += vlakMarkeringen(ruimte, opties, P, zichtbaar);
     svg += werkOverlay(ruimte, opties, P, true);
+    svg += vlakMarkeringen(ruimte, opties, P, zichtbaar);
     const vw = W/zoom, vh = HP/zoom;
     return `<svg class="plan iso" viewBox="${R((W-vw)/2)} ${R((HP-vh)/2)} ${R(vw)} ${R(vh)}" role="group" aria-label="3D-ruimte ${esc(ruimte.naam || '')}. Klik op een wand om werk toe te voegen.">${svg}</svg>`;
   }
 
-  window.BouwPlan = { plattegrond, isometrie, laag, werkGeometrie, tint };
+  window.BouwPlan = { plattegrond, isometrie, laag, werkGeometrie, tint, projectie, planProjectie, openingGeometrie };
 })();
 
 </script>
@@ -3443,7 +3504,7 @@ function bewaarFocus() {
 }
 function herstelFocus(focus) {
   if (!focus) return;
-  const el = document.querySelector(`[data-fokus="${focus.key}"]`);
+  const el = $$("[data-fokus]").find(el => el.dataset.fokus === focus.key);
   if (!el) return;
   el.focus();
   try { el.setSelectionRange(focus.start, focus.end); } catch (_) { /* getalvelden */ }
@@ -4677,6 +4738,185 @@ async function init() {
 }
 
 init();
+
+</script>
+<script>
+/* Pointer Events: mouse, pen and touch. Capture stays on the stable #plan host,
+ * never on an SVG child replaced during live rendering. Pure geometry helpers
+ * are also exported for regression tests; app state is accessed only on input.
+ */
+(function () {
+  'use strict';
+  function projectDelta(P, plane, dx, dy) {
+    const axes = {xy:[0,1],xz:[0,2],yz:[1,2]}[plane];
+    const origin = P(0,0,0);
+    const vectors = axes.map(axis => {
+      const v = [0,0,0]; v[axis] = 1;
+      const q = P(...v); return [q[0]-origin[0],q[1]-origin[1]];
+    });
+    const [a,b] = vectors;
+    const determinant = a[0]*b[1]-b[0]*a[1];
+    if (Math.abs(determinant) < 1e-8) return [0,0,0];
+    const out = [0,0,0];
+    out[axes[0]] = (dx*b[1]-dy*b[0])/determinant;
+    out[axes[1]] = (dy*a[0]-dx*a[1])/determinant;
+    return out;
+  }
+  function boundedDelta(a,b,delta,limits,step=0) {
+    return delta.map((d,i) => {
+      if (step && Math.abs(d)>1e-9) d = Math.round((a[i]+d)/step)*step-a[i];
+      return Math.max(-Math.min(a[i],b[i]), Math.min(limits[i]-Math.max(a[i],b[i]), d));
+    });
+  }
+  window.BouwSleep = {projectDelta,boundedDelta};
+  const host = document.querySelector('#plan');
+  if (!host) return;
+  let drag = null, suppressClickUntil = 0;
+  const copy = v => JSON.parse(JSON.stringify(v));
+  const coord = n => Math.round(n*1000)/1000;
+  const note = text => {const el=document.querySelector('#plan-sleepstatus'); if(el) el.textContent=text;};
+  function planeFor(surface,isOpening=false) {
+    if (planWeergave !== 'isometrie') return 'xy';
+    const requested = document.querySelector('#plan-sleepvlak')?.value;
+    if (!isOpening && ['xy','xz','yz'].includes(requested)) return requested;
+    return ['noord','zuid'].includes(surface) ? 'xz' : ['west','oost'].includes(surface) ? 'yz' : 'xy';
+  }
+  function svgPoint(e) {
+    const svg = host.querySelector('svg');
+    const matrix = svg?.getScreenCTM();
+    if (!matrix) return null;
+    const point = svg.createSVGPoint(); point.x=e.clientX; point.y=e.clientY;
+    return point.matrixTransform(matrix.inverse());
+  }
+  function prepare(target) {
+    const group = target.closest?.('[data-plan-drag]');
+    const room = actieveRuimte();
+    if (!group || !host.contains(group) || !room) return null;
+    const isOpening = group.dataset.planDrag === 'opening';
+    const r = isOpening ? null : planRegels(room).find(r=>r.id===group.dataset.planRegel);
+    const index = Number(group.dataset.openingIndex);
+    const geom = isOpening ? window.BouwPlan.openingGeometrie(room,index) : r && window.BouwPlan.werkGeometrie(r,room);
+    if (!geom) return null;
+    const model = isOpening ? room.openingen[index] : state.project.regels.find(v=>v.id===r.id);
+    const endpoint = target.closest?.('[data-plan-end]')?.dataset.planEnd || null;
+    const route = r?.pakket.eenheid === 'm';
+    return {room,model,r,index,isOpening,geom,endpoint,route,
+      original:copy(model), plane:planeFor(isOpening ? geom.zijde : r.oppervlak,isOpening),
+      P:(planWeergave==='isometrie' ? window.BouwPlan.projectie(room,planCamera.hoek) : window.BouwPlan.planProjectie(room)).P};
+  }
+  function apply(d,delta,step) {
+    const {geom:g,model:m} = d, limits=[g.L,g.B,g.H];
+    if (d.isOpening) {
+      const axis = ['noord','zuid'].includes(g.zijde) ? 0 : 1;
+      const value = (n,change,max) => coord(Math.max(0,Math.min(max,step && Math.abs(change)>1e-9 ? Math.round((n+change)/step)*step : n+change)));
+      m.positie=value(g.a[axis],delta[axis],Math.max(0,g.lengte-g.breedte));
+      if (planWeergave==='isometrie' && !/^deur/i.test(m.naam || '')) {
+        m.borstwering=value(g.a[2],delta[2],Math.max(0,g.H-g.hoogte));
+      }
+      note(`Opening: ${m.positie.toFixed(2)} m langs de wand · onderkant ${Number(m.borstwering || 0).toFixed(2)} m. Escape annuleert.`);
+    } else {
+      const a=g.a, b=d.route ? g.b : g.a;
+      let da,db;
+      if (d.endpoint==='a') {da=boundedDelta(a,a,delta,limits,step);db=[0,0,0];}
+      else if (d.endpoint==='b') {da=[0,0,0];db=boundedDelta(b,b,delta,limits,step);}
+      else da=db=boundedDelta(a,b,delta,limits,step);
+      const nextA=a.map((n,i)=>coord(n+da[i])),nextB=b.map((n,i)=>coord(n+db[i]));
+      m.visualisatie={...(d.original.visualisatie || {}),x:nextA[0],y:nextA[1],z:nextA[2]};
+      if (d.route) Object.assign(m.visualisatie,{x2:nextB[0],y2:nextB[1],z2:nextB[2]});
+      const active=d.endpoint==='b' ? nextB : nextA;
+      note(`Positie X ${active[0].toFixed(2)} · Y ${active[1].toFixed(2)} · Z ${active[2].toFixed(2)} m. Escape annuleert.`);
+    }
+    renderPlan();
+  }
+  function restore(d) {
+    Object.keys(d.model).forEach(k=>delete d.model[k]);
+    Object.assign(d.model,d.original);
+    renderPlan();
+  }
+  function commit(d) {
+    bewaarLokaal();
+    if (d.isOpening) {
+      const kaart=document.querySelector('#ruimtekaart');
+      if (kaart) kaart.innerHTML=renderRuimtekaart(d.room);
+    } else {
+      // Sync placement fields without closing expanded details or moving focus.
+      document.querySelectorAll('[data-plaatsing]').forEach(el=>{
+        if(el.closest('[data-regel]')?.dataset.regel===d.model.id) el.value=d.model.visualisatie?.[el.dataset.plaatsing] ?? '';
+      });
+    }
+    renderOfferte();
+    bereken();
+    note('Positie opgeslagen. Offertehoeveelheden blijven ongewijzigd.');
+  }
+  function finish(cancel=false) {
+    if (!drag) return;
+    const d=drag; drag=null;
+    if (host.hasPointerCapture?.(d.pointerId)) host.releasePointerCapture(d.pointerId);
+    host.classList.remove('is-slepen');
+    if (!d.moved) {
+      suppressClickUntil=performance.now()+500;
+      if (cancel) {note('Verplaatsing geannuleerd.');return;}
+      if (d.isOpening) {
+        const input=document.querySelector(`[data-opening="${d.index}"][data-opening-veld="positie"]`);
+        input?.focus();
+      } else selecteerPlanRegel(d.model.id);
+      return;
+    }
+    suppressClickUntil=performance.now()+500;
+    if (cancel) {restore(d);note('Verplaatsing geannuleerd.');}
+    else commit(d);
+  }
+  host.addEventListener('pointerdown',e=>{
+    if (drag || !e.isPrimary || e.button!==0) return;
+    const d=prepare(e.target),point=svgPoint(e);
+    if (!d || !point) return;
+    drag={...d,point,startX:e.clientX,startY:e.clientY,pointerId:e.pointerId,moved:false};
+    host.setPointerCapture(e.pointerId);
+  });
+  host.addEventListener('pointermove',e=>{
+    if (!drag || drag.pointerId!==e.pointerId) return;
+    if (!drag.moved && Math.hypot(e.clientX-drag.startX,e.clientY-drag.startY)<4) return;
+    const point=svgPoint(e); if(!point) return;
+    e.preventDefault(); drag.moved=true;host.classList.add('is-slepen');
+    const dx=point.x-drag.point.x,dy=point.y-drag.point.y;
+    let delta=projectDelta(drag.P,drag.plane,dx,dy);
+    if(drag.isOpening && planWeergave!=='isometrie') {
+      // Only the distance along the chosen wall changes in a top view.
+      if(['noord','zuid'].includes(drag.geom.zijde)) delta[1]=0;else delta[0]=0;
+    }
+    const step=document.querySelector('#plan-snap')?.checked && !e.altKey ? .05 : 0;
+    apply(drag,delta,step);
+  },{passive:false});
+  host.addEventListener('pointerup',e=>{if(drag?.pointerId===e.pointerId) finish();});
+  host.addEventListener('pointercancel',e=>{if(drag?.pointerId===e.pointerId) finish(true);});
+  host.addEventListener('lostpointercapture',()=>{if(drag) finish(true);});
+  document.addEventListener('click',e=>{
+    if(performance.now()<suppressClickUntil && e.target.closest?.('#plan')) {
+      e.preventDefault();e.stopImmediatePropagation();suppressClickUntil=0;
+    }
+  },true);
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Escape' && drag){e.preventDefault();finish(true);return;}
+    if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key) || drag) return;
+    const d=prepare(e.target);if(!d)return;
+    e.preventDefault();e.stopImmediatePropagation();
+    const step=e.altKey ? .01 : e.shiftKey ? .25 : .05;
+    const axes={xy:[0,1],xz:[0,2],yz:[1,2]}[d.plane],delta=[0,0,0];
+    if(e.key==='ArrowRight')delta[axes[0]]=step;
+    if(e.key==='ArrowLeft')delta[axes[0]]=-step;
+    if(e.key==='ArrowUp')delta[axes[1]]=axes[1]===2 ? step : -step;
+    if(e.key==='ArrowDown')delta[axes[1]]=axes[1]===2 ? -step : step;
+    if(d.isOpening && planWeergave!=='isometrie') {
+      if(['noord','zuid'].includes(d.geom.zijde))delta[1]=0;else delta[0]=0;
+    }
+    apply(d,delta,0);commit(d);
+    // Rendering replaced the focused SVG element; restore keyboard navigation.
+    const next=[...host.querySelectorAll('[data-plan-drag]')].find(el=>d.isOpening
+      ? Number(el.dataset.openingIndex)===d.index : el.dataset.planRegel===d.model.id);
+    const focus=d.endpoint ? next?.querySelector(`[data-plan-end="${d.endpoint}"]`) : next;
+    focus?.focus({preventScroll:true});
+  },true);
+})();
 
 </script>
 </body>

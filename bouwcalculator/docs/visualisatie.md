@@ -43,7 +43,33 @@ JSON export/import; ook beide rekenkernen bewaren de plaatsingsmetadata.
 Klik een symbool, tracé of genummerde legendaregel om de betreffende werkregel
 te selecteren. Toetsenbord: Tab naar een SVG-symbool, Enter of spatie om de
 regel te openen/selecteren. De bestaande wandklik blijft Gyproc-werk toevoegen.
-Er is geen slepen van objecten: posities stel je in met de metrische velden.
+
+## Slepen naar positie
+
+- Sleep met de muis of één vinger: symbolen, hele tracés, afzonderlijke eindpunten,
+  deuren, ramen en de genummerde m²-vlakmarkeringen.
+- In 2D verplaats je X/Y. In 3D volgt **Automatisch** het toegewezen vlak:
+  noord/zuid = X/Z, west/oost = Y/Z, vloer/plafond = X/Y.
+  Kies een ander sleepvlak om een toestel vrij te plaatsen of de hoogte te wijzigen.
+- Deuren en ramen blijven aan hun oorspronkelijke wand. Een raam kan in 3D ook
+  omhoog/omlaag; slepen verandert de onderkanthoogte van deuren niet. Breedte en hoogte blijven gelijk.
+- Standaard klikken posities vast op 5 cm. Zet dit uit of houd Alt ingedrukt
+  tijdens slepen voor vrije plaatsing. Escape annuleert de huidige sleepbeweging.
+- Tab naar een object of eindpunt en gebruik pijltjes: 5 cm, Shift + pijltje:
+  25 cm, Alt + pijltje: 1 cm. Links/rechts is X (Y bij Y/Z); omhoog/omlaag
+  is Y in bovenaanzicht en Z in een verticaal vlak.
+- Posities blijven binnen de ruimte. Bij verplaatsing van een heel tracé blijven
+  de onderlinge afstand en hoogteverschillen van de eindpunten behouden.
+- Loslaten bewaart de positie lokaal; JSON export/import bewaart die ook.
+  De plaatsingsvelden blijven beschikbaar voor precieze invoer.
+- Binnen de tekening zijn aanraakbewegingen voor positioneren gereserveerd.
+  Scroll de pagina via het gebied buiten de tekening. Bij overlapping kun je
+  lagen verbergen, de camera draaien of de numerieke plaatsingsvelden gebruiken.
+
+Slepen verandert **geen hoeveelheden of prijzen**. Een m²-nummer verplaatsen
+verschuift alleen het label, niet het gemeten afwerkingsvlak. De ruimtematen,
+wandgeometrie, openingmaten, camerabediening, maatlijnen en legenda worden niet
+versleept; ruimtematen en openingmaten pas je aan via hun velden.
 
 ## Lagen en print
 
@@ -85,3 +111,8 @@ node bouwcalculator/tools/visual_review.mjs
 
 Resultaten: `/tmp/bouw-visual-review` (of `REVIEW_OUTPUT`). Met `APP_URL` test je
 ook een lokale Worker of het standalone `file:///.../bouwcalculator.html`-bestand.
+
+De aanvullende `tools/drag_review.mjs` controleert met echte Chromium Pointer
+Events de vier 3D-hoeken, muis- en touchslepen, zoom, toetsenbord, Escape,
+openingen, tracés/eindpunten, vlaknummers, herladen en gelijkblijvende totalen.
+Dit is browseremulatie, geen test op fysieke iPhones of Android-apparaten.

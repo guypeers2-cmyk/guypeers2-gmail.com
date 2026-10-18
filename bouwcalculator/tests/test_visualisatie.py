@@ -47,7 +47,7 @@ for (const [hoek, zijden] of [['noord','west'], ['noord','oost'], ['zuid','oost'
   const beeld = window.BouwPlan.isometrie(r, [], {}, {hoek});
   const zichtbaar = [...beeld.matchAll(/data-vlak="([^"]+)"/g)].map(m => m[1]);
   assert.deepEqual(zichtbaar, zijden);
-  assert.equal((beeld.match(/role="button"/g) || []).length, 2);
+  assert.equal((beeld.match(/class="iso-wand plan-wand/g) || []).length, 2);
   assert(beeld.includes('maskUnits="userSpaceOnUse"'));
   assert(!beeld.includes('NaN'));
 }

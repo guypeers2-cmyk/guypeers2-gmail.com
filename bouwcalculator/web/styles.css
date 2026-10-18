@@ -1193,3 +1193,28 @@ input[type="search"] { width: 100%; min-height: 38px; font: inherit; color: var(
 .plan-legenda-item[class*="tint-"] b { color: var(--werk-kleur, var(--accent)); }
 .tint-sanitair { --werk-kleur: var(--groen); }
 .tint-afwerking { --werk-kleur: var(--accent); }
+
+/* Movable plan geometry and route handles. */
+[data-plan-drag], [data-plan-end] { cursor: grab; touch-action: none; }
+#plan.is-slepen, #plan.is-slepen * { cursor: grabbing !important; user-select: none; }
+.werk-eind { stroke-width: 3; }
+.sleep-hit:hover + .werk-eind, .sleep-hit:focus-visible + .werk-eind { r: 9; stroke-width: 4; outline: none; }
+.plan-sleepopties { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 4px 0 8px; font-size: .8rem; }
+.plan-sleepopties label { display: flex; align-items: center; gap: 6px; min-height: 44px; }
+.plan-sleepopties select { width: auto; max-width: 100%; }
+#plan-sleepstatus { margin-bottom: 8px; }
+@media (max-width: 600px) {
+  .plan-sleepopties label { flex-wrap: wrap; }
+  .plan-sleepopties select { width: 100%; }
+}
+/* Stable gesture surface: SVG children are replaced while dragging. Reserve
+   touches inside the drawing; scroll the page using the surrounding cards. */
+#plan { touch-action: none; }
+.sleep-hit { fill: transparent; stroke: transparent; stroke-width: 0; vector-effect: non-scaling-stroke; pointer-events: all; touch-action: none; }
+.sleep-opening-hit { stroke: transparent; stroke-width: 24; vector-effect: non-scaling-stroke; pointer-events: stroke; }
+.sleep-hit:focus-visible { stroke: var(--accent); stroke-opacity: .2; outline: none; }
+
+@media (pointer: coarse) { .sleep-hit { stroke-width: 32; } }
+/* Live coordinates must not move the canvas under an active pointer. */
+#plan-sleepstatus { min-block-size: 3em; }
+@media (max-width: 640px) { #plan-sleepstatus { min-block-size: 6em; } }

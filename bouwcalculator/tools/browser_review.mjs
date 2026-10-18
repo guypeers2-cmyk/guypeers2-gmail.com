@@ -28,7 +28,9 @@ try {
   await page.evaluate(() => localStorage.clear());
   await page.reload({waitUntil:'networkidle2'});
   await page.click('[data-actie="opening-toevoegen"][data-soort="Deur"]');
+  await page.waitForNetworkIdle({idleTime:300});
   await page.click('[data-actie="regel-toevoegen"]');
+  await page.waitForNetworkIdle({idleTime:300});
   await page.click('[data-installatie="sanitair"]');
   assert.equal(await page.$$eval('[data-installatie-pakket]', es => es.length), 15);
   await page.select('#san-vlak', 'vloer');
