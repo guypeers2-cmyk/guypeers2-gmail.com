@@ -56,6 +56,8 @@ await page.keyboard.press('Enter');
 assert.equal(await page.$eval('#plan-selectie',e=>e.hidden),false);
 assert.equal(await page.$eval('#werk-invoer',e=>e.open),false);
 await page.click('#plan-eigenschappen');
+assert.equal(await page.$eval('#plan-inspector',e=>e.hidden),false);
+await page.click('#plan-volledige-regel');
 assert.equal(await page.evaluate(()=>document.activeElement.closest('[data-regel]')?.dataset.regel),'sock');
 await page.$eval('[data-regel="sock"] .plaatsing',e=>e.open=true);
 await page.$eval('[data-fokus="r_sock_plaats_x"]',e=>{e.value='3.1';e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));});

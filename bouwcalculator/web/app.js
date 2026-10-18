@@ -106,7 +106,11 @@ function nieuwProject() {
   };
 }
 
+const projectHistorie = window.BouwHistorie.maak();
 function laadProject(project, id = null) {
+  planSelectie=null;planInspectieOpen=false;
+  projectHistorie.reset(project);
+  renderHistorie();
   state.project = project;
   state.projectId = id;
   state.actieveRuimteId = project.ruimtes.length ? project.ruimtes[0].id : null;
@@ -115,7 +119,26 @@ function laadProject(project, id = null) {
   bereken();
 }
 
-function bewaarLokaal() {
+function renderHistorie() {
+  if($('#plan-undo'))$('#plan-undo').disabled=!projectHistorie.kanUndo();
+  if($('#plan-redo'))$('#plan-redo').disabled=!projectHistorie.kanRedo();
+}
+function historieStap(richting) {
+  if(document.querySelector('#plan.is-slepen'))return;
+  const project=richting==='undo'?projectHistorie.undo():projectHistorie.redo();
+  if(!project)return;
+  state.project=project;
+  if(!project.ruimtes.some(r=>r.id===state.actieveRuimteId))state.actieveRuimteId=project.ruimtes[0]?.id || null;
+  syncSidebar();bewaarLokaal(false);render();bereken();
+  $('#plan-sleepstatus').textContent=richting==='undo'?'Wijziging ongedaan gemaakt.':'Wijziging opnieuw uitgevoerd.';
+}
+function bewaarLokaal(record=true) {
+  if(record && state.project) {
+    const el=document.activeElement;
+    const sleutel=el?.matches('input:not([type="checkbox"]):not([type="radio"]),textarea') ? (el.dataset.fokus || el.id || '') : '';
+    projectHistorie.record(state.project,sleutel);
+  }
+  renderHistorie();
   try {
     localStorage.setItem(OPSLAG_SLEUTEL, JSON.stringify({ project: state.project, id: state.projectId }));
   } catch (_) { /* opslag vol of niet beschikbaar */ }
@@ -133,7 +156,9 @@ function planBerekening() {
   state.berekenTimer = setTimeout(bereken, 220);
 }
 
+let berekenVolgnummer=0;
 async function bereken() {
+  const volgnummer=++berekenVolgnummer;
   clearTimeout(state.berekenTimer);
   if (!state.project) return;
   status("Berekenen…");
@@ -148,7 +173,9 @@ async function bereken() {
         body: JSON.stringify({ project: state.project }),
       });
       if (!antwoord.ok) throw new Error("serverfout");
-      state.offerte = await antwoord.json();
+      const resultaat = await antwoord.json();
+      if(volgnummer!==berekenVolgnummer)return;
+      state.offerte = resultaat;
     }
     const focus = bewaarFocus();
     renderOfferte();
@@ -160,6 +187,7 @@ async function bereken() {
     const waarschuwingen = state.offerte.waarschuwingen || [];
     status(waarschuwingen.length ? "⚠ " + waarschuwingen[0] : "Offerte bijgewerkt");
   } catch (fout) {
+    if(volgnummer!==berekenVolgnummer)return;
     status("Berekening mislukt — is de server gestart?");
     console.error(fout);
   }
@@ -630,6 +658,7 @@ function renderOfferte() {
 let planWeergave = "plattegrond";
 let planVlak = "noord";
 let planSelectie = null;
+let planInspectieOpen = false;
 const planCamera = { hoek: 0, zoom: 1, maten: true };
 const planLagen = {afwerking: true, elektriciteit: true, sanitair: true};
 
@@ -677,7 +706,14 @@ function renderPlan() {
   const houder = $("#plan");
   if (!houder) return;
   const ruimte = actieveRuimte();
-  if (!ruimte || !window.BouwPlan) { houder.innerHTML = ""; return; }
+  if (!ruimte || !window.BouwPlan) {
+    planSelectie=null;planInspectieOpen=false;
+    houder.innerHTML='<div class="plan-leeg"><strong>Start met een ruimte</strong><p>Voeg een ruimte toe om te tekenen en objecten te plaatsen.</p><button type="button" class="knop primair" data-actie="ruimte-toevoegen">+ Ruimte toevoegen</button></div>';
+    $('#plan-selectie').hidden=true;$('#plan-inspector').hidden=true;
+    $('#plan-legenda').innerHTML='';$('#plan-openingen').innerHTML='';
+    $('#plan-objecten-aantal').textContent='Geen actieve ruimte';
+    return;
+  }
 
   const werk = {};
   Object.entries(werkPerVlak(ruimte)).forEach(([sleutel, info]) => {
@@ -865,10 +901,12 @@ function importeerJson(tekst) {
 
 /* ---------------- events ---------------- */
 function selecteerPlanRegel(id) {
+  planInspectieOpen=false;
   planSelectie = {type:'regel',id};
   renderPlanSelectie();
 }
 function selecteerPlanOpening(index) {
+  planInspectieOpen=false;
   planSelectie = {type:'opening',index,ruimteId:actieveRuimte()?.id};
   renderPlanSelectie();
 }
@@ -879,6 +917,7 @@ function renderPlanSelectie() {
   const opening=planSelectie?.type==='opening' && planSelectie.ruimteId===room?.id && room?.openingen[planSelectie.index];
   if(!regel && !opening)planSelectie=null;
   bar.hidden=!planSelectie;
+  renderPlanInspector(regel,opening);
   $$('#plan [data-opening-index]').forEach(el=>el.classList.toggle('plan-geselecteerd',!!opening && Number(el.dataset.openingIndex)===planSelectie.index));
   $$('#plan [data-plan-regel]').forEach(el=>el.classList.toggle('plan-geselecteerd',!!regel && el.dataset.planRegel===regel.id));
   const verwijder=$("#plan-selectie-verwijder");
@@ -907,7 +946,15 @@ document.addEventListener("click", (e) => {
   const nav=e.target.closest('[data-studio-doel]');
   if(nav){studioOpen(nav.dataset.studioDoel);return;}
   if(e.target.closest('#plan-deselecteer')){planSelectie=null;renderPlanSelectie();return;}
+  if(e.target.closest('#plan-undo')){historieStap('undo');return;}
+  if(e.target.closest('#plan-redo')){historieStap('redo');return;}
   if(e.target.closest('#plan-eigenschappen')){
+    planInspectieOpen=!planInspectieOpen;renderPlanSelectie();
+    if(planInspectieOpen)$('#plan-inspector input')?.focus({preventScroll:true});
+    return;
+  }
+  if(e.target.closest('#plan-volledige-regel')){
+
     if(planSelectie?.type==='regel'){
       studioOpen('werk-invoer');
       const veld=$$('[data-hoeveelheid]').find(el=>el.closest('[data-regel]')?.dataset.regel===planSelectie.id);
@@ -1469,3 +1516,69 @@ init();
     if(e.key==='Escape' && bestand.open){bestand.open=false;bestand.querySelector('summary').focus();}
   });
 })();
+
+/* Leave native text-field undo intact; project shortcuts apply on the canvas. */
+document.addEventListener('keydown',e=>{
+  if(!(e.ctrlKey || e.metaKey) || e.altKey || e.defaultPrevented)return;
+  if(e.target.closest?.('input,textarea,select,[contenteditable="true"]') || document.querySelector('dialog[open],#modal-achtergrond:not([hidden])'))return;
+  const toets=e.key.toLowerCase();
+  if(toets!=='z' && toets!=='y')return;
+  e.preventDefault();historieStap(toets==='y' || e.shiftKey?'redo':'undo');
+});
+
+/* Small, explicit-submit editor beside the drawing; draft input survives redraws. */
+function renderPlanInspector(regel,opening) {
+  const panel=$('#plan-inspector');
+  if(!panel)return;
+  panel.hidden=!planInspectieOpen || (!regel && !opening);
+  if(panel.hidden)return;
+  const key=regel?`r_${regel.id}`:`o_${actieveRuimte().id}_${planSelectie.index}`;
+  if(panel.dataset.selectie===key && panel.contains(document.activeElement))return;
+  panel.dataset.selectie=key;
+  const room=actieveRuimte(),L=Math.max(.2,Number(room.lengte)||.2),B=Math.max(.2,Number(room.breedte)||.2),H=Math.max(.2,Number(room.hoogte)||.2);
+  const vlakken=opening?['noord','oost','zuid','west']:['noord','oost','zuid','west','vloer','plafond'];
+  const vlak=opening?opening.muur:regel.oppervlak;
+  const veld=(naam,label,value,max,min=0,step='any')=>`<label>${label}<input type="number" name="${naam}" min="${min}" ${max!=null?`max="${max}"`:''} step="${step}" value="${esc(value)}" required data-fokus="ins_${key}_${naam}"></label>`;
+  let inhoud=`<label>Vlak<select name="vlak" data-fokus="ins_${key}_vlak">${vlakken.map(v=>`<option value="${v}" ${v===vlak?'selected':''}>${['vloer','plafond'].includes(v)?v:'Wand '+v}</option>`).join('')}</select></label>`;
+  if(regel){
+    const r=planRegels(room).find(r=>r.id===regel.id),g=window.BouwPlan.werkGeometrie(r,room);
+    const coord=(arr,eind=false)=>arr.map((value,i)=>veld(['x','y','z'][i]+(eind?'2':''),`${eind?'Eind ':''}${['X vanaf west','Y vanaf noord','Z boven vloer'][i]} (m)`,value,[L,B,H][i])).join('');
+    inhoud+=coord(g.a);
+    if(r.pakket.eenheid==='m')inhoud+=coord(g.b,true);
+    if(r.pakket.eenheid!=='m2')inhoud+=veld('aantal',r.pakket.eenheid==='m'?'Gemeten lengte (m)':'Aantal',regel.hoeveelheid ?? r.aantal,null,.01,'any');
+  }else{
+    const g=window.BouwPlan.openingGeometrie(room,planSelectie.index);
+    inhoud+=veld('positie','Vanaf start wand (m)',g.a[['noord','zuid'].includes(vlak)?0:1],null);
+    inhoud+=veld('borstwering','Onderkant boven vloer (m)',opening.borstwering || 0,H);
+    inhoud+=veld('breedte','Breedte (m)',opening.breedte,null,.01);
+    inhoud+=veld('hoogte','Hoogte (m)',opening.hoogte,H,.01);
+    inhoud+=veld('aantal','Aantal openingen',opening.aantal ?? 1,null,1,1);
+  }
+  panel.innerHTML=`<form id="plan-inspector-form"><header><strong>Eigenschappen bij de tekening</strong><span>Wijzig velden en bevestig met Toepassen.</span></header><div class="plan-inspector-velden">${inhoud}</div><p class="hint">${opening?'Openingmaten en aantallen wijzigen ook de netto-oppervlakte en offerte.':regel.pakket_id && state.prijsboek.pakketten.find(p=>p.id===regel.pakket_id)?.eenheid==='m2'?'Deze positie verplaatst alleen het m²-label; het gemeten vlak blijft gelijk.':'Posities wijzigen geen prijs. Aantal of gemeten lengte wijzigen de offerte wel.'}</p><p id="plan-inspector-fout" role="alert"></p><footer><button class="knop primair" type="submit">Toepassen</button><button class="knop" type="button" id="plan-volledige-regel">Alle instellingen</button></footer></form>`;
+}
+document.addEventListener('submit',e=>{
+  if(e.target.id!=='plan-inspector-form')return;
+  e.preventDefault();
+  if(!e.target.reportValidity())return;
+  $('#plan-inspector-fout').textContent='';
+  const data=new FormData(e.target),room=actieveRuimte();
+  if(!room)return;
+  const waarde=k=>Number(data.get(k)),vlak=data.get('vlak');
+  const opening=planSelectie?.type==='opening' && room.openingen[planSelectie.index];
+  if(opening){
+    const lengte=Number(['noord','zuid'].includes(vlak)?room.lengte:room.breedte);
+    if(waarde('positie')+waarde('breedte')>lengte+1e-8 || waarde('borstwering')+waarde('hoogte')>Number(room.hoogte)+1e-8){
+      $('#plan-inspector-fout').textContent='De opening past niet binnen deze wand. Controleer positie, breedte en hoogte.';return;
+    }
+    wijzig(()=>Object.assign(opening,{muur:vlak,positie:waarde('positie'),borstwering:waarde('borstwering'),breedte:waarde('breedte'),hoogte:waarde('hoogte'),aantal:waarde('aantal')}));
+  }else{
+    const regel=state.project.regels.find(r=>r.id===planSelectie?.id);
+    if(!regel)return;
+    wijzig(()=>{
+      regel.oppervlak=vlak;regel.visualisatie={...(regel.visualisatie || {})};
+      for(const k of ['x','y','z','x2','y2','z2'])if(data.has(k))regel.visualisatie[k]=waarde(k);
+      if(data.has('aantal'))regel.hoeveelheid=waarde('aantal');
+    });
+  }
+  $('#plan-sleepstatus').textContent='Eigenschappen opgeslagen. Je kunt verder tekenen.';
+});

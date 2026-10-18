@@ -350,6 +350,26 @@ open/gesloten panelen behouden; een herladen pagina start weer rustig ingeklapt.
 
 Optionele browsercontrole: `tools/studio_review.mjs` (Worker of offline bestand).
 
+## Directe eigenschappen en ongedaan maken
+
+Selecteer een object of opening en klik **Eigenschappen**. Het compacte formulier
+blijft bij de tekening: X/Y/Z, eindcoördinaten voor tracés, vlak en aantal/lengte.
+Voor openingen zijn positie, borstwering, breedte, hoogte en aantal beschikbaar.
+**Toepassen** bewaart de wijziging; **Alle instellingen** opent de volledige
+werkregel of ruimtematen. Ongeldige of buiten de wand passende openingen worden
+niet toegepast. Een andere selectie of herladen verwerpt nog niet toegepaste invoer.
+
+**Ongedaan** en **Opnieuw** herstellen projectwijzigingen, inclusief plaatsen,
+verplaatsen, verwijderen, aantallen en openingmaten. Sneltoetsen op het werkvlak:
+Ctrl/Cmd+Z, Ctrl/Cmd+Shift+Z of Ctrl+Y. In tekst- en getalvelden blijft de gewone
+browser-undo actief. Maximaal 50 stappen per sessie; kort na elkaar typen in
+hetzelfde veld wordt gegroepeerd. Herladen, Nieuw, Openen of importeren begint
+een nieuwe geschiedenis. De actuele projectversie wordt wel lokaal bewaard.
+
+De geschiedenis bevat het project, niet camera, selectie of opengeklapte panelen.
+Posities wijzigen geen prijzen; aantallen en afmetingen kunnen dat wel doen.
+Browsercontrole: `tools/edit_review.mjs`; pure historie-test: `tests/test_geschiedenis.py`.
+
 ## Objecten verwijderen
 
 Naast elke werkregel in de legenda bij de tekening staat een vuilbak-icoon.
@@ -535,6 +555,7 @@ bouwcalculator/
 │   ├── app.js           # presentatielaag (alleen weergave)
 │   ├── plattegrond.js   # 2D-bovenaanzicht en 3D-weergave (SVG)
 │   ├── slepen.js        # Muis/touch/toetsenbord: objecten positioneren
+│   ├── geschiedenis.js  # Begrensde undo/redo zonder browserafhankelijkheden
 │   ├── engine.js        # JS-rekenkern (Worker + browser-fallback)
 │   └── prijsboek.js     # gegenereerd uit bouw/tarieven.py
 ├── worker/
@@ -589,7 +610,7 @@ Daarom zijn er twee varianten:
 
 - **meerbestanden** (`bouwcalculator/web/`) — voor onze eigen Worker, Pages en
   de lokale server. De rekenkern is een ES-module.
-- **één bestand** (`bouwcalculator/bouwcalculator.html`, circa 233 KiB) — alles inline,
+- **één bestand** (`bouwcalculator/bouwcalculator.html`, circa 243 KiB) — alles inline,
   dus het werkt ook op hosts die HTML als `text/plain` teruggeven of op een
   stickie/schijf. De app rekent dan in de browser.
 

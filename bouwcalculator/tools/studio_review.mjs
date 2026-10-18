@@ -53,6 +53,8 @@ assert.equal(await page.$eval('#plan-selectie',e=>e.hidden),false);
 assert.equal(await page.$eval('#werk-invoer',e=>e.open),false);
 assert(await page.$('#plan .plan-geselecteerd'));
 await page.click('#plan-eigenschappen');
+assert.equal(await page.$eval('#plan-inspector',e=>e.hidden),false);
+await page.click('#plan-volledige-regel');
 assert.equal(await page.$eval('#werk-invoer',e=>e.open),true);
 assert.equal(await page.evaluate(()=>document.activeElement.closest('[data-regel]')?.dataset.regel),'studio-sock');
 for(const id of ['ruimte-invoer','werk-invoer','zijde','offertepaneel']){

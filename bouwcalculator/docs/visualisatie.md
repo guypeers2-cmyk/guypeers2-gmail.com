@@ -160,3 +160,18 @@ muis, aanraking en toetsenbord zonder extra bibliotheken.
 
 Zoom werkt nu in alle drie de weergaven. Het printbeeld blijft ongezoomd en toont
 alle offertewerken; gesloten panelen sluiten niets uit van de afdruk.
+
+## Eigenschappen zonder het ontwerp te verlaten
+
+De selectiebalk opent nu een compact formulier onder de tekening. Pas coördinaten,
+vlak, aantal/lengte of openingmaten aan en klik **Toepassen**. Het is geen live
+formulier: nog niet toegepaste invoer gaat verloren bij een andere selectie of
+herladen. **Alle instellingen** brengt je naar de uitgebreide invoerpanelen.
+Raam/deurmaten die buiten de gekozen wand vallen worden geweigerd met uitleg.
+
+Ongedaan/Opnieuw herstelt ook de projectgegevens en offerte, niet alleen het SVG.
+Geschiedenis is beperkt tot 50 stappen in de huidige sessie, wordt niet geëxporteerd
+en begint opnieuw bij herladen of het openen/importeren van een project.
+De camera, lagen en selectie zijn geen offertewijzigingen en staan niet in die historie.
+Een lege ruimteverzameling geeft nu een startactie in de tekening; het verwijderen
+van de laatste ruimte kan ook ongedaan worden gemaakt.
