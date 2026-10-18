@@ -1063,6 +1063,30 @@ table.offerte-tabel tr.ruimte-kop:hover td { background: var(--oppervlak-3); }
 .iso-maatlijn { stroke: var(--tekst-3); stroke-width: 1.5; }
 .iso-samenvatting { fill: var(--tekst-2); font-size: 12px; }
 
+/* Eigen werkruimte voor het prijsboek. */
+.hoofdnavigatie { width: 100%; display: flex; gap: 6px; padding: 12px 20px 0; max-width: 1920px; margin: auto; }
+.hoofdtab { appearance: none; font: inherit; font-size: .875rem; font-weight: 650; border: 1px solid transparent; border-radius: 9px; padding: 10px 18px; background: transparent; color: var(--tekst-2); cursor: pointer; }
+.hoofdtab.actief { color: var(--accent); background: var(--oppervlak); border-color: var(--rand); box-shadow: var(--schaduw-1); }
+#calculator-paneel[hidden], #paneel-tarieven[hidden] { display: none !important; }
+#paneel-tarieven { width: calc(100% - 40px); max-width: 1100px; margin: 20px auto; padding: 28px; background: var(--oppervlak); border: 1px solid var(--rand); border-radius: var(--radius-l); }
+.tarieven-kop { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+.tarieven-kop h2 { font-size: 1.6rem; text-transform: none; letter-spacing: -.02em; color: var(--tekst); margin: 4px 0; }
+.tarieven-label { font-size: .7rem; letter-spacing: .12em; color: var(--tekst-3); }
+.tarieven-badge { border: 1px solid var(--rand); border-radius: 20px; padding: 7px 12px; font-size: .75rem; color: var(--tekst-2); }
+#paneel-tarieven .tarief { grid-template-columns: minmax(0, 1fr) 110px 90px; padding: 9px 0; border-bottom: 1px solid var(--rand); }
+#paneel-tarieven .tarief .naam { white-space: normal; }
+#paneel-tarieven .tarief-groep { margin-top: 24px; }
+@media (max-width: 600px) {
+  .hoofdnavigatie { padding: 10px 12px 0; }
+  .hoofdtab { padding: 10px 12px; }
+  #paneel-tarieven { width: calc(100% - 24px); margin: 12px; padding: 16px; }
+  #paneel-tarieven .tarief { grid-template-columns: minmax(0, 1fr) 86px 64px; }
+}
+@media print {
+  #calculator-paneel[hidden] { display: block !important; }
+  #paneel-tarieven { display: none !important; }
+}
+
 </style>
 </head>
 <body>
@@ -1091,14 +1115,17 @@ table.offerte-tabel tr.ruimte-kop:hover td { background: var(--oppervlak-3); }
   </div>
 </header>
 
-<main class="layout">
+<nav class="hoofdnavigatie" role="tablist" aria-label="Werkruimte">
+  <button type="button" class="hoofdtab actief" data-hoofdtab="calculator" id="tab-calculator" role="tab" aria-selected="true" aria-controls="calculator-paneel">Calculator &amp; offerte</button>
+  <button type="button" class="hoofdtab tab" data-hoofdtab="tarieven" data-tab="tarieven" id="tab-tarieven" role="tab" aria-selected="false" aria-controls="paneel-tarieven" tabindex="-1">Tarieven</button>
+</nav>
+<main class="layout" id="calculator-paneel" role="tabpanel" aria-labelledby="tab-calculator">
 
   <!-- ================= LINKERZIJDE: project, instellingen, tarieven ================= -->
   <aside class="paneel zijde" id="zijde">
     <nav class="tabs" role="tablist" aria-label="Onderdelen">
       <button class="tab actief" data-tab="project" role="tab" aria-selected="true" aria-controls="paneel-project" id="tab-project">Project</button>
       <button class="tab" data-tab="instellingen" role="tab" aria-selected="false" aria-controls="paneel-instellingen" id="tab-instellingen">Prijzen</button>
-      <button class="tab" data-tab="tarieven" role="tab" aria-selected="false" aria-controls="paneel-tarieven" id="tab-tarieven">Tarieven</button>
     </nav>
 
     <section class="tabpaneel actief" data-paneel="project" role="tabpanel" id="paneel-project" aria-labelledby="tab-project">
@@ -1146,7 +1173,7 @@ table.offerte-tabel tr.ruimte-kop:hover td { background: var(--oppervlak-3); }
       <div class="rij">
         <label class="veld">
           <span>Uurtarief (€/uur)</span>
-          <input type="number" step="0.5" min="0" data-project="uurtarief" data-fokus="s_uur">
+          <input type="number" step="0.01" min="0" data-project="uurtarief" data-fokus="s_uur">
         </label>
         <label class="veld">
           <span>Marge materiaal (%)</span>
@@ -1179,12 +1206,7 @@ table.offerte-tabel tr.ruimte-kop:hover td { background: var(--oppervlak-3); }
         <em>Tarieven</em>.</p>
     </section>
 
-    <section class="tabpaneel" data-paneel="tarieven" role="tabpanel" id="paneel-tarieven" aria-labelledby="tab-tarieven" hidden>
-      <h2>Prijsboek</h2>
-      <p class="hint">Pas de prijzen aan op jouw inkoop. De waarde wordt meteen doorberekend
-        in de offerte.</p>
-      <div id="tarieven-lijst" class="tarievenlijst"></div>
-    </section>
+
   </aside>
 
   <!-- ================= MIDDEN: ruimtes, oppervlakken, werkregels ================= -->
@@ -1223,6 +1245,13 @@ table.offerte-tabel tr.ruimte-kop:hover td { background: var(--oppervlak-3); }
   </aside>
 
 </main>
+
+    <section class="tabpaneel" data-paneel="tarieven" role="tabpanel" id="paneel-tarieven" aria-labelledby="tab-tarieven" hidden>
+      <header class="tarieven-kop"><div><p class="tarieven-label">JOUW PRIJSBOEK</p><h2>Tarieven</h2></div><span class="tarieven-badge">Bedragen exclusief btw</span></header>
+      <p class="hint">Pas de prijzen aan op jouw inkoop. De waarde wordt meteen doorberekend
+        in de offerte.</p>
+      <div id="tarieven-lijst" class="tarievenlijst"></div>
+    </section>
 
 <div class="modal-achtergrond" id="modal-achtergrond" hidden>
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-titel">
@@ -2579,6 +2608,7 @@ const getal = (waarde, standaard = 0) => {
   return Number.isFinite(n) ? n : standaard;
 };
 const datumNu = () => new Date().toISOString().slice(0, 10);
+const geldInvoer = (waarde) => getal(waarde).toFixed(2);
 const uid = () => Math.random().toString(36).slice(2, 10);
 
 function bewaarFocus() {
@@ -2690,7 +2720,7 @@ function syncSidebar() {
   const project = state.project;
   $$("[data-project]").forEach((el) => {
     const waarde = project[el.dataset.project];
-    if (waarde !== undefined && document.activeElement !== el) el.value = waarde ?? "";
+    if (waarde !== undefined && document.activeElement !== el) el.value = el.dataset.project === "uurtarief" ? geldInvoer(waarde) : waarde ?? "";
   });
   const radio = document.querySelector(`input[name="prijsmodus"][value="${project.prijsmodus}"]`);
   if (radio) radio.checked = true;
@@ -2727,8 +2757,8 @@ function renderTarieven() {
       <label class="tarief ${groep.klasse}" title="${esc(t.naam)}">
         <span class="naam">${esc(t.naam)}</span>
         <input type="number" step="0.01" min="0" data-tarief="${esc(t.sleutel)}"
-               data-fokus="t_${esc(t.sleutel)}" value="${getal(state.project.tarieven[t.sleutel] ?? t.prijs)}">
-        <span class="eenheid">${esc(t.eenheid)}</span>
+               data-fokus="t_${esc(t.sleutel)}" value="${t.soort === "taak" ? getal(state.project.tarieven[t.sleutel] ?? t.prijs) : geldInvoer(state.project.tarieven[t.sleutel] ?? t.prijs)}">
+        <span class="eenheid">${t.soort === "taak" || String(t.eenheid).includes("€") ? "" : "€ / "}${esc(t.eenheid)}</span>
       </label>`).join("");
   }).join("") || '<p class="hint">Geen tarieven ontvangen.</p>';
 }
@@ -2738,8 +2768,9 @@ function renderTarievenWaarden() {
   $$("[data-tarief]").forEach((el) => {
     if (document.activeElement === el) return;
     const sleutel = el.dataset.tarief;
-    const standaard = tarievenEntries().find((t) => t.sleutel === sleutel)?.prijs;
-    el.value = getal(project.tarieven[sleutel] ?? standaard ?? 0);
+    const tarief = tarievenEntries().find((t) => t.sleutel === sleutel);
+    const waarde = project.tarieven[sleutel] ?? tarief?.prijs ?? 0;
+    el.value = tarief?.soort === "taak" ? getal(waarde) : geldInvoer(waarde);
   });
 }
 
@@ -3475,6 +3506,22 @@ document.addEventListener("input", (e) => {
 document.addEventListener("change", (e) => {
   const el = e.target;
 
+  if (el.dataset.tarief) {
+    const t = tarievenEntries().find(t => t.sleutel === el.dataset.tarief);
+    state.project.tarieven[el.dataset.tarief] = getal(el.value);
+    if (t?.soort !== "taak") el.value = geldInvoer(el.value);
+    bewaarLokaal();
+    bereken();
+    return;
+  }
+  if (el.dataset.project === "uurtarief") {
+    state.project.uurtarief = getal(el.value);
+    el.value = geldInvoer(el.value);
+    bewaarLokaal();
+    bereken();
+    return;
+  }
+
   if (el.name === "prijsmodus") {
     wijzig(() => { state.project.prijsmodus = el.value; });
     return;
@@ -3552,13 +3599,37 @@ async function laadLokaleEngine() {
 }
 
 async function init() {
-  $$(".tab").forEach((tab) => tab.addEventListener("click", () => {
-    $$(".tab").forEach((t) => {
+  function kiesHoofdtab(naam) {
+    const tarieven = naam === "tarieven";
+    $("#calculator-paneel").hidden = tarieven;
+    $("#paneel-tarieven").hidden = !tarieven;
+    $("#paneel-tarieven").classList.toggle("actief", tarieven);
+    $$("[data-hoofdtab]").forEach(tab => {
+      const actief = tab.dataset.hoofdtab === naam;
+      tab.classList.toggle("actief", actief);
+      tab.setAttribute("aria-selected", String(actief));
+      tab.tabIndex = actief ? 0 : -1;
+    });
+  }
+  $$("[data-hoofdtab]").forEach(tab => {
+    tab.addEventListener("click", () => kiesHoofdtab(tab.dataset.hoofdtab));
+    tab.addEventListener("keydown", e => {
+      if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)) return;
+      e.preventDefault();
+      const tabs = $$("[data-hoofdtab]");
+      const volgende = e.key === "Home" ? tabs[0] : e.key === "End" ? tabs[1] : tabs.find(t => t !== tab);
+      kiesHoofdtab(volgende.dataset.hoofdtab);
+      volgende.focus();
+    });
+  });
+  $$("#zijde .tab").forEach((tab) => tab.addEventListener("click", () => {
+    kiesHoofdtab("calculator");
+    $$("#zijde .tab").forEach((t) => {
       const actief = t === tab;
       t.classList.toggle("actief", actief);
       t.setAttribute("aria-selected", actief ? "true" : "false");
     });
-    $$(".tabpaneel").forEach((p) => {
+    $$("#zijde .tabpaneel").forEach((p) => {
       const actief = p.dataset.paneel === tab.dataset.tab;
       p.classList.toggle("actief", actief);
       p.hidden = !actief;

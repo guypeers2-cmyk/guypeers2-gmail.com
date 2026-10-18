@@ -1046,3 +1046,27 @@ table.offerte-tabel tr.ruimte-kop:hover td { background: var(--oppervlak-3); }
 .iso-opp { font-size: 11px; }
 .iso-maatlijn { stroke: var(--tekst-3); stroke-width: 1.5; }
 .iso-samenvatting { fill: var(--tekst-2); font-size: 12px; }
+
+/* Eigen werkruimte voor het prijsboek. */
+.hoofdnavigatie { width: 100%; display: flex; gap: 6px; padding: 12px 20px 0; max-width: 1920px; margin: auto; }
+.hoofdtab { appearance: none; font: inherit; font-size: .875rem; font-weight: 650; border: 1px solid transparent; border-radius: 9px; padding: 10px 18px; background: transparent; color: var(--tekst-2); cursor: pointer; }
+.hoofdtab.actief { color: var(--accent); background: var(--oppervlak); border-color: var(--rand); box-shadow: var(--schaduw-1); }
+#calculator-paneel[hidden], #paneel-tarieven[hidden] { display: none !important; }
+#paneel-tarieven { width: calc(100% - 40px); max-width: 1100px; margin: 20px auto; padding: 28px; background: var(--oppervlak); border: 1px solid var(--rand); border-radius: var(--radius-l); }
+.tarieven-kop { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+.tarieven-kop h2 { font-size: 1.6rem; text-transform: none; letter-spacing: -.02em; color: var(--tekst); margin: 4px 0; }
+.tarieven-label { font-size: .7rem; letter-spacing: .12em; color: var(--tekst-3); }
+.tarieven-badge { border: 1px solid var(--rand); border-radius: 20px; padding: 7px 12px; font-size: .75rem; color: var(--tekst-2); }
+#paneel-tarieven .tarief { grid-template-columns: minmax(0, 1fr) 110px 90px; padding: 9px 0; border-bottom: 1px solid var(--rand); }
+#paneel-tarieven .tarief .naam { white-space: normal; }
+#paneel-tarieven .tarief-groep { margin-top: 24px; }
+@media (max-width: 600px) {
+  .hoofdnavigatie { padding: 10px 12px 0; }
+  .hoofdtab { padding: 10px 12px; }
+  #paneel-tarieven { width: calc(100% - 24px); margin: 12px; padding: 16px; }
+  #paneel-tarieven .tarief { grid-template-columns: minmax(0, 1fr) 86px 64px; }
+}
+@media print {
+  #calculator-paneel[hidden] { display: block !important; }
+  #paneel-tarieven { display: none !important; }
+}

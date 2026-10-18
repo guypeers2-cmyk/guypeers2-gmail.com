@@ -34,14 +34,17 @@
   </div>
 </header>
 
-<main class="layout">
+<nav class="hoofdnavigatie" role="tablist" aria-label="Werkruimte">
+  <button type="button" class="hoofdtab actief" data-hoofdtab="calculator" id="tab-calculator" role="tab" aria-selected="true" aria-controls="calculator-paneel">Calculator &amp; offerte</button>
+  <button type="button" class="hoofdtab tab" data-hoofdtab="tarieven" data-tab="tarieven" id="tab-tarieven" role="tab" aria-selected="false" aria-controls="paneel-tarieven" tabindex="-1">Tarieven</button>
+</nav>
+<main class="layout" id="calculator-paneel" role="tabpanel" aria-labelledby="tab-calculator">
 
   <!-- ================= LINKERZIJDE: project, instellingen, tarieven ================= -->
   <aside class="paneel zijde" id="zijde">
     <nav class="tabs" role="tablist" aria-label="Onderdelen">
       <button class="tab actief" data-tab="project" role="tab" aria-selected="true" aria-controls="paneel-project" id="tab-project">Project</button>
       <button class="tab" data-tab="instellingen" role="tab" aria-selected="false" aria-controls="paneel-instellingen" id="tab-instellingen">Prijzen</button>
-      <button class="tab" data-tab="tarieven" role="tab" aria-selected="false" aria-controls="paneel-tarieven" id="tab-tarieven">Tarieven</button>
     </nav>
 
     <section class="tabpaneel actief" data-paneel="project" role="tabpanel" id="paneel-project" aria-labelledby="tab-project">
@@ -89,7 +92,7 @@
       <div class="rij">
         <label class="veld">
           <span>Uurtarief (€/uur)</span>
-          <input type="number" step="0.5" min="0" data-project="uurtarief" data-fokus="s_uur">
+          <input type="number" step="0.01" min="0" data-project="uurtarief" data-fokus="s_uur">
         </label>
         <label class="veld">
           <span>Marge materiaal (%)</span>
@@ -122,12 +125,7 @@
         <em>Tarieven</em>.</p>
     </section>
 
-    <section class="tabpaneel" data-paneel="tarieven" role="tabpanel" id="paneel-tarieven" aria-labelledby="tab-tarieven" hidden>
-      <h2>Prijsboek</h2>
-      <p class="hint">Pas de prijzen aan op jouw inkoop. De waarde wordt meteen doorberekend
-        in de offerte.</p>
-      <div id="tarieven-lijst" class="tarievenlijst"></div>
-    </section>
+
   </aside>
 
   <!-- ================= MIDDEN: ruimtes, oppervlakken, werkregels ================= -->
@@ -166,6 +164,13 @@
   </aside>
 
 </main>
+
+    <section class="tabpaneel" data-paneel="tarieven" role="tabpanel" id="paneel-tarieven" aria-labelledby="tab-tarieven" hidden>
+      <header class="tarieven-kop"><div><p class="tarieven-label">JOUW PRIJSBOEK</p><h2>Tarieven</h2></div><span class="tarieven-badge">Bedragen exclusief btw</span></header>
+      <p class="hint">Pas de prijzen aan op jouw inkoop. De waarde wordt meteen doorberekend
+        in de offerte.</p>
+      <div id="tarieven-lijst" class="tarievenlijst"></div>
+    </section>
 
 <div class="modal-achtergrond" id="modal-achtergrond" hidden>
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-titel">

@@ -58,6 +58,7 @@ const getal = (waarde, standaard = 0) => {
   return Number.isFinite(n) ? n : standaard;
 };
 const datumNu = () => new Date().toISOString().slice(0, 10);
+const geldInvoer = (waarde) => getal(waarde).toFixed(2);
 const uid = () => Math.random().toString(36).slice(2, 10);
 
 function bewaarFocus() {
@@ -169,7 +170,7 @@ function syncSidebar() {
   const project = state.project;
   $$("[data-project]").forEach((el) => {
     const waarde = project[el.dataset.project];
-    if (waarde !== undefined && document.activeElement !== el) el.value = waarde ?? "";
+    if (waarde !== undefined && document.activeElement !== el) el.value = el.dataset.project === "uurtarief" ? geldInvoer(waarde) : waarde ?? "";
   });
   const radio = document.querySelector(`input[name="prijsmodus"][value="${project.prijsmodus}"]`);
   if (radio) radio.checked = true;
@@ -206,8 +207,8 @@ function renderTarieven() {
       <label class="tarief ${groep.klasse}" title="${esc(t.naam)}">
         <span class="naam">${esc(t.naam)}</span>
         <input type="number" step="0.01" min="0" data-tarief="${esc(t.sleutel)}"
-               data-fokus="t_${esc(t.sleutel)}" value="${getal(state.project.tarieven[t.sleutel] ?? t.prijs)}">
-        <span class="eenheid">${esc(t.eenheid)}</span>
+               data-fokus="t_${esc(t.sleutel)}" value="${t.soort === "taak" ? getal(state.project.tarieven[t.sleutel] ?? t.prijs) : geldInvoer(state.project.tarieven[t.sleutel] ?? t.prijs)}">
+        <span class="eenheid">${t.soort === "taak" || String(t.eenheid).includes("€") ? "" : "€ / "}${esc(t.eenheid)}</span>
       </label>`).join("");
   }).join("") || '<p class="hint">Geen tarieven ontvangen.</p>';
 }
@@ -217,8 +218,9 @@ function renderTarievenWaarden() {
   $$("[data-tarief]").forEach((el) => {
     if (document.activeElement === el) return;
     const sleutel = el.dataset.tarief;
-    const standaard = tarievenEntries().find((t) => t.sleutel === sleutel)?.prijs;
-    el.value = getal(project.tarieven[sleutel] ?? standaard ?? 0);
+    const tarief = tarievenEntries().find((t) => t.sleutel === sleutel);
+    const waarde = project.tarieven[sleutel] ?? tarief?.prijs ?? 0;
+    el.value = tarief?.soort === "taak" ? getal(waarde) : geldInvoer(waarde);
   });
 }
 
@@ -954,6 +956,22 @@ document.addEventListener("input", (e) => {
 document.addEventListener("change", (e) => {
   const el = e.target;
 
+  if (el.dataset.tarief) {
+    const t = tarievenEntries().find(t => t.sleutel === el.dataset.tarief);
+    state.project.tarieven[el.dataset.tarief] = getal(el.value);
+    if (t?.soort !== "taak") el.value = geldInvoer(el.value);
+    bewaarLokaal();
+    bereken();
+    return;
+  }
+  if (el.dataset.project === "uurtarief") {
+    state.project.uurtarief = getal(el.value);
+    el.value = geldInvoer(el.value);
+    bewaarLokaal();
+    bereken();
+    return;
+  }
+
   if (el.name === "prijsmodus") {
     wijzig(() => { state.project.prijsmodus = el.value; });
     return;
@@ -1036,13 +1054,37 @@ async function laadLokaleEngine() {
 }
 
 async function init() {
-  $$(".tab").forEach((tab) => tab.addEventListener("click", () => {
-    $$(".tab").forEach((t) => {
+  function kiesHoofdtab(naam) {
+    const tarieven = naam === "tarieven";
+    $("#calculator-paneel").hidden = tarieven;
+    $("#paneel-tarieven").hidden = !tarieven;
+    $("#paneel-tarieven").classList.toggle("actief", tarieven);
+    $$("[data-hoofdtab]").forEach(tab => {
+      const actief = tab.dataset.hoofdtab === naam;
+      tab.classList.toggle("actief", actief);
+      tab.setAttribute("aria-selected", String(actief));
+      tab.tabIndex = actief ? 0 : -1;
+    });
+  }
+  $$("[data-hoofdtab]").forEach(tab => {
+    tab.addEventListener("click", () => kiesHoofdtab(tab.dataset.hoofdtab));
+    tab.addEventListener("keydown", e => {
+      if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)) return;
+      e.preventDefault();
+      const tabs = $$("[data-hoofdtab]");
+      const volgende = e.key === "Home" ? tabs[0] : e.key === "End" ? tabs[1] : tabs.find(t => t !== tab);
+      kiesHoofdtab(volgende.dataset.hoofdtab);
+      volgende.focus();
+    });
+  });
+  $$("#zijde .tab").forEach((tab) => tab.addEventListener("click", () => {
+    kiesHoofdtab("calculator");
+    $$("#zijde .tab").forEach((t) => {
       const actief = t === tab;
       t.classList.toggle("actief", actief);
       t.setAttribute("aria-selected", actief ? "true" : "false");
     });
-    $$(".tabpaneel").forEach((p) => {
+    $$("#zijde .tabpaneel").forEach((p) => {
       const actief = p.dataset.paneel === tab.dataset.tab;
       p.classList.toggle("actief", actief);
       p.hidden = !actief;

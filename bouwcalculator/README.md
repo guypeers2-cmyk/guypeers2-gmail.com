@@ -269,6 +269,13 @@ berekening, en je kan ze per project aanpassen.
 
 ## Tarieven aanpassen
 
+Het prijsboek staat in de **eigen hoofdtab Tarieven**, naast **Calculator & offerte**.
+Materiaalprijzen en snelle m²-prijzen worden met precies twee decimalen getoond,
+evenals het uurtarief en alle bedragen in de offerte, details en 3D-weergave.
+Na het bewerken van een geldveld wordt bijvoorbeeld `7.5` weergegeven als `7.50`.
+Uurnormen zijn geen eurobedragen en behouden hun eigen precisie.
+
+
 Onder het tabblad **Tarieven** staan alle eenheidsprijzen, alle uren per m²
 en alle snelle m²-prijzen. Wat je daar verandert, wordt meteen doorberekend
 en mee opgeslagen met de offerte. De standaardtarieven staan in
