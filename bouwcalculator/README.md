@@ -2,14 +2,15 @@
 
 **Prijzen berekenen voor bouwwerk op basis van maten — gestart met Gyproc.**
 
-> 🌐 **URL:** <https://patient-sun-c959.guypeers2.workers.dev>
-> Cloudflare Worker · publiceren met **één commando**:
-> `bash bouwcalculator/deploy/nu-publiceren.sh` (vanuit de repo-map!)
+> 🌐 **Direct openen (geverifieerd werkend):**
+> <https://htmlpreview.github.io/?https://github.com/guypeers2-cmyk/guypeers2-gmail.com/blob/v1.0.2/bouwcalculator/bouwcalculator.html>
 >
-> 🧳 **Direct openen (geen installatie):**
-> <https://cdn.jsdelivr.net/gh/guypeers2-cmyk/guypeers2-gmail.com@v1.0.1/bouwcalculator/bouwcalculator.html>
-> — de hele app in één HTML-bestand, rekent in de browser.
-> Release: <https://github.com/guypeers2-cmyk/guypeers2-gmail.com/releases/tag/v1.0.1>
+> 🏗️ **Zelf hosten (de beste optie):**
+> **https://patient-sun-c959.guypeers2.workers.dev** — Cloudflare Worker · één commando:
+> `bash bouwcalculator/deploy/nu-publiceren.sh` (vanuit de repo-map!)
+> of GitHub Pages (één klik): <https://guypeers2-cmyk.github.io/guypeers2-gmail.com/>
+>
+> ⬇️ Release: <https://github.com/guypeers2-cmyk/guypeers2-gmail.com/releases/tag/v1.0.2>
 
 Een zelfstandige webapp (zonder dependencies, pure Python-stdlib) waarmee een
 bouwer of werknemer vanuit de maten van een ruimte een offerte opstelt:
@@ -294,3 +295,30 @@ bouwcalculator/
 - **Meerdere verdiepen**: ruimtes zijn vrij in te delen — één ruimte per kamer.
 - **Offerte als PDF**: de printopmaak staat in `web/styles.css`; via de
   printknop van de browser ("Als PDF opslaan") krijg je een A4-document.
+
+---
+
+## Hosting: wat werkt waarom
+
+Niet elke host serveert HTML en JavaScript met het juiste MIME-type, en dat
+bepaalt of de app opent:
+
+| Host | `.html` | `.js` | App werkt? |
+|------|---------|-------|-----------|
+| Cloudflare Worker (onze eigen deploy) | `text/html` | `text/javascript` | ✅ |
+| GitHub Pages | `text/html` | `text/javascript` | ✅ |
+| onze Python-server | `text/html` | `application/javascript` | ✅ |
+| jsDelivr / raw.githubusercontent (GitHub-bestanden) | `text/plain` | `text/plain` | ❌ alleen downloaden |
+| lokaal bestand (`file://`) | — | — | ✅ (browser-engine) |
+
+Daarom zijn er twee varianten:
+
+- **meerbestanden** (`bouwcalculator/web/`) — voor onze eigen Worker, Pages en
+  de lokale server. De rekenkern is een ES-module.
+- **één bestand** (`bouwcalculator/bouwcalculator.html`, 86 KiB) — alles inline,
+  dus het werkt ook op hosts die HTML als `text/plain` teruggeven of op een
+  stickie/schijf. De app rekent dan in de browser.
+
+`bouwcalculator/tools/maak_standalone.py` bouwt de één-bestand-variant uit de
+brondbestanden; de Python-tests bewaken dat beide rekenkernels identiek
+uitkomen (`tests/test_pariteit.py`).
