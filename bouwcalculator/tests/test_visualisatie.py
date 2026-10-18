@@ -42,6 +42,20 @@ r.openingen[0].positie = 99;
 r.openingen[0].borstwering = 99;
 assert(!window.BouwPlan.isometrie(r, [], {}).includes('NaN'));
 assert(!window.BouwPlan.plattegrond(r, [], {}).includes('NaN'));
+// Elke kijkrichting toont exact twee bijbehorende wanden.
+for (const [hoek, zijden] of [['noord','west'], ['noord','oost'], ['zuid','oost'], ['zuid','west']].entries()) {
+  const beeld = window.BouwPlan.isometrie(r, [], {}, {hoek});
+  const zichtbaar = [...beeld.matchAll(/data-vlak="([^"]+)"/g)].map(m => m[1]);
+  assert.deepEqual(zichtbaar, zijden);
+  assert.equal((beeld.match(/role="button"/g) || []).length, 2);
+  assert(beeld.includes('maskUnits="userSpaceOnUse"'));
+  assert(!beeld.includes('NaN'));
+}
+assert(window.BouwPlan.isometrie(r, [], {}, {zoom: 1.6}).includes('viewBox="146.25 105 487.5 350"'));
+assert(!window.BouwPlan.isometrie(r, [], {}, {maten: false}).includes('iso-samenvatting'));
+const werk = window.BouwPlan.isometrie(r, [], {noord: '<img src=x>'});
+assert(werk.includes('heeft-werk'));
+assert(!werk.includes('<img src=x>'));
 console.log('OK');
 '''
         result = subprocess.run(["node", "-e", code, str(script)],

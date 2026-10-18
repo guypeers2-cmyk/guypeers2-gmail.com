@@ -1024,3 +1024,25 @@ table.offerte-tabel tr.ruimte-kop:hover td { background: var(--oppervlak-3); }
 .openings table { min-width: 640px; }
 .openings td input[data-opening-veld="positie"],
 .openings td input[data-opening-veld="borstwering"] { width: 80px; }
+
+/* 3D-werkruimte: compacte camerabediening en architecturale doorsnede. */
+.iso-bediening { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; padding: 10px; background: var(--oppervlak-2); border: 1px solid var(--rand); border-radius: 10px; }
+.iso-bediening[hidden] { display: none; }
+.iso-bediening [aria-pressed="true"] { color: var(--accent); border-color: var(--accent-rand); }
+#iso-richting { margin-right: auto; min-width: 130px; text-align: center; }
+.planhouder { overflow: hidden; }
+.iso { background: radial-gradient(ellipse at 50% 80%, var(--oppervlak-3), transparent 70%); }
+.iso-raster { stroke: var(--rand-sterk); stroke-width: .65; opacity: .45; pointer-events: none; }
+.iso-tint-0 { fill: var(--oppervlak-2); }
+.iso-tint-1 { fill: var(--oppervlak-3); }
+.iso-bovenrand { stroke-width: 5; stroke-linecap: round; }
+.iso-glas { fill: var(--accent-zacht); fill-opacity: .8; stroke: var(--accent); stroke-width: 2; }
+.iso-deurblad { fill: var(--goud-zacht); stroke: var(--goud); stroke-width: 1.6; }
+.iso-kozijn { stroke: var(--accent); stroke-width: 1.2; }
+.iso-klink { fill: var(--goud); }
+.iso-wand:hover .iso-muur, .iso-wand:focus-visible .iso-muur { fill: var(--accent-zacht); stroke: var(--accent); stroke-width: 2; }
+.iso-wand.heeft-werk .iso-bovenrand { stroke: var(--accent); }
+.iso-label, .iso-opp { paint-order: stroke; stroke: var(--oppervlak); stroke-width: 4px; stroke-linejoin: round; }
+.iso-opp { font-size: 11px; }
+.iso-maatlijn { stroke: var(--tekst-3); stroke-width: 1.5; }
+.iso-samenvatting { fill: var(--tekst-2); font-size: 12px; }

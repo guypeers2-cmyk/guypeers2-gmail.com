@@ -552,6 +552,7 @@ function renderOfferte() {
 /* ---------------- render ---------------- */
 /* ---------------- plattegrond ---------------- */
 let planWeergave = "plattegrond";
+const planCamera = { hoek: 0, zoom: 1, maten: true };
 
 function werkPerVlak(ruimte) {
   const uit = {};
@@ -586,7 +587,16 @@ function renderPlan() {
 
   const vlakken = vlakkenVoor(ruimte);
   const tekenaar = planWeergave === "isometrie" ? window.BouwPlan.isometrie : window.BouwPlan.plattegrond;
-  houder.innerHTML = tekenaar(ruimte, vlakken, werk);
+  houder.innerHTML = tekenaar(ruimte, vlakken, werk, planCamera);
+  const bediening = $("#iso-bediening");
+  if (bediening) bediening.hidden = planWeergave !== "isometrie";
+  const richting = $("#iso-richting");
+  if (richting) richting.textContent = ["Noord / west", "Noord / oost", "Zuid / oost", "Zuid / west"][planCamera.hoek] + ` · ${Math.round(planCamera.zoom * 100)}%`;
+  const matenKnop = $('[data-camera="maten"]');
+  if (matenKnop) matenKnop.setAttribute("aria-pressed", String(planCamera.maten));
+  const minKnop = $('[data-camera="uit"]'), maxKnop = $('[data-camera="in"]');
+  if (minKnop) minKnop.disabled = planCamera.zoom <= 0.75;
+  if (maxKnop) maxKnop.disabled = planCamera.zoom >= 1.6;
 }
 
 function render() {
@@ -733,6 +743,19 @@ function importeerJson(tekst) {
 
 /* ---------------- events ---------------- */
 document.addEventListener("click", (e) => {
+  const cameraKnop = e.target.closest("[data-camera]");
+  if (cameraKnop) {
+    const actie = cameraKnop.dataset.camera;
+    if (actie === "links") planCamera.hoek = (planCamera.hoek + 3) % 4;
+    if (actie === "rechts") planCamera.hoek = (planCamera.hoek + 1) % 4;
+    if (actie === "in") planCamera.zoom = Math.min(1.6, +(planCamera.zoom + 0.15).toFixed(2));
+    if (actie === "uit") planCamera.zoom = Math.max(0.75, +(planCamera.zoom - 0.15).toFixed(2));
+    if (actie === "maten") planCamera.maten = !planCamera.maten;
+    if (actie === "reset") Object.assign(planCamera, {hoek: 0, zoom: 1, maten: true});
+    renderPlan();
+    return;
+  }
+
   /* Weergave wisselen: bovenaanzicht <-> 3D */
   const weergave = e.target.closest("[data-plan]");
   if (weergave) {
@@ -786,6 +809,8 @@ document.addEventListener("click", (e) => {
           breedte: knop.dataset.soort === "Raam" ? 1.2 : 0.9,
           hoogte: knop.dataset.soort === "Raam" ? 1.2 : 2.1,
           aantal: 1,
+          positie: null,
+          borstwering: knop.dataset.soort === "Raam" ? 0.9 : 0,
         });
       });
     } else if (actie === "opening-verwijderen") {

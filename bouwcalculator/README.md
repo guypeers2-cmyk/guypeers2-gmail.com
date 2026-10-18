@@ -190,12 +190,20 @@ printer en in elke browser:
 * **Bovenaanzicht** — wanden met dikte, deuren met slag, ramen met kozijn,
   maatvoering (lengte, breedte, hoogte) en per wand het nettoppervlak plus
   het werk dat er al op staat.
-* **3D** — dezelfde ruimte als aaxonometrische kijk vanuit de hoek, met
-  openingen als gat in de muur.
+* **3D** — een axonometrische doorsnede met vloerraster, raamkozijnen,
+  glas, deuren met klink en uitsparingen op de opgegeven hoogte.
+  Met **Links/Rechts** draai je in stappen van 90° langs alle vier de wanden.
+  **+/−** zoomt tussen 75% en 160%; **Herstel** zet de camera terug.
+  **Maten** schakelt de maatvoering en het overzicht van hoogte, vloeroppervlak
+  en volume aan of uit. Klik op een 3D-wand om werk toe te voegen;
+  een blauwe bovenrand geeft aan dat er al werk op staat.
+  Dit is een schematische doorsnede, geen vrij draaibaar BIM-model.
 
 Klik op een wand (of op een deur daarin) en de werkregel voor dat vlak wordt
 toegevoegd. De plattegrond staat ook in het **gedrukte offerte-document**,
 zodat de klant ziet over welke ruimte het gaat.
+
+![3D-doorsnede met camerabediening](docs/3d-voorbeeld.png)
 
 ### Deuren en ramen plaatsen
 
@@ -206,7 +214,7 @@ bijvoorbeeld 0,90 m voor een raam met een vensterbank op die hoogte.
 De positie en borstwering worden opgeslagen en mee geëxporteerd naar JSON.
 De tekening begrenst openingen tot de wand; de calculatie gebruikt steeds
 de ingevoerde breedte en hoogte. Dit is een schematische visualisatie,
-geen uitvoeringsplan. De 3D-uitsnede toont de noord- en westwand.
+geen uitvoeringsplan. De 3D-uitsnede toont steeds twee achterwanden; draai de camera om alle vier de wanden te bekijken.
 
 De tekening wordt opnieuw opgebouwd zodra er iets verandert: maten, deuren,
 ramen of werkregels. De module `web/plattegrond.js` staat helemaal los van

@@ -1041,6 +1041,28 @@ table.offerte-tabel tr.ruimte-kop:hover td { background: var(--oppervlak-3); }
 .openings td input[data-opening-veld="positie"],
 .openings td input[data-opening-veld="borstwering"] { width: 80px; }
 
+/* 3D-werkruimte: compacte camerabediening en architecturale doorsnede. */
+.iso-bediening { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; padding: 10px; background: var(--oppervlak-2); border: 1px solid var(--rand); border-radius: 10px; }
+.iso-bediening[hidden] { display: none; }
+.iso-bediening [aria-pressed="true"] { color: var(--accent); border-color: var(--accent-rand); }
+#iso-richting { margin-right: auto; min-width: 130px; text-align: center; }
+.planhouder { overflow: hidden; }
+.iso { background: radial-gradient(ellipse at 50% 80%, var(--oppervlak-3), transparent 70%); }
+.iso-raster { stroke: var(--rand-sterk); stroke-width: .65; opacity: .45; pointer-events: none; }
+.iso-tint-0 { fill: var(--oppervlak-2); }
+.iso-tint-1 { fill: var(--oppervlak-3); }
+.iso-bovenrand { stroke-width: 5; stroke-linecap: round; }
+.iso-glas { fill: var(--accent-zacht); fill-opacity: .8; stroke: var(--accent); stroke-width: 2; }
+.iso-deurblad { fill: var(--goud-zacht); stroke: var(--goud); stroke-width: 1.6; }
+.iso-kozijn { stroke: var(--accent); stroke-width: 1.2; }
+.iso-klink { fill: var(--goud); }
+.iso-wand:hover .iso-muur, .iso-wand:focus-visible .iso-muur { fill: var(--accent-zacht); stroke: var(--accent); stroke-width: 2; }
+.iso-wand.heeft-werk .iso-bovenrand { stroke: var(--accent); }
+.iso-label, .iso-opp { paint-order: stroke; stroke: var(--oppervlak); stroke-width: 4px; stroke-linejoin: round; }
+.iso-opp { font-size: 11px; }
+.iso-maatlijn { stroke: var(--tekst-3); stroke-width: 1.5; }
+.iso-samenvatting { fill: var(--tekst-2); font-size: 12px; }
+
 </style>
 </head>
 <body>
@@ -1178,8 +1200,17 @@ table.offerte-tabel tr.ruimte-kop:hover td { background: var(--oppervlak-3); }
           <button type="button" class="planknop" data-plan="isometrie" aria-pressed="false">3D</button>
         </div>
       </header>
+      <div class="iso-bediening" id="iso-bediening" hidden role="group" aria-label="3D-bediening">
+        <button type="button" class="knop klein" data-camera="links" aria-label="Draai 90 graden links">↶ Links</button>
+        <span id="iso-richting" class="klein-muted" aria-live="polite"></span>
+        <button type="button" class="knop klein" data-camera="rechts" aria-label="Draai 90 graden rechts">Rechts ↷</button>
+        <button type="button" class="knop klein" data-camera="uit" aria-label="Uitzoomen">−</button>
+        <button type="button" class="knop klein" data-camera="in" aria-label="Inzoomen">+</button>
+        <button type="button" class="knop klein" data-camera="reset">Herstel</button>
+        <button type="button" class="knop klein" data-camera="maten" aria-pressed="true">Maten</button>
+      </div>
       <div class="planhouder" id="plan"></div>
-      <p class="hint plantip">Klik op een wand in de plattegrond om daar werk aan toe te voegen.</p>
+      <p class="hint plantip">Klik op een wand om werk toe te voegen. In 3D kun je draaien om alle wanden te bekijken.</p>
     </div>
 
     <div class="oppervlakken" id="oppervlakken"></div>
@@ -2402,102 +2433,85 @@ if (typeof window !== "undefined") {
   /* ==================================================================
      3D — aaxonometrische weergave
      ================================================================== */
-  function isometrie(ruimte, vlakken, werk) {
-    const L = Math.max(0.2, parseFloat(ruimte.lengte) || 0.2);
-    const B = Math.max(0.2, parseFloat(ruimte.breedte) || 0.2);
-    const H = Math.max(0.2, parseFloat(ruimte.hoogte) || 0.2);
-
-    const W = 780, HP = 560;
-    const K = Math.cos(Math.PI / 6);
-    const S = Math.sin(Math.PI / 6);
-
-    /* Projectie: x' = ox + (x - y) * K * kx,  y' = oy + (x + y) * S * kx - z * kz
-       De benodigde breedte is (L + B) * K * kx en de hoogte
-       H * kz + (L + B) * S * kx. Beide moeten binnen het beeld passen. */
-    const marge = 54;
-    const kzFactor = 0.9;
-    const kx = Math.min(
-      (W - 2 * marge) / ((L + B) * K),
-      (HP - 2 * marge) / (H * kzFactor + (L + B) * S),
-    );
-    const kz = kx * kzFactor;
-    const spanX = (L + B) * K * kx;
-    const spanY = H * kz + (L + B) * S * kx;
-    const ox = (W - spanX) / 2 + B * K * kx;
-    const oy = (HP - spanY) / 2 + H * kz;
-
-    const P = (x, y, z) => [ox + (x - y) * K * kx, oy + (x + y) * S * kx - z * kz];
-
-    const vlakkenMap = vlakMap(vlakken);
-    const openingen = openingenPerMuur(ruimte);
-
+  function isometrie(ruimte, vlakken, werk = {}, opties = {}) {
+    const maat = v => Math.max(0.2, Number.parseFloat(v) || 0.2);
+    const L = maat(ruimte.lengte), B = maat(ruimte.breedte), H = maat(ruimte.hoogte);
+    const hoek = ((Math.trunc(opties.hoek || 0) % 4) + 4) % 4;
+    const zoom = Math.max(0.75, Math.min(1.6, Number(opties.zoom) || 1));
+    const maten = opties.maten !== false;
+    const W = 780, HP = 560, K = Math.cos(Math.PI / 6), S = 0.5;
+    const LX = hoek % 2 ? B : L, BY = hoek % 2 ? L : B;
+    const schaal = Math.min(620 / ((LX + BY) * K), 390 / (H * 0.9 + (LX + BY) * S));
+    const ox = (W - (LX + BY) * K * schaal) / 2 + BY * K * schaal;
+    const oy = (HP - (H * 0.9 + (LX + BY) * S) * schaal) / 2 + H * 0.9 * schaal;
+    // Rotatie in modelcoördinaten; afstanden van openingen blijven aan hun eigen wand gekoppeld.
+    const draai = (x, y) => [[x, y], [y, L - x], [L - x, B - y], [B - y, x]][hoek];
+    const P = (x, y, z = 0) => {
+      const [u, v] = draai(x, y);
+      return [ox + (u - v) * K * schaal, oy + (u + v) * S * schaal - z * 0.9 * schaal];
+    };
+    const lijn = (a, b, cls) => `<line class="${cls}" x1="${R(a[0])}" y1="${R(a[1])}" x2="${R(b[0])}" y2="${R(b[1])}"/>`;
+    const poly = (ps, cls) => `<polygon class="${cls}" points="${punten(ps)}"/>`;
+    const tekst = (p, inhoud, cls) => `<text class="${cls}" x="${R(p[0])}" y="${R(p[1])}" text-anchor="middle">${esc(inhoud)}</text>`;
+    const vm = vlakMap(vlakken), per = openingenPerMuur(ruimte);
     const gid = uniq();
-    let svg = `<defs>
-      <linearGradient id="${gid}-vloer" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" class="iso-stop-a"/><stop offset="1" class="iso-stop-b"/>
-      </linearGradient>
-      <linearGradient id="${gid}-muur" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" class="iso-stop-m"/><stop offset="1" class="iso-stop-b"/>
-      </linearGradient>
-    </defs>`;
-
-    /* Vloer */
-    const vA = P(0, 0, 0), vB = P(L, 0, 0), vC = P(L, B, 0), vD = P(0, B, 0);
-    svg += `<polygon class="iso-vloer" style="fill:url(#${gid}-vloer)" points="${punten([vA, vB, vC, vD])}"/>`;
-
-
-    /* Muur noord (y = 0) en muur west (x = 0) */
-    const muren = [
-      { zijde: "noord", a: [0, 0], b: [L, 0], as: "x" },
-      { zijde: "west", a: [0, 0], b: [0, B], as: "y" },
-    ];
-
-    muren.forEach((m) => {
-      const open = openingLayout(openingen[m.zijde] || [], m.as === "x" ? L : B);
-      const a0 = P(m.a[0], m.a[1], 0), b0 = P(m.b[0], m.b[1], 0);
-      const a1 = P(m.a[0], m.a[1], H), b1 = P(m.b[0], m.b[1], H);
-      svg += `<polygon class="iso-muur" data-zijde="${m.zijde}" style="fill:url(#${gid}-muur)" points="${punten([a0, b0, b1, a1])}"/>`;
-      /* bovenrand van de muur */
-      svg += `<line class="iso-bovenrand" x1="${R(a1[0])}" y1="${R(a1[1])}" x2="${R(b1[0])}" y2="${R(b1[1])}"/>`;
-
-      /* Openingen als 'gat' in de muur */
-      const muurLengte = m.as === "x" ? L : B;
-      open.forEach((o, i) => {
-        const bw = o.tekenBreedte;
-        const mid = o.start + bw / 2;
-        const s0 = mid - bw / 2, s1 = mid + bw / 2;
+    let svg = `<defs><linearGradient id="${gid}-vloer" x2="0" y2="1"><stop class="iso-stop-a"/><stop offset="1" class="iso-stop-b"/></linearGradient></defs>`;
+    svg += `<polygon class="iso-vloer" style="fill:url(#${gid}-vloer)" points="${punten([P(0,0), P(L,0), P(L,B), P(0,B)])}"/>`;
+    // Rustig meterraster; limiet voorkomt duizenden lijnen bij grote projecten.
+    const stap = Math.max(0.5, Math.ceil(Math.max(L, B) / 24));
+    for (let x = stap; x < L; x += stap) svg += lijn(P(x,0), P(x,B), 'iso-raster');
+    for (let y = stap; y < B; y += stap) svg += lijn(P(0,y), P(L,y), 'iso-raster');
+    const zichtbaar = [['noord', 'west'], ['noord', 'oost'], ['zuid', 'oost'], ['zuid', 'west']][hoek];
+    const muren = {
+      noord: {len: L, p: (t,z) => P(t,0,z)}, zuid: {len: L, p: (t,z) => P(t,B,z)},
+      west: {len: B, p: (t,z) => P(0,t,z)}, oost: {len: B, p: (t,z) => P(L,t,z)},
+    };
+    zichtbaar.forEach((zijde, idx) => {
+      const m = muren[zijde], p = m.p;
+      const open = openingLayout(per[zijde], m.len).filter(o => o.tekenBreedte > 0);
+      const naam = vm[zijde]?.naam || `Wand ${zijde}`;
+      const opp = vm[zijde] ? `${F(vm[zijde].netto)} m²` : '';
+      const buiten = [p(0,0), p(m.len,0), p(m.len,H), p(0,H)];
+      // Echte uitsparingen met SVG-masker, ook als openingen elkaar overlappen.
+      const gaten = open.map(o => {
         const onder = Math.min(H, Math.max(0, parseFloat(o.borstwering) || 0));
-        const oh = Math.min(onder + Math.max(0, parseFloat(o.hoogte) || 0), H);
-        const isDeur = String(o.naam || "").toLowerCase().indexOf("deur") === 0;
-        const punt = (t, z) => (m.as === "x" ? P(t, 0, z) : P(0, t, z));
-        const gat = [punt(s0, onder), punt(s1, onder), punt(s1, oh), punt(s0, oh)];
-        svg += `<polygon class="iso-opening" points="${punten(gat)}"/>`;
-        if (isDeur) {
-          const deurTip = punt(s0, 0);
-          const zwaai = punt(s0 + bw * 0.9, 0);
-          svg += `<line class="iso-deur" x1="${R(deurTip[0])}" y1="${R(deurTip[1])}" x2="${R(zwaai[0])}" y2="${R(zwaai[1])}"/>`;
+        const boven = Math.min(H, onder + Math.max(0, parseFloat(o.hoogte) || 0));
+        return {o, onder, boven, ps: [p(o.start,onder), p(o.start+o.tekenBreedte,onder), p(o.start+o.tekenBreedte,boven), p(o.start,boven)]};
+      });
+      svg += `<defs><mask id="${gid}-${zijde}" maskUnits="userSpaceOnUse" x="0" y="0" width="780" height="560"><rect width="780" height="560" fill="white"/>${gaten.map(g => `<polygon fill="black" points="${punten(g.ps)}"/>`).join('')}</mask></defs>`;
+      svg += `<g data-fokus="iso_${zijde}" class="iso-wand plan-wand${werk[zijde] ? ' heeft-werk' : ''}" data-vlak="${zijde}" data-soort="muur" role="button" tabindex="0" aria-label="${esc(naam)} ${esc(opp)} — werk toevoegen">`;
+      svg += `<title>${esc(naam)} · ${esc(opp)}${werk[zijde] ? ' · ' + esc(werk[zijde]) : ''}</title>`;
+      svg += `<polygon class="iso-muur iso-tint-${idx}" mask="url(#${gid}-${zijde})" points="${punten(buiten)}"/>`;
+      svg += lijn(p(0,H), p(m.len,H), 'iso-bovenrand');
+      gaten.forEach(({o, onder, boven, ps}) => {
+        const deur = /^deur/i.test(o.naam || '');
+        svg += poly(ps, `iso-opening ${deur ? 'iso-deurblad' : 'iso-glas'}`);
+        if (!deur) {
+          const mid = o.start + o.tekenBreedte / 2;
+          svg += lijn(p(mid,onder), p(mid,boven), 'iso-kozijn');
+          svg += lijn(p(o.start,(onder+boven)/2), p(o.start+o.tekenBreedte,(onder+boven)/2), 'iso-kozijn');
+        } else {
+          const hand = p(o.start + o.tekenBreedte * 0.8, onder + (boven-onder)*0.48);
+          svg += `<circle class="iso-klink" cx="${R(hand[0])}" cy="${R(hand[1])}" r="2.5"/>`;
         }
       });
-
-      /* naam + oppervlakte */
-      const label = vlakkenMap[m.zijde];
-      if (label) {
-        const mid = [m.as === "x" ? L / 2 : 0, m.as === "x" ? 0 : B / 2];
-        const lp = P(mid[0], mid[1], H * 0.45);
-        const werkInfo = (werk || {})[m.zijde];
-        svg += `<text class="iso-label" x="${R(lp[0])}" y="${R(lp[1])}" text-anchor="middle">${esc(label.naam)}</text>`;
-        svg += `<text class="iso-opp" x="${R(lp[0])}" y="${R(lp[1] + 16)}" text-anchor="middle">${F(label.netto)} m²${werkInfo ? " · " + esc(werkInfo) : ""}</text>`;
-      }
+      // Los label boven de bovenrand blijft leesbaar bij grote ramen/deuren.
+      const lp = p(m.len / 2, H);
+      svg += tekst([lp[0], lp[1]-29], naam, 'iso-label');
+      svg += tekst([lp[0], lp[1]-13], opp + (werk[zijde] ? ' · ' + werk[zijde] : ''), 'iso-opp');
+      svg += '</g>';
     });
-
-    /* Maten langs de vloerranden */
-    const m1 = P(L / 2, 0, 0), m2 = P(L / 2, B, 0);
-    svg += `<text class="iso-maat" x="${R(m1[0] + 8)}" y="${R(m1[1] + 16)}" text-anchor="middle">${F(L)} m</text>`;
-    svg += `<text class="iso-maat" x="${R(m2[0] - 8)}" y="${R(m2[1] + 16)}" text-anchor="middle">${F(B)} m</text>`;
-    const hp = P(0, 0, H);
-    svg += `<text class="iso-maat" x="${R(hp[0] - 26)}" y="${R(hp[1] + 4)}" text-anchor="middle" transform="rotate(-90 ${R(hp[0] - 26)} ${R(hp[1] + 4)})">${F(H)} m</text>`;
-
-    return `<svg class="plan iso" viewBox="0 0 ${W} ${HP}" role="img" aria-label="Ruimte ${esc(ruimte.naam || "")} in 3D">${svg}</svg>`;
+    // Voorste vloerranden dragen de maten, dus geen maatlabels onder een muur.
+    if (maten) {
+      const xVoor = [B,B,0,0][hoek], yVoor = [L,0,0,L][hoek];
+      const a = P(0,xVoor), b = P(L,xVoor), c = P(yVoor,0), d = P(yVoor,B);
+      svg += lijn(a,b,'iso-maatlijn') + lijn(c,d,'iso-maatlijn');
+      svg += tekst([(a[0]+b[0])/2,(a[1]+b[1])/2+23], `${F(L)} m`, 'iso-maat');
+      svg += tekst([(c[0]+d[0])/2,(c[1]+d[1])/2+23], `${F(B)} m`, 'iso-maat');
+      svg += tekst([W/2, HP-17], `Hoogte ${F(H)} m · Vloer ${F(L*B)} m² · Volume ${F(L*B*H)} m³`, 'iso-samenvatting');
+    }
+    const vw = W/zoom, vh = HP/zoom;
+    return `<svg class="plan iso" viewBox="${R((W-vw)/2)} ${R((HP-vh)/2)} ${R(vw)} ${R(vh)}" role="group" aria-label="3D-ruimte ${esc(ruimte.naam || '')}. Klik op een wand om werk toe te voegen.">${svg}</svg>`;
   }
 
   window.BouwPlan = { plattegrond, isometrie };
@@ -3059,6 +3073,7 @@ function renderOfferte() {
 /* ---------------- render ---------------- */
 /* ---------------- plattegrond ---------------- */
 let planWeergave = "plattegrond";
+const planCamera = { hoek: 0, zoom: 1, maten: true };
 
 function werkPerVlak(ruimte) {
   const uit = {};
@@ -3093,7 +3108,16 @@ function renderPlan() {
 
   const vlakken = vlakkenVoor(ruimte);
   const tekenaar = planWeergave === "isometrie" ? window.BouwPlan.isometrie : window.BouwPlan.plattegrond;
-  houder.innerHTML = tekenaar(ruimte, vlakken, werk);
+  houder.innerHTML = tekenaar(ruimte, vlakken, werk, planCamera);
+  const bediening = $("#iso-bediening");
+  if (bediening) bediening.hidden = planWeergave !== "isometrie";
+  const richting = $("#iso-richting");
+  if (richting) richting.textContent = ["Noord / west", "Noord / oost", "Zuid / oost", "Zuid / west"][planCamera.hoek] + ` · ${Math.round(planCamera.zoom * 100)}%`;
+  const matenKnop = $('[data-camera="maten"]');
+  if (matenKnop) matenKnop.setAttribute("aria-pressed", String(planCamera.maten));
+  const minKnop = $('[data-camera="uit"]'), maxKnop = $('[data-camera="in"]');
+  if (minKnop) minKnop.disabled = planCamera.zoom <= 0.75;
+  if (maxKnop) maxKnop.disabled = planCamera.zoom >= 1.6;
 }
 
 function render() {
@@ -3240,6 +3264,19 @@ function importeerJson(tekst) {
 
 /* ---------------- events ---------------- */
 document.addEventListener("click", (e) => {
+  const cameraKnop = e.target.closest("[data-camera]");
+  if (cameraKnop) {
+    const actie = cameraKnop.dataset.camera;
+    if (actie === "links") planCamera.hoek = (planCamera.hoek + 3) % 4;
+    if (actie === "rechts") planCamera.hoek = (planCamera.hoek + 1) % 4;
+    if (actie === "in") planCamera.zoom = Math.min(1.6, +(planCamera.zoom + 0.15).toFixed(2));
+    if (actie === "uit") planCamera.zoom = Math.max(0.75, +(planCamera.zoom - 0.15).toFixed(2));
+    if (actie === "maten") planCamera.maten = !planCamera.maten;
+    if (actie === "reset") Object.assign(planCamera, {hoek: 0, zoom: 1, maten: true});
+    renderPlan();
+    return;
+  }
+
   /* Weergave wisselen: bovenaanzicht <-> 3D */
   const weergave = e.target.closest("[data-plan]");
   if (weergave) {
@@ -3293,6 +3330,8 @@ document.addEventListener("click", (e) => {
           breedte: knop.dataset.soort === "Raam" ? 1.2 : 0.9,
           hoogte: knop.dataset.soort === "Raam" ? 1.2 : 2.1,
           aantal: 1,
+          positie: null,
+          borstwering: knop.dataset.soort === "Raam" ? 0.9 : 0,
         });
       });
     } else if (actie === "opening-verwijderen") {

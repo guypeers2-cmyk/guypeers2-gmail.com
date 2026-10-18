@@ -143,8 +143,17 @@
           <button type="button" class="planknop" data-plan="isometrie" aria-pressed="false">3D</button>
         </div>
       </header>
+      <div class="iso-bediening" id="iso-bediening" hidden role="group" aria-label="3D-bediening">
+        <button type="button" class="knop klein" data-camera="links" aria-label="Draai 90 graden links">↶ Links</button>
+        <span id="iso-richting" class="klein-muted" aria-live="polite"></span>
+        <button type="button" class="knop klein" data-camera="rechts" aria-label="Draai 90 graden rechts">Rechts ↷</button>
+        <button type="button" class="knop klein" data-camera="uit" aria-label="Uitzoomen">−</button>
+        <button type="button" class="knop klein" data-camera="in" aria-label="Inzoomen">+</button>
+        <button type="button" class="knop klein" data-camera="reset">Herstel</button>
+        <button type="button" class="knop klein" data-camera="maten" aria-pressed="true">Maten</button>
+      </div>
       <div class="planhouder" id="plan"></div>
-      <p class="hint plantip">Klik op een wand in de plattegrond om daar werk aan toe te voegen.</p>
+      <p class="hint plantip">Klik op een wand om werk toe te voegen. In 3D kun je draaien om alle wanden te bekijken.</p>
     </div>
 
     <div class="oppervlakken" id="oppervlakken"></div>
