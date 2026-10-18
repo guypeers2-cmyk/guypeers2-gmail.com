@@ -203,14 +203,16 @@ function renderTarieven() {
   lijst.innerHTML = groepen.map((groep) => {
     const regels = entries.filter((t) => t.soort === groep.soort);
     if (!regels.length) return "";
-    return `<p class="tarief-groep">${groep.titel}</p>` + regels.map((t) => `
-      <label class="tarief ${groep.klasse}" title="${esc(t.naam)}">
-        <span class="naam">${esc(t.naam)}</span>
-        <input type="number" step="0.01" min="0" data-tarief="${esc(t.sleutel)}"
+    return `<section class="tarief-sectie"><h3 class="tarief-groep">${groep.titel}</h3>` + regels.map((t) => `
+      <div class="tarief ${groep.klasse}" data-tarief-soort="${esc(t.soort)}" title="${esc(t.naam)}">
+        <label class="naam" for="tarief_${esc(t.sleutel)}">${esc(t.naam)}<span class="tarief-markering" hidden>Eigen tarief</span></label>
+        <input type="number" step="0.01" min="0" id="tarief_${esc(t.sleutel)}" data-tarief="${esc(t.sleutel)}"
                data-fokus="t_${esc(t.sleutel)}" value="${t.soort === "taak" ? getal(state.project.tarieven[t.sleutel] ?? t.prijs) : geldInvoer(state.project.tarieven[t.sleutel] ?? t.prijs)}">
         <span class="eenheid">${t.soort === "taak" || String(t.eenheid).includes("€") ? "" : "€ / "}${esc(t.eenheid)}</span>
-      </label>`).join("");
+        <button type="button" class="knop klein tarief-herstel" data-herstel-tarief="${esc(t.sleutel)}" aria-label="Herstel ${esc(t.naam)}">Herstel</button>
+      </div>`).join("") + '</section>';
   }).join("") || '<p class="hint">Geen tarieven ontvangen.</p>';
+  filterTarieven();
 }
 
 function renderTarievenWaarden() {
@@ -222,6 +224,37 @@ function renderTarievenWaarden() {
     const waarde = project.tarieven[sleutel] ?? tarief?.prijs ?? 0;
     el.value = tarief?.soort === "taak" ? getal(waarde) : geldInvoer(waarde);
   });
+  filterTarieven();
+}
+
+/* Filter zonder de invoervelden opnieuw op te bouwen: focus en caret blijven intact. */
+function filterTarieven() {
+  const zoek = ($("#tarief-zoeken")?.value || "").trim().toLocaleLowerCase("nl");
+  const categorie = $("#tarief-categorie")?.value || "alle";
+  const alleenEigen = $("#tarief-eigen")?.checked || false;
+  let zichtbaar = 0, aangepast = 0;
+  const rijen = $$("#tarieven-lijst .tarief");
+  rijen.forEach(rij => {
+    const sleutel = rij.querySelector("[data-tarief]").dataset.tarief;
+    const eigen = Object.prototype.hasOwnProperty.call(state.project.tarieven, sleutel);
+    aangepast += eigen ? 1 : 0;
+    rij.classList.toggle("is-aangepast", eigen);
+    rij.querySelector(".tarief-markering").hidden = !eigen;
+    rij.querySelector("[data-herstel-tarief]").disabled = !eigen;
+    rij.hidden = !(rij.title.toLocaleLowerCase("nl").includes(zoek)
+      && (categorie === "alle" || rij.dataset.tariefSoort === categorie)
+      && (!alleenEigen || eigen));
+    if (!rij.hidden) zichtbaar++;
+  });
+  $$(".tarief-sectie").forEach(groep => {
+    groep.hidden = !Array.from(groep.querySelectorAll(".tarief")).some(r => !r.hidden);
+  });
+  const resultaat = $("#tarief-resultaat");
+  if (resultaat) resultaat.textContent = `${zichtbaar} van ${rijen.length} tarieven · ${aangepast} aangepast`;
+  const leeg = $("#tarief-geen-resultaten");
+  if (leeg) leeg.hidden = zichtbaar !== 0;
+  const herstel = $("#tarieven-herstellen");
+  if (herstel) herstel.disabled = Object.keys(state.project.tarieven).length === 0;
 }
 
 /* ---------------- ruimtes ---------------- */
@@ -745,6 +778,18 @@ function importeerJson(tekst) {
 
 /* ---------------- events ---------------- */
 document.addEventListener("click", (e) => {
+  const herstelTarief = e.target.closest("[data-herstel-tarief]");
+  if (herstelTarief) {
+    wijzig(() => { delete state.project.tarieven[herstelTarief.dataset.herstelTarief]; });
+    renderTarievenWaarden();
+    return;
+  }
+  if (e.target.closest("#tarieven-herstellen")) {
+    if (!confirm("Alle eigen tarieven van deze offerte herstellen naar de standaardwaarden?")) return;
+    wijzig(() => { state.project.tarieven = {}; });
+    renderTarievenWaarden();
+    return;
+  }
   const cameraKnop = e.target.closest("[data-camera]");
   if (cameraKnop) {
     const actie = cameraKnop.dataset.camera;
@@ -894,6 +939,7 @@ document.addEventListener("keydown", (e) => {
 /* Tijdens het typen: het model bijwerken, maar het veld zelf niet opnieuw bouwen. */
 document.addEventListener("input", (e) => {
   const el = e.target;
+  if (el.id === "tarief-zoeken") { filterTarieven(); return; }
 
   if (el.dataset.project) {
     const veld = el.dataset.project;
@@ -937,6 +983,7 @@ document.addEventListener("input", (e) => {
 
   if (el.dataset.tarief) {
     state.project.tarieven[el.dataset.tarief] = getal(el.value);
+    filterTarieven();
     bewaarLokaal();
     planBerekening();
     return;
@@ -955,6 +1002,10 @@ document.addEventListener("input", (e) => {
 /* Bij het verlaten van een veld: normaliseren en de kaart opnieuw opbouwen. */
 document.addEventListener("change", (e) => {
   const el = e.target;
+  if (["tarief-categorie", "tarief-eigen", "tarief-zoeken"].includes(el.id)) {
+    filterTarieven(); return;
+  }
+
 
   if (el.dataset.tarief) {
     const t = tarievenEntries().find(t => t.sleutel === el.dataset.tarief);

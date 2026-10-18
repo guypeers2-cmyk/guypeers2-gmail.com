@@ -169,7 +169,15 @@
       <header class="tarieven-kop"><div><p class="tarieven-label">JOUW PRIJSBOEK</p><h2>Tarieven</h2></div><span class="tarieven-badge">Bedragen exclusief btw</span></header>
       <p class="hint">Pas de prijzen aan op jouw inkoop. De waarde wordt meteen doorberekend
         in de offerte.</p>
+      <div class="tarieven-tools">
+        <label class="veld"><span>Zoek in het prijsboek</span><input type="search" id="tarief-zoeken" placeholder="Bijvoorbeeld gipsplaat, isolatie of schilderen" autocomplete="off"></label>
+        <label class="veld"><span>Categorie</span><select id="tarief-categorie"><option value="alle">Alle categorieën</option><option value="materiaal">Materiaal</option><option value="taak">Uurnormen</option><option value="m2">Snelle m²-prijzen</option></select></label>
+        <label class="tarief-eigen"><input type="checkbox" id="tarief-eigen"> Alleen aangepast</label>
+      </div>
+      <div class="tarieven-overzicht"><p id="tarief-resultaat" role="status" aria-live="polite"></p><button type="button" class="knop klein" id="tarieven-herstellen">Alle tarieven herstellen</button></div>
+      <p class="hint">Aanpassingen gelden voor deze offerte en worden daarin opgeslagen. Herstellen verwijdert je eigen tarieven; de standaardprijzen en afgeleide m²-prijzen worden dan opnieuw gebruikt.</p>
       <div id="tarieven-lijst" class="tarievenlijst"></div>
+      <p class="tarief-leeg" id="tarief-geen-resultaten" hidden>Geen tarieven gevonden. Pas je zoekopdracht of filters aan.</p>
     </section>
 
 <div class="modal-achtergrond" id="modal-achtergrond" hidden>

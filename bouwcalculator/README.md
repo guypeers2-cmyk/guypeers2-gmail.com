@@ -275,6 +275,18 @@ evenals het uurtarief en alle bedragen in de offerte, details en 3D-weergave.
 Na het bewerken van een geldveld wordt bijvoorbeeld `7.5` weergegeven als `7.50`.
 Uurnormen zijn geen eurobedragen en behouden hun eigen precisie.
 
+Zoek op de naam van een tarief of filter op **Materiaal**, **Uurnormen** en
+**Snelle m²-prijzen**. **Alleen aangepast** toont uitsluitend tarieven waarvoor
+je in deze offerte een eigen waarde hebt ingevuld. De teller vermeldt hoeveel
+tarieven zichtbaar en aangepast zijn. De markering **Eigen tarief** betekent
+ook bij een gelijk bedrag dat er een expliciete projectwaarde is opgeslagen.
+
+Met **Herstel** naast een tarief verwijder je die eigen waarde. Met
+**Alle tarieven herstellen** verwijder je na bevestiging alle eigen tarieven
+van deze offerte. De calculatie gebruikt daarna weer de standaardprijzen;
+snelle m²-prijzen worden opnieuw afgeleid uit de geldende materiaal- en
+uurnormen. Het uurtarief, kortingen, btw en werkregels blijven ongewijzigd.
+
 
 Onder het tabblad **Tarieven** staan alle eenheidsprijzen, alle uren per m²
 en alle snelle m²-prijzen. Wat je daar verandert, wordt meteen doorberekend

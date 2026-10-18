@@ -1070,3 +1070,20 @@ table.offerte-tabel tr.ruimte-kop:hover td { background: var(--oppervlak-3); }
   #calculator-paneel[hidden] { display: block !important; }
   #paneel-tarieven { display: none !important; }
 }
+
+/* Zoekbaar prijsboek; de invoer blijft staan tijdens filteren en berekenen. */
+.tarieven-tools { display: grid; grid-template-columns: minmax(0, 2fr) minmax(170px, 1fr) auto; align-items: end; gap: 16px; margin-top: 24px; }
+input[type="search"] { width: 100%; min-height: 38px; font: inherit; color: var(--tekst); background: var(--oppervlak); border: 1px solid var(--rand-sterk); border-radius: var(--radius); padding: 8px 11px; }
+.tarief-eigen { display: flex; align-items: center; gap: 8px; padding: 10px 0; white-space: nowrap; }
+.tarieven-overzicht { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 18px 0 10px; color: var(--tekst-2); }
+#paneel-tarieven .tarief { grid-template-columns: minmax(0, 1fr) 110px 90px 78px; }
+.tarief-markering { display: inline-block; margin-left: 8px; font-size: .65rem; color: var(--accent); border: 1px solid var(--accent-rand); border-radius: 4px; padding: 1px 5px; }
+.tarief-markering[hidden], .tarief[hidden], .tarief-sectie[hidden] { display: none !important; }
+.tarief.is-aangepast input { border-color: var(--accent); }
+.tarief-leeg { text-align: center; padding: 36px 12px; color: var(--tekst-2); }
+@media (max-width: 650px) {
+  .tarieven-tools { grid-template-columns: 1fr; gap: 8px; }
+  #paneel-tarieven .tarief { grid-template-columns: minmax(0, 1fr) 80px 60px; }
+  .tarief-herstel { grid-column: 2 / 4; justify-self: end; }
+  .tarieven-overzicht { align-items: flex-start; flex-direction: column; }
+}
