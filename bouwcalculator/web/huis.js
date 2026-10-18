@@ -2,55 +2,82 @@
 (function(){
   'use strict';
   const $=s=>document.querySelector(s),clone=v=>JSON.parse(JSON.stringify(v));
-  let niveau='ruimte',view='2d',snede=null,gekozen=null,zoom=1;
+  let niveau='ruimte',view='2d',snede=null,gekozen=null,gereedschap='select',pan=null,suppress=0;
+  const camera=BouwHuisCamera.maak(),host=$('#huis-plan');
   const V=()=>window.BouwVorm;
   const selected=()=>state.project?.ruimtes.find(r=>r.id===gekozen&&r.huis_positie);
   const empty=r=>!(r.openingen||[]).length&&!state.project.regels.some(x=>x.ruimte_id===r.id)&&!Object.keys(r.wand_helling||{}).length;
   const message=s=>$('#huis-melding').textContent=s;
-  function svg(project,mode='2d',selection=null,magnify=1){
+  function svg(project,mode='2d',selection=null,magnify=1,options={}){
     const h=project.huis;if(!h)return '<p class="huis-leeg">Begin met <strong>Huiscontour tekenen</strong>. Je bestaande kamers en werkposten blijven bewaard.</p>';
     const rooms=project.ruimtes.filter(r=>r.huis_positie),L=h.lengte,B=h.breedte,H=Math.max(h.hoogte,...rooms.map(r=>Number(r.hoogte))),iso=mode==='3d';
-    const raw=(x,y,z=0)=>iso?[(x-y)*.866,(x+y)*.5-z]:[x,y];
+    const raw=(x,y,z=0)=>{const [u,v]=iso?BouwHuisCamera.draai(x,y,L,B,options.hoek||0):[x,y];return iso?[(u-v)*.866,(u+v)*.5-z]:[x,y];};
     const bounds=V().points(h).flatMap(a=>[raw(a.x,a.y),raw(a.x,a.y,H)]),xs=bounds.map(p=>p[0]),ys=bounds.map(p=>p[1]);
     const minX=Math.min(...xs),maxX=Math.max(...xs),minY=iso?Math.min(...ys):0,maxY=iso?Math.max(...ys):B,s=Math.min(680/Math.max(.1,maxX-minX),400/Math.max(.1,maxY-minY));
     const P=(x,y,z=0)=>{const a=raw(x,y,z);return [(800-(maxX-minX)*s)/2+(a[0]-minX)*s,50+(400-(maxY-minY)*s)/2+(a[1]-minY)*s];};
     const polygon=(ps,cls,attrs='')=>`<polygon class="${cls}" points="${ps.map(a=>P(a.x,a.y,a.z||0).map(v=>v.toFixed(2)).join(',')).join(' ')}" ${attrs}/>`;
-    const text=(a,t,cls='huis-label')=>{const q=P(a.x,a.y,a.z||0);return `<text class="${cls}" text-anchor="middle" x="${q[0]}" y="${q[1]}">${esc(t)}</text>`;};
+    const text=(a,t,cls='huis-label',dy=0)=>{const q=P(a.x,a.y,a.z||0);return `<text class="${cls}" text-anchor="middle" x="${q[0]}" y="${q[1]+dy}">${esc(t)}</text>`;};
     let out=polygon(V().points(h),'huis-buiten');
-    const ordered=[...rooms].sort((a,b)=>(a.huis_positie.x+a.huis_positie.y)-(b.huis_positie.x+b.huis_positie.y));
+    const depth=r=>raw(r.huis_positie.x+r.lengte/2,r.huis_positie.y+r.breedte/2)[1];
+    const ordered=[...rooms].sort((a,b)=>depth(a)-depth(b));
     for(const r of ordered){
       const o=r.huis_positie,ps=V().points(r),world=p=>({...p,x:p.x+o.x,y:p.y+o.y}),cls=r.id===selection?' geselecteerd':'';
-      out+=`<g class="huis-kamer${cls}" data-huis-ruimte="${esc(r.id)}" tabindex="0" role="button" aria-label="Selecteer ${esc(r.naam)}">`;
+      out+=`<g class="huis-kamer${cls}" data-huis-ruimte="${esc(r.id)}" tabindex="0" role="button" aria-pressed="${r.id===selection}" aria-label="Selecteer ${esc(r.naam)}">`;
       out+=polygon(ps.map(world),'huis-vloer');
       if(iso){const ts=V().top(r);for(let i=0;i<ps.length;i++)out+=polygon([ps[i],ps[(i+1)%ps.length],ts[(i+1)%ps.length],ts[i]].map(world),'huis-wand');out+=polygon(ts.map(world),'huis-dak');}
       if(window.BouwPlan){
         (r.openingen||[]).forEach((o,i)=>{const g=BouwPlan.openingGeometrie(r,i);if(!g)return;const ps=(iso?[g.a,g.b,g.c,g.d]:[g.a,g.b]).map(a=>world({x:a[0],y:a[1],z:iso?a[2]:0}));out+=`<g class="huis-opening"><title>${esc(o.naam)} · ${esc(r.naam)}</title>`+(iso?polygon(ps,'huis-opening-vlak'):`<polyline points="${ps.map(a=>P(a.x,a.y).join(',')).join(' ')}"/>`)+'</g>';});
         project.regels.filter(w=>w.ruimte_id===r.id).forEach((w,i)=>{const pakket=state.prijsboek?.pakketten.find(p=>p.id===w.pakket_id);if(!pakket)return;const g=BouwPlan.werkGeometrie({...w,pakket,nummer:i+1},r),a=P(g.a[0]+o.x,g.a[1]+o.y,iso?g.a[2]:0),b=P(g.b[0]+o.x,g.b[1]+o.y,iso?g.b[2]:0);out+=`<g class="huis-object"><title>${esc(pakket.naam)} · ${esc(r.naam)} · open de kamer om te bewerken</title>${pakket.eenheid==='m'?`<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}"/>`:''}<circle cx="${a[0]}" cy="${a[1]}" r="6"/></g>`;});
       }
-      const a=world(V().interior(r));out+=text(a,r.naam)+text({...a,y:a.y+(iso?.28:.35)},NR.format(Math.abs(V().area(ps)))+' m²','huis-oppervlak');out+='</g>';
+      const a=world(V().interior(r));out+=text(a,r.naam,'huis-label',-4)+text(a,NR.format(Math.abs(V().area(ps)))+' m²','huis-oppervlak',16);out+='</g>';
     }
     const top=V().points(h);top.forEach((a,i)=>{const b=top[(i+1)%top.length];out+=text({x:(a.x+b.x)/2,y:(a.y+b.y)/2-.15},NR.format(Math.hypot(a.x-b.x,a.y-b.y))+' m','huis-maat');});
     if(snede?.room===selection&&!iso){for(const a of snede.punten){const q=P(a.x+selected().huis_positie.x,a.y+selected().huis_positie.y);out+=`<circle class="huis-snede-punt" cx="${q[0]}" cy="${q[1]}" r="7"/>`;}if(snede.punten.length===2){const [a,b]=snede.punten.map(a=>P(a.x+selected().huis_positie.x,a.y+selected().huis_positie.y));out+=`<line class="huis-snede-lijn" x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}"/>`;}}
-    const focus=rooms.find(r=>r.id===selection),anchor=focus?V().interior(focus):{x:L/2,y:B/2},center=focus?P(anchor.x+focus.huis_positie.x,anchor.y+focus.huis_positie.y):[400,250],cx=Math.max(400/magnify,Math.min(800-400/magnify,center[0])),cy=Math.max(250/magnify,Math.min(500-250/magnify,center[1]));
-    return `<svg viewBox="${cx-400/magnify} ${cy-250/magnify} ${800/magnify} ${500/magnify}" xmlns="http://www.w3.org/2000/svg" role="group" aria-label="${iso?'3D':'2D'} huisplan" data-huis-schaal="${s}" data-huis-x="${P(0,0)[0]}" data-huis-y="${P(0,0)[1]}">${out}</svg>`;
+    const focus=rooms.find(r=>r.id===selection),anchor=focus?V().interior(focus):{x:L/2,y:B/2},center=focus?P(anchor.x+focus.huis_positie.x,anchor.y+focus.huis_positie.y):[400,250],box=BouwHuisCamera.viewBox(center,magnify,options.x||0,options.y||0);
+    return `<svg viewBox="${box.join(' ')}" xmlns="http://www.w3.org/2000/svg" role="group" aria-label="${iso?'3D':'2D'} huisplan" data-huis-schaal="${s}" data-huis-x="${P(0,0)[0]}" data-huis-y="${P(0,0)[1]}">${out}</svg>`;
   }
-  function render(){
+  function render(redraw=true){
     if(!state.project||!V())return;
-    if(!selected()){gekozen=state.project.ruimtes.find(r=>r.huis_positie)?.id||null;snede=null;}
+    if(!selected()){gekozen=state.project.ruimtes.find(r=>r.huis_positie)?.id||null;snede=null;redraw=true;}
     document.body.classList.toggle('huisstand-actief',niveau==='huis');
     $('#werkvlak').classList.toggle('huisstand',niveau==='huis');$('#huis-paneel').hidden=niveau!=='huis';
     document.querySelectorAll('[data-ontwerpniveau]').forEach(b=>{const on=b.dataset.ontwerpniveau===niveau;b.setAttribute('aria-pressed',on);b.classList.toggle('actief',on);});
     document.querySelectorAll('[data-huis-view]').forEach(b=>{const on=b.dataset.huisView===view;b.setAttribute('aria-pressed',on);b.classList.toggle('actief',on);});
     $('#huis-undo').disabled=!projectHistorie.kanUndo();$('#huis-redo').disabled=!projectHistorie.kanRedo();
-    $('#huis-plan').innerHTML=svg(state.project,view,gekozen,zoom);
+    if(redraw)renderCanvas();
+    renderSelectie();
+    const cam=camera.lees();
+    $('#huis-draaien').hidden=view!=='3d';
+    $('#huis-camera-status').textContent=`${Math.round(cam.zoom*100)}%${view==='3d'?` · ${cam.hoek*90}°`:''}`;
+    document.querySelectorAll('[data-huis-zoom]').forEach(b=>{b.disabled=b.dataset.huisZoom==='in'?cam.zoom>=3:b.dataset.huisZoom==='uit'?cam.zoom<=1:false;});
+    document.querySelectorAll('[data-huis-tool]').forEach(b=>{const on=b.dataset.huisTool===gereedschap;b.setAttribute('aria-pressed',String(on));b.classList.toggle('actief',on);});
+    host.classList.toggle('huis-hand',gereedschap==='hand');
+    $('#huis-camera-hulp').textContent=gereedschap==='hand'?'Hand: sleep het beeld, niet de kamers. Pijltjes verschuiven; Escape annuleert de beweging.':'Selecteer een kamer met klikken of Tab/Enter. Dubbelklik opent de kamer. Kies Hand om het beeld te verschuiven.';
     const h=state.project.huis,rs=state.project.ruimtes.filter(r=>r.huis_positie),total=rs.reduce((s,r)=>s+Math.abs(V().area(V().points(r))),0),apart=state.project.ruimtes.length-rs.length;
-    $('#huis-statistiek').textContent=h?`${NR.format(Math.abs(V().area(V().points(h))))} m² woning · ${rs.length} kamers op plan · ${NR.format(Math.max(0,Math.abs(V().area(V().points(h)))-total))} m² nog niet ingedeeld${apart?` · ${apart} bestaande kamer(s) buiten huisplan, wel in offerte`:''}`:'Eén verdieping · binnenmaten · 2D & 3D';
+    const chip=(value,label)=>`<span title="${esc(label)}" aria-label="${esc(label)}">${esc(value)}</span>`;
+    const area=h?Math.abs(V().area(V().points(h))):0;
+    $('#huis-statistiek').innerHTML=h?chip(`${NR.format(area)} m²`,'Woningoppervlakte')+chip(`▱ ${rs.length}`,'Kamers op het huisplan')+chip(`${NR.format(Math.max(0,area-total))} m²`,'Nog niet ingedeelde oppervlakte')+(apart?chip(`⚠ ${apart} buiten plan`,'Bestaande kamers buiten huisplan; hun werken tellen wel mee in de offerte'):''):'⌂ Eén verdieping · m';
     $('#huis-open').disabled=$('#huis-splits').disabled=!selected();
-    if(!$('#huis-kamerlijst').contains(document.activeElement))$('#huis-kamerlijst').innerHTML=state.project.ruimtes.map(r=>`<button type="button" class="knop" data-huis-kies="${esc(r.id)}">${esc(r.naam)} · ${r.huis_positie?`X ${NRL.format(r.huis_positie.x)}, Y ${NRL.format(r.huis_positie.y)}`:'buiten huisplan'}</button>`).join('');
+    if(!$('#huis-kamerlijst').contains(document.activeElement))$('#huis-kamerlijst').innerHTML=state.project.ruimtes.map(r=>`<button type="button" class="knop" data-huis-kies="${esc(r.id)}" aria-pressed="${r.id===gekozen}">${esc(r.naam)} · ${r.huis_positie?`X ${NRL.format(r.huis_positie.x)}, Y ${NRL.format(r.huis_positie.y)}`:'buiten huisplan'}</button>`).join('');
+    window.BouwStudio?.sync();
     const el=$('#huis-plaats-ruimte'),old=el.value;el.innerHTML=state.project.ruimtes.map(r=>`<option value="${esc(r.id)}">${esc(r.naam)}</option>`).join('');if(state.project.ruimtes.some(r=>r.id===old))el.value=old;
   }
+  function renderCanvas(){
+    const cam=camera.lees();host.innerHTML=svg(state.project,view,gekozen,cam.zoom,cam);
+  }
+  function renderSelectie(){
+    const r=selected(),panel=$('#huis-selectie-info');panel.hidden=!r;
+    if(!r){panel.innerHTML='';return;}
+    const vs=V().surfaces(r),opp=id=>NR.format(vs.find(v=>v.sleutel===id).netto),count=state.project.regels.filter(w=>w.ruimte_id===r.id).length;
+    panel.innerHTML=`<strong>${esc(r.naam)}</strong><dl><div><dt title="Vloeroppervlakte"><span aria-hidden="true">▱</span><span class="compact-sr">Vloer</span></dt><dd>${opp('vloer')} m²</dd></div><div><dt title="Plafondoppervlakte"><span aria-hidden="true">▱↑</span><span class="compact-sr">Plafond</span></dt><dd>${opp('plafond')} m²</dd></div><div><dt title="Netto wandoppervlakte"><span aria-hidden="true">▥</span><span class="compact-sr">Netto wanden</span></dt><dd>${NR.format(vs.filter(v=>v.soort==='muur').reduce((n,v)=>n+v.netto,0))} m²</dd></div><div><dt title="Aantal werkposten"><span aria-hidden="true">☷</span><span class="compact-sr">Werkposten</span></dt><dd>${count}</dd></div></dl>${empty(r)?'':'<p class="hint">Indeling beschermd: werken, openingen of wandhelling.</p>'}`;
+  }
+  function openSelected(){
+    const r=selected();if(!r)return;
+    eindePan(true);state.actieveRuimteId=r.id;planSelectie=null;window.BouwMeten?.reset();setLevel('ruimte');
+    $('#tekening').scrollIntoView({block:'start',behavior:'instant'});$('#ruimte-tekenen').focus();
+  }
   function setLevel(n){
-    const changed=niveau!==n;
+    eindePan(true);suppress=0;const changed=niveau!==n;
     if(changed&&n==='huis'&&actieveRuimte()?.huis_positie)gekozen=state.actieveRuimteId;
     if(changed&&n==='ruimte'&&selected()){
       state.actieveRuimteId=selected().id;planSelectie=null;planInspectieOpen=false;
@@ -58,9 +85,15 @@
     }
     niveau=n;snede=null;if(changed)window.render();else render();
   }
-  function choose(id){const r=state.project.ruimtes.find(r=>r.id===id);if(!r)return;gekozen=r.huis_positie?id:gekozen;$('#huis-plaats-ruimte').value=id;$('#huis-plaats-x').value=r.huis_positie?.x||0;$('#huis-plaats-y').value=r.huis_positie?.y||0;snede=null;render();message(`${r.naam} geselecteerd${r.huis_positie?'':'; nog niet op het huisplan'}.`);}
+  function choose(id){
+    const r=state.project.ruimtes.find(r=>r.id===id);if(!r)return;
+    const unchanged=gekozen===id&&!!r.huis_positie&&!snede;
+    gekozen=r.huis_positie?id:gekozen;
+    $('#huis-plaats-ruimte').value=id;$('#huis-plaats-x').value=r.huis_positie?.x||0;$('#huis-plaats-y').value=r.huis_positie?.y||0;
+    snede=null;render(!unchanged);message(`${r.naam} geselecteerd${r.huis_positie?'':'; nog niet op het huisplan'}.`);
+  }
   function splitRoom(){const r=selected();if(!r)throw Error('Selecteer eerst een kamer op het huisplan.');if(!empty(r))throw Error('Splits eerst de indeling vóór je werken, openingen of schuine wanden toevoegt. Deze kamer bevat die al; er wordt niets verwijderd.');return r;}
-  function startCut(){try{const r=splitRoom();view='2d';snede={room:r.id,punten:[]};$('#huis-split-as').value='vrij';$('#huis-split-waarde').disabled=true;$('#huis-splits-invoer').open=true;render();message('Tik op twee punten van de geselecteerde kamergrens. De punten klikken op de dichtstbijzijnde wand. Druk daarna op Splitsen toepassen.');}catch(e){message(e.message);}}
+  function startCut(){try{const r=splitRoom();eindePan(true);gereedschap='select';view='2d';snede={room:r.id,punten:[]};$('#huis-split-as').value='vrij';$('#huis-split-waarde').disabled=true;$('#huis-splits-invoer').open=true;render();message('Tik op twee punten van de geselecteerde kamergrens. De punten klikken op de dichtstbijzijnde wand. Druk daarna op Splitsen toepassen.');}catch(e){message(e.message);}}
   $('#huis-tekenen').addEventListener('click',()=>{
     if(!V())return;const old=state.project.huis;
     BouwRuimteVorm.openHouse(old||{id:'huis',lengte:10,breedte:8,hoogte:2.5,contour:[],dak:null},m=>{
@@ -75,13 +108,18 @@
     });
   });
   document.addEventListener('click',e=>{
+    if(!e.target.closest('#huis-hulp'))$('#huis-hulp').open=false;
     const level=e.target.closest('[data-ontwerpniveau]');if(level)setLevel(level.dataset.ontwerpniveau);
-    const vw=e.target.closest('[data-huis-view]');if(vw){view=vw.dataset.huisView;snede=null;render();}
-    const zm=e.target.closest('[data-huis-zoom]');if(zm){zoom=zm.dataset.huisZoom==='reset'?1:Math.max(1,Math.min(3,zoom+(zm.dataset.huisZoom==='in' ? .25 : -.25)));render();}
+    const vw=e.target.closest('[data-huis-view]');if(vw){eindePan(true);view=vw.dataset.huisView;snede=null;camera.verschuif(0,0);render();}
+    const zm=e.target.closest('[data-huis-zoom]');if(zm){eindePan(true);if(zm.dataset.huisZoom==='reset')camera.passend();else camera.zoom(camera.lees().zoom+(zm.dataset.huisZoom==='in'?.25:-.25));render();}
+    const turn=e.target.closest('[data-huis-draai]');if(turn){eindePan(true);camera.draai(Number(turn.dataset.huisDraai));render();}
+    const tool=e.target.closest('[data-huis-tool]');if(tool){eindePan(true);suppress=0;gereedschap=tool.dataset.huisTool;snede=null;render();}
     const room=e.target.closest('[data-huis-kies]');if(room)choose(room.dataset.huisKies);
     if(e.target.closest('[data-actie="ruimte-kiezen"]'))setLevel('ruimte');
   });
   $('#huis-plan').addEventListener('click',e=>{
+    if(performance.now()<suppress){suppress=0;e.preventDefault();return;}
+    if(gereedschap==='hand')return;
     if(snede){
       const svgEl=$('#huis-plan svg'),r=selected(),point=svgEl.createSVGPoint();point.x=e.clientX;point.y=e.clientY;const q=point.matrixTransform(svgEl.getScreenCTM().inverse()),s=Number(svgEl.dataset.huisSchaal),o=r.huis_positie;
       const p={x:(q.x-Number(svgEl.dataset.huisX))/s-o.x,y:(q.y-Number(svgEl.dataset.huisY))/s-o.y};
@@ -90,8 +128,53 @@
     }
     const g=e.target.closest('[data-huis-ruimte]');if(g)choose(g.dataset.huisRuimte);
   });
-  $('#huis-plan').addEventListener('keydown',e=>{if(e.key==='Escape'){snede=null;render();message('Snede geannuleerd.');}if(['Enter',' '].includes(e.key)){const g=e.target.closest('[data-huis-ruimte]');if(g){e.preventDefault();choose(g.dataset.huisRuimte);$('#huis-open').focus();}}});
-  $('#huis-open').addEventListener('click',()=>{const r=selected();if(!r)return;state.actieveRuimteId=r.id;planSelectie=null;window.BouwMeten?.reset();setLevel('ruimte');$('#tekening').scrollIntoView({block:'start',behavior:'instant'});$('#ruimte-tekenen').focus();});
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Escape'&&!e.defaultPrevented&&$('#huis-hulp').open){
+      e.preventDefault();$('#huis-hulp').open=false;$('#huis-hulp summary').focus();
+    }
+  });
+  host.addEventListener('dblclick',e=>{
+    if(gereedschap!=='select'||snede||performance.now()<suppress)return;
+    const g=e.target.closest('[data-huis-ruimte]');if(g){e.preventDefault();choose(g.dataset.huisRuimte);openSelected();}
+  });
+  host.addEventListener('keydown',e=>{
+    if(e.key==='Escape'){
+      if(pan){e.preventDefault();eindePan(true);return;}
+      if(snede){e.preventDefault();snede=null;render();message('Snede geannuleerd.');}return;
+    }
+    if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)&&(gereedschap==='hand'||e.target===host)){
+      e.preventDefault();const cam=camera.lees(),step=(e.shiftKey?100:35)/cam.zoom;
+      camera.verschuif(cam.x+(e.key==='ArrowLeft'?-step:e.key==='ArrowRight'?step:0),cam.y+(e.key==='ArrowUp'?-step:e.key==='ArrowDown'?step:0));renderCanvas();return;
+    }
+    if(['Enter',' '].includes(e.key)&&gereedschap==='select'){
+      const g=e.target.closest('[data-huis-ruimte]');if(g){e.preventDefault();choose(g.dataset.huisRuimte);$('#huis-open').focus();}
+    }
+  });
+  function eindePan(cancel=false){
+    if(!pan)return;
+    const p=pan;pan=null;
+    if(cancel){camera.verschuif(p.voor.x,p.voor.y);renderCanvas();}
+    host.classList.remove('huis-pannen');
+    if(host.hasPointerCapture(p.id))host.releasePointerCapture(p.id);
+    if(p.moved)suppress=performance.now()+500;
+  }
+  host.addEventListener('pointerdown',e=>{
+    if(pan||snede||!e.isPrimary||!(e.button===1||(e.button===0&&gereedschap==='hand')))return;
+    const matrix=host.querySelector('svg')?.getScreenCTM()?.inverse();if(!matrix)return;
+    e.preventDefault();host.focus({preventScroll:true});
+    pan={id:e.pointerId,cx:e.clientX,cy:e.clientY,voor:camera.lees(),matrix,moved:false};
+    host.setPointerCapture(e.pointerId);host.classList.add('huis-pannen');
+  });
+  host.addEventListener('pointermove',e=>{
+    if(pan?.id!==e.pointerId)return;e.preventDefault();
+    const dx=e.clientX-pan.cx,dy=e.clientY-pan.cy;
+    if(Math.hypot(dx,dy)<4&&!pan.moved)return;pan.moved=true;
+    camera.verschuif(pan.voor.x-pan.matrix.a*dx-pan.matrix.c*dy,pan.voor.y-pan.matrix.b*dx-pan.matrix.d*dy);renderCanvas();
+  },{passive:false});
+  host.addEventListener('pointerup',e=>{if(pan?.id===e.pointerId)eindePan();});
+  host.addEventListener('pointercancel',e=>{if(pan?.id===e.pointerId)eindePan(true);});
+  host.addEventListener('lostpointercapture',()=>{if(pan)eindePan(true);});
+  $('#huis-open').addEventListener('click',openSelected);
   $('#huis-splits').addEventListener('click',()=>{try{const r=splitRoom();$('#huis-splits-invoer').open=true;$('#huis-split-waarde').value=Math.round(r.lengte/2*1000)/1000;$('#huis-split-as').value='x';$('#huis-split-waarde').disabled=false;snede=null;message(`Verdeel ${r.naam}. Geef de positie op of kies twee grenspunten.`);$('#huis-split-as').focus();}catch(e){message(e.message);}});
   $('#huis-snede-start').addEventListener('click',startCut);
   $('#huis-snede-stop').addEventListener('click',()=>{snede=null;$('#huis-splits-invoer').open=false;render();message('Splitsen geannuleerd.');});
@@ -115,5 +198,5 @@
   $('#huis-plaats-form').addEventListener('submit',e=>{e.preventDefault();try{if(!state.project.huis)throw Error('Teken eerst de huiscontour.');const id=$('#huis-plaats-ruimte').value,p=V().position({x:$('#huis-plaats-x').value,y:$('#huis-plaats-y').value}),candidate=clone(state.project),r=candidate.ruimtes.find(r=>r.id===id);r.huis_positie=p;V().layout(candidate);gekozen=id;wijzig(()=>{state.project=candidate;});message('Ruimte geplaatst. Werken en openingen zijn behouden.');}catch(error){message(error.message);}});
   $('#huis-losmaken').addEventListener('click',()=>{const r=state.project.ruimtes.find(r=>r.id===$('#huis-plaats-ruimte').value);if(!r?.huis_positie)return;if(!confirm(`${r.naam} alleen van het huisplan halen? De kamer en alle werkposten blijven behouden in de offerte.`))return;wijzig(()=>{r.huis_positie=null;});message('Ruimte staat nu buiten het huisplan; de offerte is behouden.');});
   $('#huis-undo').addEventListener('click',()=>historieStap('undo'));$('#huis-redo').addEventListener('click',()=>historieStap('redo'));
-  window.BouwHuis={render,svg,setLevel,getLevel:()=>niveau};render();
+  window.BouwHuis={render,svg,setLevel,renderSelectie,getLevel:()=>niveau};render();
 })();

@@ -7,7 +7,8 @@ function sluitTekenFocus() {
   tekenFocusPlaceholder.replaceWith(document.getElementById('tekening'));
   tekenFocusPlaceholder=null;
   document.body.classList.remove('teken-focus-actief');
-  document.getElementById('plan-focus').textContent='Vergroten';
+  document.getElementById('plan-focus').setAttribute('aria-label','Tekening vergroten');
+  document.getElementById('plan-focus').title='Tekening vergroten';
   window.scrollTo({top:tekenFocusScroll,behavior:'instant'});
   document.getElementById('plan-focus').focus({preventScroll:true});
 }
@@ -21,7 +22,8 @@ function sluitTekenFocus() {
     tekenFocusPlaceholder=document.createComment('tekening op oorspronkelijke positie');
     kaart.before(tekenFocusPlaceholder);dialoog.append(kaart);
     document.body.classList.add('teken-focus-actief');
-    document.getElementById('plan-focus').textContent='Sluiten';
+    document.getElementById('plan-focus').setAttribute('aria-label','Vergrote tekening sluiten');
+    document.getElementById('plan-focus').title='Vergrote tekening sluiten';
     dialoog.showModal();document.getElementById('plan-focus').focus({preventScroll:true});
   }
   document.getElementById('plan-focus').addEventListener('click',()=>dialoog.open?sluitTekenFocus():openFocus());

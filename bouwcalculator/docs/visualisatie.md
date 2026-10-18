@@ -349,3 +349,106 @@ Regressie: `test_huis.py` voor oppervlakken, validatie, gedeelde grenzen, roundt
 JS/Python-pariteit en sneden; `tools/huis_review.mjs` voor de echte huis→kamers→werk-
 workflow, numerieke/vrije sneden, schuine objecten/openingen, bescherming van werk,
 historie, herladen en mobiele Chromiumviewport. Draait ook op de offline HTML.
+
+
+### Huiscamera en kamernavigatie
+
+`huis-camera.js` is een afzonderlijk, dependencyvrij cameramodel. Het beheert
+uitsluitend zoom (1–3×), begrensde verschuiving en vier kwartslag-kijkrichtingen.
+`huis.js` gebruikt dit voor Hand (muis, pen, touch en pijltjes), Links/Rechts en
+Passend. Pointer capture zit op de stabiele canvascontainer; vervangen SVG-kinderen
+onderbreken de beweging niet. Escape, pointercancel en verloren capture herstellen
+de vorige camerastand. Hand sleept nooit kamers of offerteobjecten.
+
+De draaifunctie werkt vóór projectie; dit zijn vier modelkijkrichtingen, geen
+spiegeling van een afgewerkte SVG. Kamers worden per kijkrichting op diepte gesorteerd.
+Kamerlabels blijven in alle richtingen met een vaste verticale afstand onder elkaar.
+Afdrukken gebruikt altijd de standaardcamera, onafhankelijk van bediening op scherm.
+Camerastanden worden niet in project-JSON, opslag of offertehistorie geschreven.
+
+De selectiesamenvatting gebruikt echte vloer-, plafond- en netto wandoppervlakken
+uit dezelfde geometriekern. Dubbelklik opent de kamer; dezelfde selectie opnieuw
+kiezen vervangt de SVG niet, zodat dubbelklik en toetsenbordfocus behouden blijven.
+De openknop en Tab/Enter blijven alternatieven. Rotatieknoppen zijn alleen in 3D
+zichtbaar. Regressies: `test_huis_camera.py` en `tools/huis_camera_review.mjs`, inclusief
+werkelijke CDP-touch, annulering, ongewijzigde offerte/historie/afdruk en 390px-layout.
+
+
+### Compacte interface
+
+Veelgebruikte opdrachten zijn inline SVG-pictogrammen met `aria-label`, `title`
+en decoratieve `aria-hidden`-SVG's. Knop-ID's, formulieren, pressed states en
+rekenacties zijn ongewijzigd. Focusmodus wijzigt het toegankelijke label en de
+tooltip, niet de SVG-inhoud. Maatlijnen en de meettool hebben verschillende iconen.
+
+Compacte schermregels zijn begrensd tot `@media screen`; offerteprint behoudt zijn
+A4-layout. Mobiele pictogramacties blijven 44 × 44 px. Hulp is een native details-
+uitklapper in de huiswerkbalk; klikken buiten sluit, Escape sluit met focusterugkeer.
+Veiligheidsmeldingen en expliciete bevestigingen blijven zichtbaar/beschikbaar.
+
+`tools/compact_review.mjs` controleert 320, 390, 768 en 1440 px: geen paginaoverflow,
+éénrijige navigatie/bovenbalk, compacte huiswerkbalk, Nederlandse toegankelijke
+namen/tooltips, aanraakmaten, hulp-/focusbediening en identieke projectgegevens.
+
+
+### Logische studionavigatie
+
+`web/studio.js` beheert uitsluitend presentatie: huidige taak, locatiecontext,
+focus, scroll en zichtbaarheid van snelknoppen. `studioOpen()` delegeert hieraan;
+prijs-, geometrie- en projectmodellen blijven ongewijzigd. De module wordt na
+`huis.js` geladen en door `maak_standalone.py` in beide offline kopieën ingesloten.
+
+De header combineert Ontwerp/Tarieven en bestandacties. De taakbalk blijft eronder
+staan; `ResizeObserver` meet beide hoogtes voor scrollmarges. Een gebundelde
+`requestAnimationFrame`-handler volgt de zichtbare sectie; expliciete navigatie
+houdt tijdens soepel scrollen tijdelijk haar doel actief. Wiel-/aanraakbediening
+geeft de controle meteen terug aan de gebruiker. Bij reduced motion is de sprong
+direct. Alleen de actieve taakknop krijgt `aria-current="location"`.
+
+Expliciete taaknavigatie sluit zusterpanelen, niet de geneste tekeninstellingen.
+Inline werkbewerking houdt het oorspronkelijke invoerpaneel bereikbaar. De
+huis/kamer-schakelaar staat naast de kamercontext; tekenen verwijst in huisstand
+naar het huiscanvas, maten en werken naar de geselecteerde kamer. Dubbele
+zwevende acties verdwijnen als de inline actie zichtbaar is; ze zijn eveneens
+verborgen in dialogen, huisstand en Tarieven. Print verbergt context/werkbalken en
+behoudt het oorspronkelijke offerteherstel.
+
+`tools/routing_review.mjs` controleert routing, scrollspy, sticky offsets,
+context, panelen, focus, menusluiting, foutmeldingen, contextuele snelknoppen,
+reduced/normal motion, 320–1440 px en ongewijzigde projectgegevens/totaal/historie.
+
+
+### Doorzoekbare kamerkeuze
+
+De twee `[data-room-picker]`-knoppen openen de native `#studio-rooms`-dialoog.
+Zoeken normaliseert accenten en hoofdletters; namen en maten worden ge-escaped,
+nooit als project-HTML geïnterpreteerd. De dialoog heeft een benoemd zoekveld,
+aangekondigd resultaat-aantal, native knopresultaten en `aria-current` voor de
+actieve kamer. Alleen de lijst scrollt; zoekveld en footer blijven zichtbaar.
+Escape wordt ook in het zoekveld afgehandeld (anders wist sommige browsers alleen
+de zoekterm). Annuleren herstelt de triggerfocus; kiezen focust de bestemming.
+
+Een kamerkeuze verlaat eerst de huisstand voordat de gekozen kamer actief wordt,
+om te vermijden dat de huisselectie de nieuwe keuze overschrijft. Maten/Werken
+blijven de bestemming als dat de huidige taak is; andere contexten openen de
+tekening. Dit is uitsluitend UI-state, zonder projectmutatie of historie-item.
+Korte taaklabels verschijnen vanaf 769 px; de mobiele header behoudt 44px-doelen.
+
+
+### Kamerinzichten en taakvoortgang
+
+De kamerzoeker combineert naamzoeken met `studio-room-filter` (alle/met/zonder
+werkposten) en `studio-room-sort` (project/naam). Tellingen komen uit het project;
+bedragen zijn uitsluitend een presentatie-aggregatie van reeds berekende
+`offerte.regels[].totaal`. Ze zijn expliciet vóór projectkorting en exclusief btw.
+Laden/fouten verbergen bedragen, statuswijzigingen vernieuwen het overzicht met
+behoud van zoekterm, filter, lijstscroll en gefocuste kamer. Het compacte
+kameroverzicht leest `vloer.bruto` uit de berekende vlakken, niet de omhullende
+rechthoek van een vrije vorm.
+
+Geleide taakknoppen worden eenmalig buiten de opnieuw gerenderde invoervelden
+geplaatst. Ze gebruiken dezelfde `BouwStudio.open`-route en wijzigen geen data.
+De hoofdtabfunctie bewaart per tab de scroll-Y vóór het verbergen van de huidige
+inhoud. Herstel gebeurt direct na het tonen; er is geen uitgestelde callback die
+een aansluitende expliciete kamer-/taaksprong kan overschrijven. Alle nieuwe
+bediening en kamerinzichten zijn uitgesloten van offerteprint.

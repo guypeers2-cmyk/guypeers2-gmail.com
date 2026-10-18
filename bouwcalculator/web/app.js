@@ -191,6 +191,7 @@ async function bereken() {
     renderRegelPrijzen();
     renderTarieven();
     renderPlan();
+    window.BouwHuis?.renderSelectie();
     herstelFocus(focus);
     const waarschuwingen = state.offerte.waarschuwingen || [];
     status(waarschuwingen.length ? "⚠ " + waarschuwingen[0] : "Offerte bijgewerkt");
@@ -323,7 +324,7 @@ function renderRuimteChips() {
   container.innerHTML = state.project.ruimtes.map((r) => `
     <button type="button" class="ruimtechip ${r.id === state.actieveRuimteId ? "actief" : ""}"
             data-actie="ruimte-kiezen" data-id="${esc(r.id)}"
-            data-fokus="chip_${esc(r.id)}">${esc(r.naam || "Ruimte")}</button>
+            data-fokus="chip_${esc(r.id)}" aria-pressed="${r.id === state.actieveRuimteId}">${esc(r.naam || "Ruimte")}</button>
   `).join("") + `<button type="button" class="ruimtechip" data-actie="ruimte-toevoegen">${ICO.plus} Ruimte</button>`;
 }
 
@@ -799,6 +800,7 @@ function render() {
   renderRegels();
   renderOfferte();
   renderRegelPrijzen();
+  window.BouwStudio?.sync();
   herstelFocus(focus);
 }
 
@@ -991,7 +993,8 @@ function renderPlanSelectie() {
     verwijder.dataset.planOpeningVerwijder=String(planSelectie.index);
   }
 }
-function studioOpen(id) {
+function studioOpen(id, opties) {
+  if(window.BouwStudio)return window.BouwStudio.open(id, opties);
   if(['ruimte-invoer','werk-invoer','installatie-invoer'].includes(id))window.BouwHuis?.setLevel('ruimte');
   const doel=document.getElementById(id==='tekening'&&window.BouwHuis?.getLevel()==='huis'?'huis-paneel':id);if(!doel)return;
   if(document.querySelector('#teken-focus[open]') && !$('#tekening').contains(doel) && doel.id!=='tekening')sluitTekenFocus();
@@ -1005,7 +1008,7 @@ function studioOpen(id) {
 
 document.addEventListener("click", (e) => {
   const nav=e.target.closest('[data-studio-doel]');
-  if(nav){studioOpen(nav.dataset.studioDoel);return;}
+  if(nav){studioOpen(nav.dataset.studioDoel, {exclusive:true});return;}
   if(e.target.closest('#plan-deselecteer')){planSelectie=null;renderPlanSelectie();return;}
   if(e.target.closest('#plan-undo')){historieStap('undo');return;}
   if(e.target.closest('#plan-redo')){historieStap('redo');return;}
@@ -1439,7 +1442,11 @@ async function laadLokaleEngine() {
 
 async function init() {
   await laadLokaleEngine();
+  const tabScroll={calculator:0,tarieven:0};
+  let hoofdtab='calculator';
   function kiesHoofdtab(naam) {
+    const changed=naam!==hoofdtab;
+    if(changed){tabScroll[hoofdtab]=window.scrollY;hoofdtab=naam;}
     const tarieven = naam === "tarieven";
     $("#calculator-paneel").hidden = tarieven;
     $("#paneel-tarieven").hidden = !tarieven;
@@ -1450,6 +1457,8 @@ async function init() {
       tab.setAttribute("aria-selected", String(actief));
       tab.tabIndex = actief ? 0 : -1;
     });
+    if(changed)window.scrollTo({top:tabScroll[naam]||0,behavior:'instant'});
+    window.BouwStudio?.sync();
   }
   $$("[data-hoofdtab]").forEach(tab => {
     tab.addEventListener("click", () => kiesHoofdtab(tab.dataset.hoofdtab));
@@ -1459,7 +1468,7 @@ async function init() {
       const tabs = $$("[data-hoofdtab]");
       const volgende = e.key === "Home" ? tabs[0] : e.key === "End" ? tabs[1] : tabs.find(t => t !== tab);
       kiesHoofdtab(volgende.dataset.hoofdtab);
-      volgende.focus();
+      volgende.focus({preventScroll:true});
     });
   });
   $$("#zijde .tab").forEach((tab) => tab.addEventListener("click", () => {
@@ -1468,12 +1477,19 @@ async function init() {
       const actief = t === tab;
       t.classList.toggle("actief", actief);
       t.setAttribute("aria-selected", actief ? "true" : "false");
+      t.tabIndex = actief ? 0 : -1;
     });
     $$("#zijde .tabpaneel").forEach((p) => {
       const actief = p.dataset.paneel === tab.dataset.tab;
       p.classList.toggle("actief", actief);
       p.hidden = !actief;
     });
+  }));
+  $$("#zijde .tab").forEach(tab=>tab.addEventListener('keydown',e=>{
+    if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;
+    e.preventDefault();const tabs=$$('#zijde .tab');
+    const next=e.key==='Home'?tabs[0]:e.key==='End'?tabs.at(-1):tabs.find(t=>t!==tab);
+    next.click();next.focus();
   }));
 
   try {

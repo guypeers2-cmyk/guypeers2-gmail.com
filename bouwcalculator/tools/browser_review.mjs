@@ -66,6 +66,9 @@ try {
   // A small viewport alone is not enough: assert layout width does not silently inflate.
   for (const width of [320,360,390,768,1024,1280,1440,1920]) {
     await page.setViewport({width,height:900,isMobile:width<768,hasTouch:width<1024});
+    // Device emulation changes reload Chromium; await API/init before operating controls.
+    await page.waitForNetworkIdle({idleTime:100});
+    await page.waitForFunction(()=>state.offerte&&document.querySelector('#status').textContent!=='Berekenen…');
     for (const panel of ['calculator','tarieven']) {
       await click(`[data-hoofdtab="${panel}"]`);
       if (panel === 'calculator') {

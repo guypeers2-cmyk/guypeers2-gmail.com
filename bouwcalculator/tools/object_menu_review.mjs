@@ -50,11 +50,18 @@ await page.click('[data-object-toevoegen="opening-raam"]');
 assert.equal(await page.evaluate(()=>actieveRuimte().openingen.at(-1).muur),'zuid');
 await page.keyboard.press('Escape');
 assert.equal(await page.$eval('#object-menu',e=>e.open),false);
+await page.evaluate(()=>window.scrollTo({top:document.documentElement.scrollHeight,behavior:'instant'}));
+await page.waitForFunction(()=>!document.querySelector('.object-snelknop').hidden);
 await page.click('.object-snelknop');
 await page.click('[data-object-categorie="alle"]');
 await (await page.$('#object-menu')).screenshot({path:path.join(out,'menu-desktop.png')});
 await page.keyboard.press('Escape');
 await page.setViewport({width:390,height:844,isMobile:true,hasTouch:true});
+// Switching mobile emulation reloads Chromium: await the server-backed render.
+await page.waitForNetworkIdle({idleTime:300});
+await page.waitForFunction(()=>state.offerte&&document.querySelector('#status').textContent!=='Berekenen…');
+await page.evaluate(()=>window.scrollTo({top:document.documentElement.scrollHeight,behavior:'instant'}));
+await page.waitForFunction(()=>!document.querySelector('.object-snelknop').hidden);
 await page.click('.object-snelknop');
 assert.equal(await page.$eval('#object-menu',e=>e.open),true);
 await (await page.$('#object-menu')).screenshot({path:path.join(out,'menu-mobiel.png')});

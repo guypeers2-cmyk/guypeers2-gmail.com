@@ -58,10 +58,10 @@ await page.click('#plan-volledige-regel');
 assert.equal(await page.$eval('#werk-invoer',e=>e.open),true);
 assert.equal(await page.evaluate(()=>document.activeElement.closest('[data-regel]')?.dataset.regel),'studio-sock');
 for(const id of ['ruimte-invoer','werk-invoer','zijde','offertepaneel']){
- await page.click(`[data-studio-doel="${id}"]`);
+ await page.click(`.studio-nav [data-studio-doel="${id}"]`);
  assert.equal(await page.$eval('#'+id,e=>e.open),true,`navigation reveals ${id}`);
 }
-await page.click('[data-studio-doel="tekening"]');
+await page.click('.studio-nav [data-studio-doel="tekening"]');
 assert.equal(await page.$$eval('#calculator-paneel details[open]',es=>es.length),0,'return to drawing refolds supporting panels');
 await page.click('[data-plan="aanzicht"]');
 await page.click('[data-aanzicht-vlak="noord"]');
@@ -81,10 +81,10 @@ await page.evaluate(()=>window.dispatchEvent(new Event('afterprint')));
 assert.equal(await page.$eval('#offertepaneel',e=>e.open),false);
 for(const width of [320,390,768,1440]){
  await page.setViewport({width,height:900,isMobile:width<768,hasTouch:width<768});
- await page.click('[data-studio-doel="tekening"]');
+ await page.click('.studio-nav [data-studio-doel="tekening"]');
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth),width,`no horizontal overflow ${width}`);
  assert.equal(await page.$$eval('#calculator-paneel details[open]',es=>es.length),0);
- await page.click('.object-snelknop');assert.equal(await page.$eval('#object-menu',e=>e.open),true);await page.keyboard.press('Escape');
+ await page.click('#tekening .object-menu-start');assert.equal(await page.$eval('#object-menu',e=>e.open),true);await page.keyboard.press('Escape');
  if(width===390)await page.screenshot({path:path.join(out,'studio-mobiel.png'),fullPage:true});
 }
 await page.waitForFunction(t=>state.offerte.totalen.totaal===t,{},total);

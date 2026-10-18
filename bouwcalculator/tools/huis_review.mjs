@@ -61,6 +61,7 @@ assert(Math.abs(await page.evaluate(()=>actieveRuimte().openingen[0].borstwering
 const g=await page.evaluate(()=>BouwPlan.openingGeometrie(actieveRuimte(),0));for(const p of [g.a,g.b,g.c,g.d])assert(Math.abs(p[1]-p[2]/2.5)<1e-8);
 await page.click('[data-plan="isometrie"]');await page.screenshot({path:out+'/schuine-wand-3d.png',fullPage:true});
 // Work cannot disappear when splitting an occupied room.
+await page.$eval('[data-ontwerpniveau="huis"]',e=>e.scrollIntoView({block:'center',behavior:'instant'}));
 await page.click('[data-ontwerpniveau="huis"]');await page.click('#huis-splits');assert((await page.$eval('#huis-melding',e=>e.textContent)).includes('er wordt niets verwijderd'));
 assert.equal(await page.evaluate(()=>state.project.regels.length),1);
 // Split the other room with a freely angled chord, through the actual UI.

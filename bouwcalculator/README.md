@@ -21,6 +21,88 @@ De online app gebruikt de eigen Cloudflare Worker voor de offerteberekening.
 
 ---
 
+## Compacte bediening
+
+De werkruimte gebruikt compacte SVG-pictogrammen voor tekenen, selecteren,
+verschuiven, meten, zoomen, draaien, historie, opslaan en kameracties. Elke
+pictogramknop heeft een Nederlandse tooltip en een toegankelijke naam; de
+actieve stand blijft zichtbaar. De huisuitleg staat achter **ⓘ** (ook bereikbaar
+met Tab/Enter; Escape sluit en herstelt de focus). Op mobiel behouden
+pictogramacties minimaal 44 × 44 px aanraakruimte.
+
+Navigatie en bovenbalk blijven op één rij, panelen en formulieren hebben minder
+witruimte, en de kamermeetstaat toont compacte symbolen met echte meetwaarden.
+Maten, tarieven, bevestigingen en waarschuwingen blijven tekstueel beschikbaar.
+Print/PDF behoudt zijn eigen documentopmaak. De offline HTML bevat dezelfde UI.
+
+## Navigatie en werkvolgorde
+
+**Ontwerp** en **Tarieven** staan samen in één vaste bovenbalk. De offerte zelf
+blijft het einddocument van het ontwerp, niet een tweede gelijknamige hoofdtab.
+De vaste taakbalk leidt naar **Tekening → Maten → Werken → Offerte**, met
+projectinstellingen apart. De locatiebalk combineert huis/kamer-keuze met de
+kamernaam en de huidige taak. Kamerchips kunnen horizontaal scrollen.
+
+De actieve taak volgt ook handmatig scrollen. Navigatie houdt rekening met de
+werkelijke hoogte van beide vaste balken en de voorkeur voor minder beweging;
+Tab, pijltjes/Home/End en native details-focus blijven beschikbaar. Taakknoppen
+vouwen andere werkpanelen dicht, maar bewaren tekenopties en geneste invoer.
+Toevoegen vanuit de uitgebreide installatie-invoer houdt juist het bronpaneel
+open, zodat je meerdere werken achter elkaar kunt toevoegen.
+
+Zwevende snelknoppen verschijnen alleen wanneer de overeenkomstige bediening
+niet in beeld staat. Huisstand, dialoogvensters en Tarieven verbergen ze. Een
+mislukte berekening blijft ook op mobiel als tekst zichtbaar. Navigatie wijzigt
+geen projectgegevens, prijsberekening of undo-geschiedenis.
+
+### Snel van kamer wisselen
+
+Het huisicoon in de vaste bovenbalk en de kamernaam openen **Huis & kamers**.
+Zoek op naam (ook zonder accenten), kies een kamer en werk daar verder. Vanuit
+Maten/Werken blijft dezelfde taak open; vanuit het huisplan of Tarieven opent de
+kamertekening. De keuze bevat afmetingen, werkpostentelling en de huidige kamer.
+De zoekbalk en het huisplan-knopje blijven bereikbaar bij lange kamerlijsten.
+
+Pijltjes omhoog/omlaag kiezen een kamer, Home/End springen naar begin/einde,
+Enter opent en Escape sluit met focusterugkeer. Annuleren verandert niets.
+Ook de tabbladen Project/Prijzen ondersteunen pijltjes en Home/End; alleen het
+actieve tabblad zit in de Tab-volgorde. Op grotere schermen tonen de taakknoppen
+korte labels naast hun pictogram. Mobiel blijven ze compact en aanraakbaar.
+
+Browserregressie: `tools/kamerkeuze_review.mjs` test online/offline, 23 kamers,
+zoeken, accenten, veilige tekstweergave, toetsenbord, focus, huis-/tariefovergangen,
+kleine schermen en ongewijzigde projectgegevens/prijs/historie.
+
+Regressies: `tools/routing_review.mjs` (online of offline) en
+`tests/test_studio_ui.py`; gebruik dezelfde optionele browsertooling als de
+andere reviews. De app zelf blijft zonder externe dependencies werken.
+
+## Vijf workflowverbeteringen
+
+1. **Kamerfilters en sortering.** Toon alle kamers, kamers met werkposten of nog
+   lege kamers. Combineer met naamzoeken; sorteer op projectvolgorde of naam
+   (natuurlijke Nederlandse sortering). Sorteren wijzigt de projectvolgorde niet.
+   Heropenen wist de zoekterm en het filter; de sorteervoorkeur blijft tijdens de
+   sessie bewaard.
+2. **Kamerbedragen.** De kamerkeuze toont de som van de bestaande berekende
+   werkregeltotalen per kamer: exclusief btw en vóór projectkorting. Dit is geen
+   nieuw prijsmodel. Alle eurobedragen hebben twee decimalen. Tijdens berekenen
+   of bij een fout verschijnt een streep in plaats van een verouderd bedrag.
+3. **Kameroverzicht.** Naast de kamerbediening staan het berekende bruto
+   vloeroppervlak en het aantal werkposten. Het oppervlak komt uit de rekenkern,
+   niet uit lengte × breedte voor willekeurige contouren. Huisstand verbergt deze
+   kamergebonden informatie.
+4. **Geleide stappen.** Onder Maten staat Verder naar werken; onder Werken staat
+   Offerte bekijken. Beide bieden Terug naar tekening. Sluiten van panelen bewaart
+   de invoervelden en tekeninstellingen; de offerteprint bevat deze knoppen niet.
+5. **Tabpositie.** Ontwerp en Tarieven onthouden elk hun eigen scrollpositie zolang
+   de app open staat. Het eerste tariefbezoek start bovenaan; terugkeren herstelt de
+   werkplek. Expliciete taak- of kamernavigatie krijgt voorrang op die positie.
+
+`tools/workflow_review.mjs` test alle vijf onderdelen online/offline, inclusief
+projectkorting, laden, gecombineerde filters, conceptvelden, scrollherstel,
+320–1440 px, printisolatie en ongewijzigde projectgegevens/totaal/historie.
+
 ## Snel starten
 
 ```bash
@@ -40,7 +122,7 @@ python3 bouwcalculator/tools/maak_standalone.py
 Tests:
 
 ```bash
-python3 -m unittest discover -s bouwcalculator/tests -v   # 57 tests
+python3 -m unittest discover -s bouwcalculator/tests -v   # 62 tests
 ```
 
 ---
@@ -361,7 +443,14 @@ Optionele browsercontrole: `tools/studio_review.mjs` (Worker of offline bestand)
    met Gyproc, installaties, openingen, eigen maten en offerteposten.
 4. **2D / 3D** toont het hele huis, inclusief schuine wanden, ramen/deuren en
    schematische werk-/tracémarkeringen. Met **+ / − / Passend** zoom je rond de
-   geselecteerde kamer. Het huisoverzicht staat ook in de geprinte offerte.
+   geselecteerde kamer. **Hand** verschuift het beeld met muis of touch; pijltjes
+   werken ook. In 3D draai je met **Links / Rechts** door vier kijkrichtingen.
+   **Passend** herstelt zoom en verschuiving. Escape of touch-annulering herstelt
+   een nog lopende beweging. Camerabediening verandert geen maten, offerteposten
+   of projecthistorie. Het huisoverzicht staat ongezoomd in de geprinte offerte.
+5. De geselecteerde kamer toont meteen vloer, plafond, netto wandoppervlak en
+   aantal werkposten. **Dubbelklik** opent de kamer direct; Tab/Enter en de knop
+   **Open geselecteerde ruimte** blijven beschikbaar voor toetsenbord en touch.
 
 Een lege startruimte wordt alleen na bevestiging de onverdeelde woning. Bestaande
 kamers met werkposten blijven behouden buiten het huisplan én blijven meetellen

@@ -1524,3 +1524,220 @@ body.huisstand-actief .object-snelknop,body.huisstand-actief .tekening-snelknop{
 .huis-object line{stroke:#2464bd;stroke-width:3;stroke-dasharray:6 3}
 .huis-opening{stroke:#ab6b24;stroke-width:5;fill:#e9cda6;fill-opacity:.7;pointer-events:none}
 .huis-opening-vlak{stroke-width:2}
+
+/* House camera controls: gestures never alter the measured project. */
+.huis-camera-balk{display:flex;align-items:center;flex-wrap:wrap;gap:.7rem;margin:.8rem 1rem}
+#huis-camera-status{margin-left:auto;color:var(--tekst-2);font-size:.85rem;font-variant-numeric:tabular-nums}
+#huis-camera-hulp{margin:.5rem 1rem;font-size:.82rem}
+#huis-plan{overflow:hidden;overscroll-behavior:contain}
+#huis-plan.huis-hand{touch-action:none;cursor:grab}
+#huis-plan.huis-hand .huis-kamer{cursor:grab}
+#huis-plan.huis-pannen,#huis-plan.huis-pannen .huis-kamer{cursor:grabbing;user-select:none}
+#huis-plan:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+#huis-selectie-info{margin:.8rem 1rem;padding:1rem;border:1px solid var(--accent-rand);border-radius:12px;background:var(--accent-zacht)}
+#huis-selectie-info strong{display:block;font-size:1rem}
+#huis-selectie-info dl{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.8rem;margin:.7rem 0 0}
+#huis-selectie-info dt{font-size:.75rem;color:var(--tekst-2)}
+#huis-selectie-info dd{margin:.25rem 0 0;font-weight:650;font-variant-numeric:tabular-nums}
+#huis-kamerlijst [aria-pressed="true"]{border-color:var(--accent);background:var(--accent-zacht);color:var(--accent)}
+@media(max-width:600px){#huis-selectie-info dl{grid-template-columns:repeat(2,minmax(0,1fr))}.huis-camera-balk{gap:.5rem}.huis-camera-balk .planknop{min-height:44px}}
+#huis-draaien[hidden]{display:none}
+
+/* Compact workstation: icons for commands; text for measurements and decisions.
+ * Screen-only sizing leaves the A4 quotation layout unchanged. */
+.compact-svg{display:block;width:19px;height:19px;flex:none;pointer-events:none}
+.compact-sr{position:absolute!important;width:1px;height:1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
+@media screen{
+  .layout,#calculator-paneel.layout{gap:10px;padding:10px 16px 68px}
+  .werkvlak{gap:8px}
+  .topbar{gap:10px;padding:6px 16px;flex-wrap:nowrap}
+  .merk{gap:8px}.merk .logo{width:30px;height:30px;border-radius:8px}.merk h1{font-size:.94rem}.merk p{display:none}
+  .topbar-acties{flex-wrap:nowrap;gap:5px}.status{font-size:.72rem;max-width:28ch}
+  .hoofdnavigatie{padding:6px 16px 0;gap:4px}.hoofdtab{padding:7px 12px;font-size:.8rem;min-height:36px}
+  .knop,.knop.klein,.planknop,.tab{min-height:34px;padding:6px 9px;font-size:.8rem}
+  button.compact-icon,summary.compact-icon{box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;width:36px;min-width:36px;min-height:36px;padding:7px;gap:5px;flex:none}
+  .studio-nav{display:flex;flex-wrap:nowrap;gap:2px;padding:3px;border-radius:9px}
+  .studio-nav button.compact-icon{flex:1;width:auto;min-width:36px;min-height:36px;padding:6px}
+  .studio-nav button[aria-describedby="studio-totaal"]{flex:2;min-width:94px}
+  .studio-nav #studio-totaal{display:inline;margin:0;font-size:.76rem;font-variant-numeric:tabular-nums}
+  .studio-vouw>summary{min-height:38px;padding:8px 10px;gap:5px;font-size:.8rem}
+  .studio-vouw>summary>span{display:none}.studio-vouw[open]>summary>span{display:inline;font-size:.7rem}
+  .studio-vouw-inhoud{padding:10px}.studio-opties,.studio-uitleg{margin-top:6px}
+  .plankaart{padding:8px;border-radius:10px}.plankop,#tekening .plankop{gap:5px;margin-bottom:6px;justify-content:flex-start}
+  .plankop h3,#tekening .plankop h3{font-size:.8rem;margin-right:4px;flex:none}
+  .plankeuze{padding:2px;gap:1px;width:auto;flex:none}
+  .plankeuze .planknop{padding:6px 9px;min-height:32px}
+  .plankeuze button.compact-icon{width:34px;min-width:34px;padding:6px}
+  #tekening .plankeuze{order:initial;width:auto}
+  .iso-bediening{gap:4px;padding:4px 0;margin:0}
+  .huis-navigatie{gap:4px;margin:0}.huis-navigatie>.knop{flex:none}
+  .huis-camera-balk{display:contents}
+  #huis-paneel .plankop{gap:4px}
+  #huis-camera-status{margin:0 4px;font-size:.72rem}
+  .huis-statistiek{display:flex;flex-wrap:wrap;gap:4px;margin:5px 0;font-size:.72rem;font-weight:550}
+  .huis-statistiek>span{padding:3px 6px;background:var(--oppervlak-2);border-radius:5px;border:1px solid var(--rand)}
+  #huis-selectie-info{margin:6px 0;padding:8px;border-radius:8px}
+  #huis-selectie-info strong{font-size:.85rem}
+  #huis-selectie-info dl{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:5px 0 0}
+  #huis-selectie-info dt{font-size:14px;line-height:1.1}
+  #huis-selectie-info dd{font-size:.78rem;margin-top:3px;overflow-wrap:anywhere}
+  #huis-selectie-info p{font-size:.7rem;margin:5px 0 0}
+  .huis-acties{gap:5px;margin:6px 0}.huis-acties>.knop{flex:none}
+  #huis-splits-invoer,#huis-kamers{margin:4px 0;font-size:.78rem}
+  #huis-paneel details>summary{padding:6px 0}
+  #huis-melding{margin:5px 0;font-size:.76rem}#huis-melding:empty{display:none}
+  #plan-sleepstatus{min-block-size:1.4em;margin:4px 0;font-size:.72rem}
+  .plan-selectie{gap:6px;padding:6px 8px;margin:5px 0}
+  .ruimtekaart,.elektriciteit-kaart{padding:10px}.ruimtekaart header{gap:6px;margin-bottom:8px}
+  .veld{margin-bottom:8px}.rij{gap:8px}.veld input,.veld select{padding:7px 9px}
+  .plan-inspector{padding:10px;margin:6px 0}.plan-inspector-velden{gap:8px}.plan-inspector header{margin-bottom:8px}
+  .vorm-kop,.vorm-footer{padding:10px 12px;gap:8px}.vorm-layout{gap:12px;padding:10px 12px}.vorm-presets{gap:4px}
+  #paneel-tarieven{margin:10px auto;padding:16px}.tarieven-tools{gap:10px;margin-top:12px}#paneel-tarieven .tarief-groep{margin-top:14px}
+  .object-snelknop,.tekening-snelknop{width:44px;min-width:44px;min-height:44px;padding:10px;border-radius:50%}
+  .compact-help{position:relative;margin-left:auto}
+  #huis-paneel .compact-help>summary{display:flex;padding:7px;list-style:none;border:1px solid var(--rand);border-radius:7px;cursor:pointer;color:var(--tekst-2)}
+  .compact-help>summary::-webkit-details-marker{display:none}
+  .compact-help>div{position:absolute;right:0;top:calc(100% + 6px);width:min(310px,calc(100vw - 44px));max-height:60dvh;overflow:auto;z-index:45;padding:12px;border:1px solid var(--rand);border-radius:10px;background:var(--oppervlak);box-shadow:var(--schaduw-2)}
+  .compact-help .hint,#huis-camera-hulp{margin:0 0 8px;font-size:.78rem}
+  .compact-help>summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+}
+@media screen and (max-width:600px){
+  #calculator-paneel.layout{padding:8px 8px 66px}
+  .topbar{padding:5px 8px;gap:6px}.merk h1{font-size:.84rem}.merk .logo{width:28px;height:28px}.merk{gap:6px}
+  .hoofdnavigatie{padding:4px 8px 0}.hoofdtab{flex:1;min-height:40px;padding:6px 8px}
+  button.compact-icon,summary.compact-icon,.plankeuze button.compact-icon{width:44px;min-width:44px;min-height:44px;padding:10px}
+  .studio-nav button.compact-icon{min-width:44px;min-height:44px;padding:8px}
+  .studio-nav button[aria-describedby="studio-totaal"]{min-width:90px}
+  .knop,.knop.klein,.planknop,.tab,input,select{min-height:40px}
+  .plankeuze .planknop{min-height:40px}
+  .plankop,#huis-paneel .plankop{gap:3px}
+  .huis-camera-balk .planknop{min-height:44px}
+  .huis-navigatie>.knop{flex:none}
+  .huis-acties>.knop{flex:none}
+  #tekening .object-menu-start{padding:10px}
+  .studio-vouw>summary{min-height:40px;padding:8px 10px}
+  .studio-vouw-inhoud{padding:8px}
+  .vorm-kop,.vorm-footer,.vorm-layout{padding:10px}.vorm-layout{gap:10px}
+  .vorm-footer>span{font-size:.7rem}
+  #huis-paneel .huis-camera-balk .plankeuze{width:auto}
+  .huis-camera-balk #huis-draaien[hidden]{display:none}
+  #tekening .vlak-keuze button{min-height:44px;padding:5px}
+  #paneel-tarieven{width:calc(100% - 16px);margin:8px;padding:10px}
+  .topbar .status{display:none}
+}
+@media screen and (max-width:360px){#huis-selectie-info dl{grid-template-columns:repeat(2,minmax(0,1fr))}.studio-nav button[aria-describedby="studio-totaal"]{min-width:84px}.studio-nav #studio-totaal{font-size:.7rem}}
+@media print{.compact-help{display:none!important}}
+@media screen{
+  .oppervlakken{padding:10px}.oppervlakken h3{margin-bottom:8px;font-size:.84rem}
+  .regels{gap:8px}.regelkaart{padding:10px;border-radius:9px}.regelkaart>header{gap:6px;margin-bottom:8px}
+  .regelkaart>header .titel{font-size:.9rem;min-width:130px}
+  .regelopties{gap:8px;margin-top:8px}.regelprijs{gap:8px;padding-top:8px;margin-top:8px}
+  .object-menu-kop{padding:12px 14px 8px}.object-menu-invoer{padding:0 14px 8px}.object-menu-plaats{gap:8px;margin-top:8px}
+  .object-resultaten{gap:6px;padding:10px 14px}.object-item{padding:10px}.object-menu-voet{padding:8px 14px}
+  .bestand-menu>summary.compact-icon{min-height:36px}
+}
+@media screen and (max-width:600px){.bestand-menu>summary.compact-icon{min-height:44px}.regelkaart>header .titel{min-width:120px}}
+@media screen and (max-width:600px){
+  .knop.compact-icon,.knop.klein.compact-icon,.planknop.compact-icon,summary.knop.compact-icon{width:44px;min-width:44px;min-height:44px;padding:10px}
+}
+@media screen and (max-width:600px){
+  .knop,.knop.klein,.planknop,.tab,.hoofdtab,.ruimtechip,.plankeuze .planknop{min-height:44px}
+  .studio-vouw>summary{min-height:44px}
+}
+
+/* Navigation review: one compact app header, one persistent task rail.
+   All routing/layout state is separate from project and print data. */
+@media screen{
+  .topbar{position:sticky;top:0;z-index:40;background:var(--oppervlak);backdrop-filter:none;box-shadow:none;gap:12px}
+  .topbar>.hoofdnavigatie{width:auto;max-width:none;padding:2px;margin:0 auto 0 12px;background:var(--oppervlak-3);border-radius:9px;gap:2px;flex:none}
+  .topbar .hoofdtab{min-height:34px;padding:7px 14px;font-size:.78rem;border-radius:7px;flex:none}
+  #calculator-paneel>.studio-nav{position:sticky;top:var(--studio-header,56px);z-index:30;background:var(--oppervlak);box-shadow:0 3px 10px #10182806;scroll-margin-top:var(--studio-header,56px)}
+  .studio-nav button{position:relative;transition:background .15s ease,color .15s ease}
+  .studio-nav [data-studio-doel="zijde"]{border-left:1px solid var(--rand);border-radius:0 6px 6px 0;margin-left:3px}
+  .studio-nav [data-studio-doel="offertepaneel"]{color:var(--accent)}
+  .studio-context{order:-2;display:flex;align-items:center;gap:8px;min-width:0;color:var(--tekst-2)}
+  .studio-context .studio-scheider{font-size:12px;color:var(--tekst-3)}
+  .studio-context strong{font-size:.82rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+  #studio-stap{margin-left:auto;padding:3px 7px;border:1px solid var(--rand);border-radius:5px;font-size:.7rem;background:var(--oppervlak);white-space:nowrap}
+  .huis-navigatie{order:-1}
+  #studio-feedback[hidden],#calculator-paneel>.object-snelknop[hidden],#calculator-paneel>.tekening-snelknop[hidden]{display:none!important}
+  #studio-feedback{order:-1;margin:0;padding:9px 12px;border:1px solid var(--rood-rand);border-radius:8px;background:var(--rood-zacht);color:var(--rood);font-size:.8rem}
+  #tekening,#huis-paneel,.studio-vouw,#zijde,#offertepaneel{scroll-margin-top:calc(var(--studio-header,56px) + var(--studio-rail,48px) + 12px)}
+  .studio-vouw{box-shadow:none}
+  .plankaart{box-shadow:0 2px 8px #10182805}
+  #huis-paneel .plankop,#tekening .plankop{align-items:center}
+  .huis-navigatie [aria-pressed="false"]{background:transparent;border-color:var(--rand)}
+  .ruimtechips{flex-wrap:nowrap;overflow-x:auto;max-width:100%;padding-bottom:3px;scrollbar-width:thin;overscroll-behavior-x:contain}
+  .ruimtechip{flex:none;border-radius:7px;font-size:.78rem}
+  .ruimtechip.actief{background:var(--accent-zacht);border-color:var(--accent-rand);color:var(--accent)}
+  .knop,.planknop{transition:background .14s ease,border-color .14s ease,color .14s ease}
+}
+@media screen and (max-width:1200px){.topbar .status{display:none}}
+@media screen and (max-width:600px){
+  .topbar{padding:5px 8px;gap:6px}
+  .topbar .merk{gap:0;flex:none}
+  .topbar .merk>div{position:absolute;width:1px;height:1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+  .topbar>.hoofdnavigatie{margin:0 auto;gap:1px}
+  .topbar .hoofdtab{min-height:44px;padding:7px 10px;font-size:.75rem}
+  .studio-context{gap:5px;min-height:32px}
+  .studio-context strong{font-size:.78rem}
+  #studio-stap{font-size:.68rem;padding:3px 6px}
+  .ruimtechips{gap:5px}
+}
+@media(prefers-reduced-motion:reduce){.studio-nav button,.knop,.planknop{transition:none!important}}
+@media print{.studio-context,#studio-feedback{display:none!important}}
+@media screen{
+  .studio-context>.huis-navigatie{flex:none;margin:0}
+  #tekening .iso-bediening{border:0;box-shadow:none;background:transparent;padding:0;margin:0;gap:4px}
+}
+
+/* Quick room access stays in the header, without adding a navigation row. */
+.studio-room-open{display:inline-flex;align-items:center;justify-content:center;flex:none;width:36px;height:36px;border:0;border-radius:9px;padding:3px;background:transparent;cursor:pointer;color:var(--accent)}
+.studio-room-open:hover{background:var(--accent-zacht)}
+.studio-room-open:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.studio-task-label{display:none}
+.studio-rooms{box-sizing:border-box;width:min(500px,calc(100vw - 24px));max-height:min(640px,calc(100dvh - 32px));padding:0;border:1px solid var(--rand);border-radius:14px;background:var(--oppervlak);color:var(--tekst);box-shadow:var(--schaduw-2);overflow:auto}
+.studio-rooms::backdrop{background:#10182888}
+.studio-rooms>header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:16px 16px 10px}
+.studio-rooms h2{font-size:1rem;margin:0 0 5px}.studio-rooms p{font-size:.78rem;color:var(--tekst-2);margin:0}
+.studio-room-search{padding:0 16px 8px}.studio-room-search label{display:block;font-size:.75rem;font-weight:600;margin:0 0 5px}
+.studio-room-search input{box-sizing:border-box;width:100%;font:inherit;font-size:16px;min-height:44px;padding:8px 10px;border:1px solid var(--rand);border-radius:8px;background:var(--oppervlak);color:var(--tekst)}
+#studio-room-count{padding-top:6px;font-size:.72rem}
+.studio-room-results{padding:0 8px 8px;max-height:48dvh;overflow:auto;overscroll-behavior:contain}
+.studio-room-choice{display:flex;align-items:center;justify-content:space-between;gap:10px;box-sizing:border-box;width:100%;text-align:left;border:1px solid transparent;border-radius:8px;padding:10px;min-height:56px;background:transparent;color:var(--tekst);cursor:pointer;font:inherit}
+.studio-room-choice:hover,.studio-room-choice:focus-visible{background:var(--oppervlak-2);border-color:var(--accent);outline:none}
+.studio-room-choice[aria-current="location"]{background:var(--accent-zacht);color:var(--accent)}
+.studio-room-choice>span{min-width:0}.studio-room-choice strong{display:block;font-size:.84rem;overflow-wrap:anywhere}.studio-room-choice small{display:block;font-size:.72rem;color:var(--tekst-2);margin-top:3px;overflow-wrap:anywhere}
+.studio-room-choice .studio-room-work{flex:none;font-size:.7rem;color:var(--tekst-2);white-space:nowrap}
+.studio-room-empty{padding:16px 10px!important}
+.studio-rooms>footer{display:flex;align-items:center;justify-content:space-between;gap:10px;border-top:1px solid var(--rand);padding:10px 16px}.studio-rooms>footer small{color:var(--tekst-2);font-size:.67rem}
+@media screen{
+ #studio-plaats{min-width:0;max-width:100%;border:0;border-radius:5px;background:transparent;color:var(--tekst-2);font:inherit;font-size:.82rem;font-weight:600;padding:5px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+ #studio-plaats::after{content:'⌄';margin-left:6px;color:var(--tekst-3)}
+ #studio-plaats:hover{background:var(--accent-zacht);color:var(--accent)}
+}
+@media screen and (min-width:769px){.studio-task-label{display:inline;font-size:.76rem}.studio-nav button.compact-icon{gap:7px}}
+@media screen and (max-width:600px){.studio-room-open{width:44px;height:44px}#studio-plaats{min-height:44px;font-size:.78rem;padding:5px 2px}.studio-rooms>footer small{display:none}}
+@media print{.studio-rooms{display:none!important}}
+@media screen and (max-width:600px){#studio-plaats{min-width:44px}}
+@media screen and (max-width:360px){.topbar .hoofdtab{padding-inline:7px}}
+/* Keep the search and footer in view; only the room list scrolls. */
+.studio-rooms{position:fixed;inset:0;margin:auto;max-width:calc(100vw - 24px)}
+.studio-rooms[open]{display:flex;flex-direction:column}
+.studio-rooms>header,.studio-room-search,.studio-rooms>footer{flex:none}
+.studio-room-results{flex:1 1 auto;min-height:0}
+.studio-rooms h2{text-transform:none;letter-spacing:-.015em;color:var(--tekst)}
+/* Task guidance and room insights stay out of the quotation document. */
+@media screen{
+ .studio-room-summary{order:0;margin:0;color:var(--tekst-2);font-size:.73rem;font-variant-numeric:tabular-nums}
+ #studio-room-summary[hidden]{display:none}
+ .studio-room-tools{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px}
+ .studio-room-tools label{font-size:.72rem;margin:0;min-width:0}
+ .studio-room-tools select{display:block;box-sizing:border-box;width:100%;min-width:0;min-height:36px;margin-top:4px;font:inherit;font-size:.75rem;color:var(--tekst);background:var(--oppervlak);border:1px solid var(--rand);border-radius:6px;padding:5px}
+ .studio-room-price-note{padding-top:7px;font-size:.67rem!important}
+ .studio-room-figures{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex:none;white-space:nowrap}
+ .studio-room-price{font-size:.78rem;font-weight:650;font-variant-numeric:tabular-nums}
+ .studio-next{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;margin-top:12px;padding-top:10px;border-top:1px solid var(--rand)}
+}
+@media screen and (max-width:600px){.studio-room-tools select{min-height:44px;font-size:16px}.studio-next .knop{flex:1;min-height:44px}.studio-room-price{font-size:.73rem}}
+@media print{.studio-next,#studio-room-summary{display:none!important}}
