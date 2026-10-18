@@ -1080,7 +1080,10 @@ var worker_default = {
     if (pad === "/api/prijsboek") {
       return json({ ...prijsboek(), opslag: "lokaal" });
     }
-    if (pad === "/api/offerte" && request.method === "POST") {
+    if (pad === "/api/offerte") {
+      if (request.method !== "POST") {
+        return json({ fout: "Gebruik POST voor deze route." }, 405);
+      }
       try {
         const body = await leesJson(request);
         return json(berekenOfferte(body.project || {}));
