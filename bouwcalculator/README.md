@@ -1023,3 +1023,31 @@ Daarom zijn er twee varianten:
 `bouwcalculator/tools/maak_standalone.py` bouwt de één-bestand-variant uit de
 brondbestanden; de Python-tests bewaken dat beide rekenkernels identiek
 uitkomen (`tests/test_pariteit.py`).
+
+### Objecten naast het tekenvlak: deur, raam en trap
+
+De kamerwerkstudio heeft een compacte zijrail **Deur · Raam · Trap**, ook op
+320 px. Deur/raam behouden hun wandkeuze, presets en voorbeeld. Trap bewaart een
+**schematische rechte trap** in `ruimtes[].trappen`: stabiel id, naam, X/Y van de
+linkerbovenhoek van de voetafdruk, breedte, vloer-lengte, hoogte, richting
+(0/90/180/270 graden) en 2–40 treden. De pijl geeft de stijgrichting aan.
+
+- Klik een trap of gebruik **Objecten & verwijderen** om maten aan te passen of
+  de trap te verwijderen. Annuleren wijzigt niets; bewaren/verwijderen kan met
+  undo/redo worden hersteld.
+- Sleep met muis of touch op het vloerplan of in 3D; positie snapt op 5 cm.
+  Escape/pointer-annulering herstelt de oorspronkelijke positie. Wandaanzichten
+  blijven via het formulier bewerkbaar. De trap verschijnt ook in het huisplan.
+- De voetafdruk moet volledig in de kamer passen, ook bij een concave contour.
+  De opgegeven hoogte mag niet boven het plafond komen. Dit is **geen**
+  constructieve trap-, optrede/aantrede- of hoofdruimtecontrole.
+- Trappen zijn geen wandopeningen en geen werkposten. Prijs en vloeroppervlakte
+  blijven ongewijzigd; er ontstaat geen automatische vloersparing of koppeling
+  tussen verdiepingen. Voeg eventuele werkzaamheden afzonderlijk toe.
+- Python, Worker en offline bewaren dezelfde trapgegevens. Kamers met trappen
+  worden niet ongemerkt gesplitst. Oude projecten zonder `trappen` blijven geldig.
+
+Controle: `python3 -m unittest discover -s bouwcalculator/tests`,
+`tools/stairs_review.mjs` (online en offline), plus de bestaande insertion-,
+compact- en directe-indelingsreviews. Browserreviews gebruiken een geïsoleerd
+profiel en schrijven niet naar het projectenarchief.

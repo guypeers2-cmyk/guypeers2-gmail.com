@@ -5,7 +5,7 @@ De hele app is één JSON-structuur: ``Project``. De Python-kern en de browser
 delen exact hetzelfde formaat, zodat er niets dubbel bijgehouden wordt.
 
     Project
-      ├── ruimtes[]   Ruimte  (maten + openingen)
+      ├── ruimtes[]   Ruimte  (maten + openingen + trappen)
       ├── regels[]    Werkregel (werkpakket op een oppervlak)
       └── tarieven{}  prijsboek-overrides (sleutel → prijs)
 """
@@ -46,6 +46,28 @@ def _tekst(waarde: Any, standaard: str = "") -> str:
     if waarde is None:
         return standaard
     return str(waarde)
+
+
+def _trappen(raw):
+    if raw is None:
+        return []
+    if not isinstance(raw, list) or len(raw) > 100:
+        raise ValueError('Gebruik maximaal 100 trappen per kamer.')
+    result = []
+    for i, d in enumerate(raw):
+        if not isinstance(d, dict):
+            raise ValueError('Ongeldige trap.')
+        t = {"id": _tekst(d.get('id')) or 'trap_' + str(i + 1), "naam": _tekst(d.get('naam'), 'Trap') or 'Trap'}
+        for key, default in [('x', 0), ('y', 0), ('breedte', .9), ('lengte', 2.4), ('hoogte', 2.5), ('richting', 0), ('treden', 14)]:
+            t[key] = vorm.number(d.get(key, default))
+        if any(not 0 <= t[k] <= 1000 for k in ['x', 'y']) or any(not .05 <= t[k] <= 100 for k in ['breedte', 'lengte', 'hoogte']):
+            raise ValueError('Ongeldige trapmaten of positie.')
+        if t['richting'] not in [0, 90, 180, 270] or t['treden'] != int(t['treden']) or not 2 <= t['treden'] <= 40:
+            raise ValueError('Kies een traprichting en 2 tot 40 treden.')
+        if len(t['id']) > 100 or len(t['naam']) > 100 or any(x['id'] == t['id'] for x in result):
+            raise ValueError('Ongeldige of dubbele trapnaam/id.')
+        result.append(t)
+    return result
 
 
 @dataclass
@@ -95,6 +117,7 @@ class Ruimte:
     breedte: float = 3.0         # m
     hoogte: float = 2.50         # m
     openingen: List[Opening] = field(default_factory=list)
+    trappen: List[Dict[str, Any]] = field(default_factory=list)
     contour: List[Dict[str, Any]] = field(default_factory=list)
     dak: Optional[Dict[str, Any]] = None
     wand_helling: Dict[str, float] = field(default_factory=dict)
@@ -125,6 +148,7 @@ class Ruimte:
             lengte=max(p["x"] for p in contour) if contour else _getal(d.get("lengte"), 4.0),
             breedte=max(p["y"] for p in contour) if contour else _getal(d.get("breedte"), 3.0),
             hoogte=hoogte,
+            trappen=_trappen(d.get("trappen")),
             openingen=[Opening.van_dict(o) for o in (d.get("openingen") or [])],
         )
         if ruimte.huis_positie is not None or ruimte.wand_helling:
@@ -140,6 +164,7 @@ class Ruimte:
             "wand_helling": dict(self.wand_helling), "huis_positie": dict(self.huis_positie) if self.huis_positie is not None else None,
             "id": self.id, "naam": self.naam, "lengte": self.lengte,
             "breedte": self.breedte, "hoogte": self.hoogte,
+            "trappen": [dict(t) for t in self.trappen],
             "openingen": [o.naar_dict() for o in self.openingen],
             "contour": [dict(p) for p in self.contour], "dak": dict(self.dak) if self.dak else None,
         }

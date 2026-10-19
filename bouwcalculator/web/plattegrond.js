@@ -602,5 +602,33 @@
     return `<svg class="plan aanzicht" viewBox="${zoomBox(780,550,opties)}" role="group" aria-label="${naam}, vlakaanzicht van ${esc(ruimte.naam)}">${svg}</svg>`;
   }
 
-  window.BouwPlan = { traceLengte, plattegrond, isometrie, laag, werkGeometrie, tint, projectie, planProjectie, openingGeometrie, aanzichtProjectie, aanzicht };
+  function trapGeometrie(t){
+    const w=t.breedte,l=t.lengte;
+    const point=(u,v,z=0)=>{const q=t.richting===90?[l-v,u]:t.richting===180?[w-u,l-v]:t.richting===270?[v,w-u]:[u,v];return [t.x+q[0],t.y+q[1],z];};
+    return {point,voet:[point(0,0),point(w,0),point(w,l),point(0,l)]};
+  }
+  function trapOverlay(room,P,iso=false,interactive=true){
+    return (room.trappen||[]).map(t=>{
+      const g=trapGeometrie(t),p=(u,v,z=0)=>P(...g.point(u,v,iso?z:0));
+      const polygon=(ps,cls)=>`<polygon class="${cls}" points="${punten(ps)}"/>`;
+      let body=polygon(g.voet.map(a=>P(...a)),'trap-voet');
+      for(let i=0;i<t.treden;i++){
+        const a=i*t.lengte/t.treden,b=(i+1)*t.lengte/t.treden,z=(i+1)*t.hoogte/t.treden;
+        if(iso)body+=polygon([p(0,a,z-t.hoogte/t.treden),p(t.breedte,a,z-t.hoogte/t.treden),p(t.breedte,a,z),p(0,a,z)],'trap-stootbord');
+        body+=polygon([p(0,a,z),p(t.breedte,a,z),p(t.breedte,b,z),p(0,b,z)],'trap-trede');
+      }
+      const a=p(t.breedte/2,t.lengte*.15,t.hoogte*.15+.03),b=p(t.breedte/2,t.lengte*.85,t.hoogte*.85+.03),dx=b[0]-a[0],dy=b[1]-a[1],n=Math.hypot(dx,dy)||1,ux=dx/n,uy=dy/n;
+      body+=`<path class="trap-pijl" d="M${punten([a])} L${punten([b])} M${R(b[0]-ux*10-uy*5)},${R(b[1]-uy*10+ux*5)} L${punten([b])} L${R(b[0]-ux*10+uy*5)},${R(b[1]-uy*10-ux*5)}"/>`;
+      const label=p(t.breedte/2,t.lengte/2,t.hoogte/2);
+      body+=`<text class="trap-label" x="${R(label[0])}" y="${R(label[1]+16)}" text-anchor="middle">${esc(t.naam)}</text>`;
+      return `<g class="trap-object" ${interactive?`data-trap-id="${esc(t.id)}" data-fokus="trap_${esc(t.id)}" tabindex="0" role="button" aria-label="${esc(t.naam)} bewerken"`:'aria-hidden="true"'}><title>${esc(t.naam)} · ${F(t.breedte)} × ${F(t.lengte)} m · ${t.treden} treden · schematisch</title>${body}</g>`;
+    }).join('');
+  }
+  function metTrappen(fn,mode){return (room,vlakken,werk,options={})=>{
+    const base=fn(room,vlakken,werk,options);
+    if(!room.trappen?.length)return base;
+    const P=mode==='iso'?projectie(room,options.hoek).P:mode==='front'?aanzichtProjectie(room,options.vlak).P:planProjectie(room).P;
+    return base.replace('</svg>',trapOverlay(room,P,mode==='iso'||mode==='front'&&!['vloer','plafond'].includes(options.vlak))+'</svg>');
+  };}
+  window.BouwPlan = { trapGeometrie,trapOverlay,traceLengte,plattegrond:metTrappen(plattegrond,'plan'),isometrie:metTrappen(isometrie,'iso'), laag, werkGeometrie, tint, projectie, planProjectie, openingGeometrie, aanzichtProjectie,aanzicht:metTrappen(aanzicht,'front') };
 })();

@@ -800,6 +800,7 @@ function renderPlan() {
     if(planWeergave === "aanzicht" && o.muur !== planVlak) return "";
     return `<div class="plan-opening-rij"><button type="button" class="plan-opening-select" data-plan-opening-select="${index}" aria-pressed="false"><strong>${esc(o.naam)}</strong><small>Opening · wand ${esc(o.muur)}</small></button><button type="button" class="plan-vuilbak" data-plan-opening-verwijder="${index}" aria-label="${esc(o.naam)} op wand ${esc(o.muur)} verwijderen" title="Opening verwijderen">${vuilbakIcoon}</button></div>`;
   }).join("");
+  $("#plan-openingen").innerHTML += (ruimte.trappen||[]).map(t=>`<div class="plan-opening-rij"><button type="button" class="plan-opening-select" data-trap-edit="${esc(t.id)}"><strong>${esc(t.naam)}</strong><small>Trap · ${NR.format(t.breedte)} × ${NR.format(t.lengte)} m · bewerken/verwijderen</small></button></div>`).join('');
   $("#vlak-bediening").hidden = planWeergave !== "aanzicht";
   $("#sleepvlak-keuze").hidden = planWeergave !== "isometrie";
   $$("[data-aanzicht-vlak]").forEach(b=>{
@@ -807,7 +808,7 @@ function renderPlan() {
     b.setAttribute("aria-pressed",String(b.dataset.aanzichtVlak===planVlak));
     b.querySelector("small").textContent=v ? `${NRL.format(v.netto)} m² netto` : "";
   });
-  $("#plan-objecten-aantal").textContent = `${regels.filter(r=>r.aantal>0).length} werkregels · ${(ruimte.openingen || []).length} openingen in deze ruimte`;
+  $("#plan-objecten-aantal").textContent = `${regels.filter(r=>r.aantal>0).length} werkregels · ${(ruimte.openingen || []).length} openingen · ${(ruimte.trappen||[]).length} trappen in deze ruimte`;
   renderPlanSelectie();
   const bediening = $("#iso-bediening");
   if (bediening) bediening.hidden = false;

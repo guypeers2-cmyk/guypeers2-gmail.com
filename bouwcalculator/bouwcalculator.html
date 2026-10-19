@@ -1963,6 +1963,23 @@ body.huisstand-actief .object-snelknop,body.huisstand-actief .tekening-snelknop{
 #huis-indelen-direct .knop{min-width:0;padding:8px 4px;font-size:.75rem;white-space:normal}
 @media screen and (max-width:360px){#huis-paneel .plankop>h3{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}}
 [data-huis-cut]:focus{outline:none}
+/* Keep architectural objects next to the canvas, also on small screens. */
+.tekening-werkzone{display:grid;grid-template-columns:88px minmax(0,1fr);gap:8px;align-items:start}
+.tekening-objectrail .opening-snel{display:flex;flex-direction:column;margin:0;gap:6px}
+.tekening-objectrail .knop{width:100%;min-height:44px;padding:8px 4px;font-size:.75rem;white-space:normal}
+.tekening-werkzone>.planhouder{min-width:0}
+.trap-voet{fill:var(--goud-zacht);stroke:var(--goud);stroke-width:1.5}
+.trap-trede{fill:var(--goud-zacht);stroke:var(--goud);stroke-width:1}
+.trap-stootbord{fill:var(--goud-rand);stroke:var(--goud);stroke-width:1}
+.trap-pijl{fill:none;stroke:var(--tekst);stroke-width:2;pointer-events:none}
+.trap-label{fill:var(--tekst);font-size:11px;paint-order:stroke;stroke:var(--oppervlak);stroke-width:3px;pointer-events:none}
+.trap-object{cursor:grab;touch-action:none}.trap-object:focus{outline:none}.trap-object:focus-visible .trap-voet{stroke:var(--accent);stroke-width:4}
+#trap-fout{color:var(--rood)}#trap-fout[hidden],#trap-verwijder[hidden]{display:none!important}
+@media(max-width:400px){.tekening-werkzone{grid-template-columns:64px minmax(0,1fr);gap:4px}.tekening-objectrail .knop{font-size:.7rem}}
+@media print{.tekening-objectrail,#trap-menu{display:none!important}.tekening-werkzone{display:block}}
+#huis-plan .trap-object{pointer-events:none;cursor:inherit}
+.tekening-objectrail .knop{display:flex;align-items:center;justify-content:center;gap:4px}
+.objectrail-ico{width:16px;height:16px;flex:0 0 16px}
 
 </style>
 </head>
@@ -2150,7 +2167,7 @@ body.huisstand-actief .object-snelknop,body.huisstand-actief .tekening-snelknop{
         </div>
       <button type="button" class="knop primair object-menu-start compact-icon" data-object-menu aria-haspopup="dialog" aria-controls="object-menu" title="Object toevoegen" aria-label="Object toevoegen"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v16M4 12h16"/></svg></button>
       </header>
-      <div class="opening-snel" role="group" aria-label="Deur of raam toevoegen"><button type="button" class="knop" data-opening-snel="Deur" aria-haspopup="dialog" aria-controls="opening-menu">＋ Deur</button><button type="button" class="knop" data-opening-snel="Raam" aria-haspopup="dialog" aria-controls="opening-menu">＋ Raam</button></div>
+
       <div id="vlak-bediening" class="vlak-bediening" hidden>
         <div class="vlak-intro"><strong>Elk vlak, recht in beeld</strong><span>Kies een vlak en positioneer de werken op het raster.</span></div>
         <div class="vlak-keuze" role="group" aria-label="Vlak voor vooraanzicht">
@@ -2183,7 +2200,8 @@ body.huisstand-actief .object-snelknop,body.huisstand-actief .tekening-snelknop{
         <label id="meet-vlak-label">3D-meetvlak<select id="meet-vlak"><option value="xy">Vloer X/Y</option><option value="xz">Wand noord X/Z</option><option value="yz">Wand west Y/Z</option></select></label>
         <details><summary>Meetpunten precies invoeren</summary><form id="meet-form"><div id="meet-velden" class="meet-velden"></div><button type="submit" class="knop klein">Afstand tonen</button></form></details>
       </section>
-      <div class="planhouder" id="plan" tabindex="0" aria-label="Interactieve tekening"></div>
+      <div class="tekening-werkzone"><aside class="tekening-objectrail" aria-label="Object invoegen"><div class="opening-snel" role="group" aria-label="Deur, raam of trap toevoegen"><button type="button" class="knop" data-opening-snel="Deur" aria-haspopup="dialog" aria-controls="opening-menu"><svg class="objectrail-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M5 21V3h14v18M5 21h14M15 12h1"/></svg>Deur</button><button type="button" class="knop" data-opening-snel="Raam" aria-haspopup="dialog" aria-controls="opening-menu"><svg class="objectrail-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M3 3h18v18H3zM12 3v18M3 12h18"/></svg>Raam</button><button type="button" class="knop" data-trap-toevoegen aria-haspopup="dialog" aria-controls="trap-menu"><svg class="objectrail-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M3 21h6v-6h6V9h6V3M3 14V3h11M3 3l10 10"/></svg>Trap</button></div></aside>
+      <div class="planhouder" id="plan" tabindex="0" aria-label="Interactieve tekening"></div></div>
       <div id="plan-selectie" class="plan-selectie" hidden><div class="plan-selectie-context"><span id="plan-selectie-naam"></span><small id="plan-selectie-positie"></small></div><div><button type="button" class="knop klein compact-icon" id="plan-eigenschappen" aria-controls="plan-inspector" aria-expanded="false" title="Eigenschappen" aria-label="Eigenschappen"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/><circle cx="9" cy="6" r="2"/><circle cx="15" cy="12" r="2"/><circle cx="9" cy="18" r="2"/></svg></button><details id="plan-acties" class="plan-acties"><summary class="knop klein">Acties ▾</summary><div><button type="button" class="knop klein" id="plan-dupliceer">Dupliceren…</button><button type="button" class="knop klein" id="plan-centreer">Centreren op vlak</button><button type="button" class="knop klein" id="plan-tracelengte" hidden>Tracélengte overnemen…</button></div></details><button type="button" class="plan-vuilbak" id="plan-selectie-verwijder" aria-label="Geselecteerd object verwijderen"></button><button type="button" class="knop klein" id="plan-deselecteer" aria-label="Selectie opheffen">×</button></div><p id="plan-trace-info" class="hint" hidden></p><p id="plan-vorm-melding" class="hint" role="status" hidden></p></div>
       <section id="plan-inspector" class="plan-inspector" aria-label="Eigenschappen van geselecteerd object" hidden></section>
       <details class="studio-vouw studio-opties" id="tekenopties"><summary>Tekenopties <span>Lagen, raster en sleepvlak</span></summary><div class="studio-vouw-inhoud">
@@ -2262,6 +2280,13 @@ body.huisstand-actief .object-snelknop,body.huisstand-actief .tekening-snelknop{
 
 <div class="toast" id="toast" hidden role="status" aria-live="polite"></div>
 
+<dialog id="trap-menu" class="object-menu" aria-labelledby="trap-titel"><form id="trap-form"><header class="object-menu-kop"><h2 id="trap-titel">Trap toevoegen</h2><button type="button" class="knop" id="trap-sluit" aria-label="Trapvenster sluiten">Sluiten ×</button></header><div class="opening-velden">
+<label>Naam<input id="trap-naam" maxlength="100" value="Trap" required></label><label>Stijgrichting<select id="trap-richting"><option value="0">Naar onder op het plan</option><option value="90">Naar links</option><option value="180">Naar boven</option><option value="270">Naar rechts</option></select></label>
+<label>Breedte (m)<input id="trap-breedte" type="number" min="0.05" max="100" step="any" value="0.9" required></label><label>Lengte op vloer (m)<input id="trap-lengte" type="number" min="0.05" max="100" step="any" value="2.4" required></label>
+<label>Hoogte (m)<input id="trap-hoogte" type="number" min="0.05" max="100" step="any" value="2.5" required></label><label>Treden<input id="trap-treden" type="number" min="2" max="40" step="1" value="14" required></label>
+<label>X vanaf kamerbegin (m)<input id="trap-x" type="number" min="0" max="1000" step="any" value="0" required></label><label>Y vanaf kamerbegin (m)<input id="trap-y" type="number" min="0" max="1000" step="any" value="0" required></label>
+<p id="trap-fout" role="alert" hidden></p><button type="submit" class="knop primair">Trap bewaren</button><button type="button" class="knop gevaar" id="trap-verwijder" hidden>Trap verwijderen</button>
+<p class="hint">Schematische rechte trap. Sleep in 2D/3D; klik om maten te bewerken. Geen automatische offerteprijs, vloersparing of verbinding met een verdieping. Controleer optrede, aantrede, hoofdruimte en constructie met een vakman.</p></div></form></dialog>
 <dialog id="opening-menu" class="object-menu" aria-labelledby="opening-titel">
 <form id="opening-form">
 <header class="object-menu-kop"><h2 id="opening-titel">Opening toevoegen</h2><button type="button" class="knop" id="opening-sluit" aria-label="Opening toevoegen annuleren">Sluiten ×</button></header>
@@ -3431,6 +3456,19 @@ function openingVanDict(d = {}) {
   };
 }
 
+function trappenVanDict(raw){
+  if(raw==null)return [];
+  if(!Array.isArray(raw)||raw.length>100)throw Error('Gebruik maximaal 100 trappen per kamer.');
+  const ids=new Set();return raw.map((d,i)=>{
+    if(!d||typeof d!=='object'||Array.isArray(d))throw Error('Ongeldige trap.');
+    const t={id:tekst(d.id)||'trap_'+(i+1),naam:tekst(d.naam,'Trap')||'Trap'};
+    for(const [key,value] of Object.entries({x:0,y:0,breedte:.9,lengte:2.4,hoogte:2.5,richting:0,treden:14}))t[key]=Vorm.number(d[key]===undefined?value:d[key]);
+    if(['x','y'].some(k=>t[k]<0||t[k]>1000)||['breedte','lengte','hoogte'].some(k=>t[k]<.05||t[k]>100))throw Error('Ongeldige trapmaten of positie.');
+    if(![0,90,180,270].includes(t.richting)||!Number.isInteger(t.treden)||t.treden<2||t.treden>40)throw Error('Kies een traprichting en 2 tot 40 treden.');
+    if(Array.from(t.id).length>100||Array.from(t.naam).length>100||ids.has(t.id))throw Error('Ongeldige of dubbele trapnaam/id.');ids.add(t.id);return t;
+  });
+}
+
 function ruimteVanDict(d = {}) {
   const contour=Vorm.contour(d.contour),dak=Vorm.roof(d.dak),wand_helling=Vorm.leaning(d.wand_helling),huis_positie=Vorm.position(d.huis_positie);
   const hoogte=dak?Math.max(dak.start,dak.eind):contour.length?Vorm.number(d.hoogte ?? 2.5):getal(d.hoogte,2.5);
@@ -3443,6 +3481,7 @@ function ruimteVanDict(d = {}) {
     lengte: contour.length?Math.max(...contour.map(p=>p.x)):getal(d.lengte,4.0),
     breedte: contour.length?Math.max(...contour.map(p=>p.y)):getal(d.breedte,3.0),
     hoogte,
+    trappen:trappenVanDict(d.trappen),
     openingen: (d.openingen || []).map(openingVanDict),
   };
   if(huis_positie||Object.keys(wand_helling).length){Vorm.contour(Vorm.points(room),false);if(!Number.isFinite(hoogte)||hoogte<.1||hoogte>100)throw Error('Plafondhoogten moeten tussen 0,10 en 100 meter liggen.');}
@@ -3939,6 +3978,7 @@ function berekenOfferte(projectData = {}) {
       lengte: ruimte.lengte,
       breedte: ruimte.breedte,
       hoogte: ruimte.hoogte,
+      trappen:ruimte.trappen.map(t=>({...t})),
       openingen: ruimte.openingen.map((o) => ({ ...o })),
       vlakken,
       wandoppervlak: money(vlakken.filter((v) => v.soort === "muur")
@@ -4011,6 +4051,7 @@ function berekenOfferte(projectData = {}) {
       ruimtes: project.ruimtes.map((r) => ({
         id: r.id, naam: r.naam, lengte: r.lengte, breedte: r.breedte, hoogte: r.hoogte,
         contour:r.contour.map(p=>({...p})),dak:r.dak?{...r.dak}:null,wand_helling:{...r.wand_helling},huis_positie:r.huis_positie?{...r.huis_positie}:null,
+        trappen:r.trappen.map(t=>({...t})),
         openingen: r.openingen.map((o) => ({
           naam: o.naam, muur: o.muur, breedte: o.breedte, hoogte: o.hoogte, aantal: o.aantal,
           positie: o.positie, borstwering: o.borstwering,
@@ -4661,7 +4702,35 @@ if (typeof window !== "undefined") {
     return `<svg class="plan aanzicht" viewBox="${zoomBox(780,550,opties)}" role="group" aria-label="${naam}, vlakaanzicht van ${esc(ruimte.naam)}">${svg}</svg>`;
   }
 
-  window.BouwPlan = { traceLengte, plattegrond, isometrie, laag, werkGeometrie, tint, projectie, planProjectie, openingGeometrie, aanzichtProjectie, aanzicht };
+  function trapGeometrie(t){
+    const w=t.breedte,l=t.lengte;
+    const point=(u,v,z=0)=>{const q=t.richting===90?[l-v,u]:t.richting===180?[w-u,l-v]:t.richting===270?[v,w-u]:[u,v];return [t.x+q[0],t.y+q[1],z];};
+    return {point,voet:[point(0,0),point(w,0),point(w,l),point(0,l)]};
+  }
+  function trapOverlay(room,P,iso=false,interactive=true){
+    return (room.trappen||[]).map(t=>{
+      const g=trapGeometrie(t),p=(u,v,z=0)=>P(...g.point(u,v,iso?z:0));
+      const polygon=(ps,cls)=>`<polygon class="${cls}" points="${punten(ps)}"/>`;
+      let body=polygon(g.voet.map(a=>P(...a)),'trap-voet');
+      for(let i=0;i<t.treden;i++){
+        const a=i*t.lengte/t.treden,b=(i+1)*t.lengte/t.treden,z=(i+1)*t.hoogte/t.treden;
+        if(iso)body+=polygon([p(0,a,z-t.hoogte/t.treden),p(t.breedte,a,z-t.hoogte/t.treden),p(t.breedte,a,z),p(0,a,z)],'trap-stootbord');
+        body+=polygon([p(0,a,z),p(t.breedte,a,z),p(t.breedte,b,z),p(0,b,z)],'trap-trede');
+      }
+      const a=p(t.breedte/2,t.lengte*.15,t.hoogte*.15+.03),b=p(t.breedte/2,t.lengte*.85,t.hoogte*.85+.03),dx=b[0]-a[0],dy=b[1]-a[1],n=Math.hypot(dx,dy)||1,ux=dx/n,uy=dy/n;
+      body+=`<path class="trap-pijl" d="M${punten([a])} L${punten([b])} M${R(b[0]-ux*10-uy*5)},${R(b[1]-uy*10+ux*5)} L${punten([b])} L${R(b[0]-ux*10+uy*5)},${R(b[1]-uy*10-ux*5)}"/>`;
+      const label=p(t.breedte/2,t.lengte/2,t.hoogte/2);
+      body+=`<text class="trap-label" x="${R(label[0])}" y="${R(label[1]+16)}" text-anchor="middle">${esc(t.naam)}</text>`;
+      return `<g class="trap-object" ${interactive?`data-trap-id="${esc(t.id)}" data-fokus="trap_${esc(t.id)}" tabindex="0" role="button" aria-label="${esc(t.naam)} bewerken"`:'aria-hidden="true"'}><title>${esc(t.naam)} · ${F(t.breedte)} × ${F(t.lengte)} m · ${t.treden} treden · schematisch</title>${body}</g>`;
+    }).join('');
+  }
+  function metTrappen(fn,mode){return (room,vlakken,werk,options={})=>{
+    const base=fn(room,vlakken,werk,options);
+    if(!room.trappen?.length)return base;
+    const P=mode==='iso'?projectie(room,options.hoek).P:mode==='front'?aanzichtProjectie(room,options.vlak).P:planProjectie(room).P;
+    return base.replace('</svg>',trapOverlay(room,P,mode==='iso'||mode==='front'&&!['vloer','plafond'].includes(options.vlak))+'</svg>');
+  };}
+  window.BouwPlan = { trapGeometrie,trapOverlay,traceLengte,plattegrond:metTrappen(plattegrond,'plan'),isometrie:metTrappen(isometrie,'iso'), laag, werkGeometrie, tint, projectie, planProjectie, openingGeometrie, aanzichtProjectie,aanzicht:metTrappen(aanzicht,'front') };
 })();
 
 </script>
@@ -5495,6 +5564,7 @@ function renderPlan() {
     if(planWeergave === "aanzicht" && o.muur !== planVlak) return "";
     return `<div class="plan-opening-rij"><button type="button" class="plan-opening-select" data-plan-opening-select="${index}" aria-pressed="false"><strong>${esc(o.naam)}</strong><small>Opening · wand ${esc(o.muur)}</small></button><button type="button" class="plan-vuilbak" data-plan-opening-verwijder="${index}" aria-label="${esc(o.naam)} op wand ${esc(o.muur)} verwijderen" title="Opening verwijderen">${vuilbakIcoon}</button></div>`;
   }).join("");
+  $("#plan-openingen").innerHTML += (ruimte.trappen||[]).map(t=>`<div class="plan-opening-rij"><button type="button" class="plan-opening-select" data-trap-edit="${esc(t.id)}"><strong>${esc(t.naam)}</strong><small>Trap · ${NR.format(t.breedte)} × ${NR.format(t.lengte)} m · bewerken/verwijderen</small></button></div>`).join('');
   $("#vlak-bediening").hidden = planWeergave !== "aanzicht";
   $("#sleepvlak-keuze").hidden = planWeergave !== "isometrie";
   $$("[data-aanzicht-vlak]").forEach(b=>{
@@ -5502,7 +5572,7 @@ function renderPlan() {
     b.setAttribute("aria-pressed",String(b.dataset.aanzichtVlak===planVlak));
     b.querySelector("small").textContent=v ? `${NRL.format(v.netto)} m² netto` : "";
   });
-  $("#plan-objecten-aantal").textContent = `${regels.filter(r=>r.aantal>0).length} werkregels · ${(ruimte.openingen || []).length} openingen in deze ruimte`;
+  $("#plan-objecten-aantal").textContent = `${regels.filter(r=>r.aantal>0).length} werkregels · ${(ruimte.openingen || []).length} openingen · ${(ruimte.trappen||[]).length} trappen in deze ruimte`;
   renderPlanSelectie();
   const bediening = $("#iso-bediening");
   if (bediening) bediening.hidden = false;
@@ -7158,7 +7228,7 @@ function sluitTekenFocus() {
   const V=()=>window.BouwVorm;
   const selected=()=>state.project?.ruimtes.find(r=>r.id===gekozen);
   let placementRoom=null,placementDirty=false,placementProject=null,cutDrag=null;
-  const empty=r=>!(r.openingen||[]).length&&!state.project.regels.some(x=>x.ruimte_id===r.id)&&!Object.keys(r.wand_helling||{}).length;
+  const empty=r=>!(r.trappen||[]).length&&!(r.openingen||[]).length&&!state.project.regels.some(x=>x.ruimte_id===r.id)&&!Object.keys(r.wand_helling||{}).length;
   const message=s=>$('#huis-melding').textContent=s;
   function splitPreview(r){
     if(!r||!empty(r)||!$('#huis-splits-invoer').open||$('#huis-splits-invoer').hidden)return {parts:null,error:''};
@@ -7222,6 +7292,7 @@ function sluitTekenFocus() {
         (r.openingen||[]).forEach((o,i)=>{const g=BouwPlan.openingGeometrie(r,i);if(!g)return;const ps=(iso?[g.a,g.b,g.c,g.d]:[g.a,g.b]).map(a=>world({x:a[0],y:a[1],z:iso?a[2]:0}));out+=`<g class="huis-opening"><title>${esc(o.naam)} · ${esc(r.naam)}</title>`+(iso?polygon(ps,'huis-opening-vlak'):`<polyline points="${ps.map(a=>P(a.x,a.y).join(',')).join(' ')}"/>`)+'</g>';});
         project.regels.filter(w=>w.ruimte_id===r.id).forEach((w,i)=>{const pakket=state.prijsboek?.pakketten.find(p=>p.id===w.pakket_id);if(!pakket)return;const g=BouwPlan.werkGeometrie({...w,pakket,nummer:i+1},r),a=P(g.a[0]+o.x,g.a[1]+o.y,iso?g.a[2]:0),b=P(g.b[0]+o.x,g.b[1]+o.y,iso?g.b[2]:0);out+=`<g class="huis-object"><title>${esc(pakket.naam)} · ${esc(r.naam)} · open de kamer om te bewerken</title>${pakket.eenheid==='m'?`<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}"/>`:''}<circle cx="${a[0]}" cy="${a[1]}" r="6"/></g>`;});
       }
+      if(window.BouwPlan?.trapOverlay)out+=BouwPlan.trapOverlay(r,(x,y,z=0)=>P(x+o.x,y+o.y,z),iso,false);
       const a=world(V().interior(r));out+=text(a,r.naam,'huis-label',-4)+text(a,NR.format(Math.abs(V().area(ps)))+' m²','huis-oppervlak',16);out+='</g>';
     }
     const top=V().points(h);top.forEach((a,i)=>{const b=top[(i+1)%top.length];out+=text({x:(a.x+b.x)/2,y:(a.y+b.y)/2-.15},NR.format(Math.hypot(a.x-b.x,a.y-b.y))+' m','huis-maat');});
@@ -7327,7 +7398,7 @@ function sluitTekenFocus() {
     const r=selected(),panel=$('#huis-selectie-info');syncName(r);panel.hidden=!r||!state.project.huis;
     if(!r){panel.innerHTML='';return;}
     const vs=V().surfaces(r),opp=id=>NR.format(vs.find(v=>v.sleutel===id).netto),count=state.project.regels.filter(w=>w.ruimte_id===r.id).length;
-    panel.innerHTML=`<strong>${esc(r.naam)}</strong>${r.huis_positie?'':'<p class="huis-buiten-info">Buiten huisplan · open de kamer om werken te bewerken, of plaats ze hieronder.</p>'}<dl><div><dt title="Vloeroppervlakte"><span aria-hidden="true">▱</span><span class="compact-sr">Vloer</span></dt><dd>${opp('vloer')} m²</dd></div><div><dt title="Plafondoppervlakte"><span aria-hidden="true">▱↑</span><span class="compact-sr">Plafond</span></dt><dd>${opp('plafond')} m²</dd></div><div><dt title="Netto wandoppervlakte"><span aria-hidden="true">▥</span><span class="compact-sr">Netto wanden</span></dt><dd>${NR.format(vs.filter(v=>v.soort==='muur').reduce((n,v)=>n+v.netto,0))} m²</dd></div><div><dt title="Aantal werkposten"><span aria-hidden="true">☷</span><span class="compact-sr">Werkposten</span></dt><dd>${count}</dd></div></dl>${empty(r)?'':'<p class="hint">Indeling beschermd: werken, openingen of wandhelling.</p>'}`;
+    panel.innerHTML=`<strong>${esc(r.naam)}</strong>${r.huis_positie?'':'<p class="huis-buiten-info">Buiten huisplan · open de kamer om werken te bewerken, of plaats ze hieronder.</p>'}<dl><div><dt title="Vloeroppervlakte"><span aria-hidden="true">▱</span><span class="compact-sr">Vloer</span></dt><dd>${opp('vloer')} m²</dd></div><div><dt title="Plafondoppervlakte"><span aria-hidden="true">▱↑</span><span class="compact-sr">Plafond</span></dt><dd>${opp('plafond')} m²</dd></div><div><dt title="Netto wandoppervlakte"><span aria-hidden="true">▥</span><span class="compact-sr">Netto wanden</span></dt><dd>${NR.format(vs.filter(v=>v.soort==='muur').reduce((n,v)=>n+v.netto,0))} m²</dd></div><div><dt title="Aantal werkposten"><span aria-hidden="true">☷</span><span class="compact-sr">Werkposten</span></dt><dd>${count}</dd></div></dl>${empty(r)?'':'<p class="hint">Indeling beschermd: werken, openingen, trappen of wandhelling.</p>'}`;
   }
   function openSelected(){
     const r=selected();if(!r)return;
@@ -7350,7 +7421,7 @@ function sluitTekenFocus() {
     $('#huis-plaats-ruimte').value=id;$('#huis-plaats-x').value=r.huis_positie?.x||0;$('#huis-plaats-y').value=r.huis_positie?.y||0;
     snede=null;render(!unchanged);message(`${r.naam} geselecteerd${r.huis_positie?'':'; nog niet op het huisplan'}.`);
   }
-  function splitRoom(){const r=selected();if(!r?.huis_positie)throw Error('Selecteer eerst een kamer op het huisplan.');if(!empty(r))throw Error('Splits eerst de indeling vóór je werken, openingen of schuine wanden toevoegt. Deze kamer bevat die al; er wordt niets verwijderd.');return r;}
+  function splitRoom(){const r=selected();if(!r?.huis_positie)throw Error('Selecteer eerst een kamer op het huisplan.');if(!empty(r))throw Error('Splits eerst de indeling vóór je werken, openingen, trappen of schuine wanden toevoegt. Deze kamer bevat die al; er wordt niets verwijderd.');return r;}
   function startCut(){try{const r=splitRoom();eindePan(true);gereedschap='select';view='2d';snede={room:r.id,punten:[]};$('#huis-split-as').value='vrij';$('#huis-split-waarde').disabled=true;$('#huis-splits-invoer').open=true;$('#huis-indeling-precies').open=true;render();cutFeedback();message('Tik op twee punten van de geselecteerde kamergrens. De punten klikken op de dichtstbijzijnde wand. Druk daarna op Splitsen toepassen.');host.scrollIntoView({block:'center',behavior:'instant'});host.focus({preventScroll:true});}catch(e){message(e.message);}}
   $('#huis-tekenen').addEventListener('click',()=>{
     if(!V())return;const old=state.project.huis;
@@ -7783,6 +7854,75 @@ function sluitTekenFocus() {
     }catch(error){$('#opening-fout').textContent=error.message;$('#opening-fout').hidden=false;}
   });
   window.BouwOpeningen={open};
+})();
+
+</script>
+<script>
+/* Schematic stairs: measured drawing objects, never quotation work packages. */
+(function(){
+  'use strict';
+  const $=s=>document.querySelector(s),dialog=$('#trap-menu'),host=$('#plan');
+  const fields=['naam','richting','breedte','lengte','hoogte','treden','x','y'];
+  let context=null,opener=null,drag=null,suppress=0;
+  function check(t,room){
+    if(!t.naam.trim()||t.naam.length>100)throw Error('Geef een trapnaam van 1 tot 100 tekens.');
+    if(['x','y','breedte','lengte','hoogte','richting','treden'].some(k=>!Number.isFinite(t[k]))||t.x<0||t.y<0||['breedte','lengte','hoogte'].some(k=>t[k]<.05||t[k]>100)||![0,90,180,270].includes(t.richting)||!Number.isInteger(t.treden)||t.treden<2||t.treden>40)throw Error('Controleer de trapmaten, richting en het aantal treden.');
+    const ps=BouwPlan.trapGeometrie(t).voet.map(a=>({x:a[0],y:a[1]}));
+    if(!ps.every(p=>BouwVorm.inside(room,p))||!ps.every((p,i)=>BouwVorm.segmentInside(room,p,ps[(i+1)%ps.length])))throw Error('De trap past niet binnen de kamer. Pas de positie, richting of maten aan.');
+    if(ps.some(p=>t.hoogte>BouwVorm.height(room,p.x,p.y)+.000001))throw Error('De trap komt boven het plafond. Controleer de hoogte en plaatsing.');
+  }
+  function open(id){
+    const room=actieveRuimte();if(!room)return;
+    const existing=(room.trappen||[]).find(t=>t.id===id);
+    if(!existing&&(room.trappen||[]).length>=100){toast('Gebruik maximaal 100 trappen per kamer.');return;}
+    const t=existing||{id:uid(),naam:'Trap',richting:0,breedte:.9,lengte:Math.min(2.4,room.breedte),hoogte:room.hoogte,treden:14,x:Math.max(0,(room.lengte-.9)/2),y:Math.max(0,(room.breedte-Math.min(2.4,room.breedte))/2)};
+    opener=document.activeElement;context={project:state.project,room:room.id,id:t.id,existing:!!existing};
+    fields.forEach(k=>$('#trap-'+k).value=t[k]);$('#trap-fout').hidden=true;$('#trap-verwijder').hidden=!existing;
+    $('#trap-titel').textContent=existing?'Trap bewerken':'Trap toevoegen';if(!dialog.open)dialog.showModal();$('#trap-naam').focus();
+  }
+  function current(){const r=actieveRuimte();if(!context||context.project!==state.project||context.room!==r?.id)throw Error('De kamer is veranderd. Sluit het venster en probeer opnieuw.');return r;}
+  $('#trap-form').addEventListener('submit',e=>{
+    e.preventDefault();try{const r=current(),t={id:context.id};fields.forEach(k=>t[k]=k==='naam'?$('#trap-'+k).value.trim():Number($('#trap-'+k).value));check(t,r);
+      const index=(r.trappen||[]).findIndex(t=>t.id===context.id);if(context.existing&&index<0)throw Error('Deze trap bestaat niet meer.');
+      wijzig(()=>{r.trappen ||= [];if(index<0)r.trappen.push(t);else r.trappen[index]=t;});dialog.close();toast('Trap bewaard. Alleen de tekening is gewijzigd; geen offertepost toegevoegd.');
+    }catch(error){$('#trap-fout').textContent=error.message;$('#trap-fout').hidden=false;}
+  });
+  $('#trap-sluit').addEventListener('click',()=>dialog.close());
+  $('#trap-verwijder').addEventListener('click',()=>{try{const r=current(),id=context.id;if(!confirm('Deze trap uit de tekening verwijderen?'))return;wijzig(()=>r.trappen=r.trappen.filter(t=>t.id!==id));dialog.close();}catch(error){$('#trap-fout').textContent=error.message;$('#trap-fout').hidden=false;}});
+  dialog.addEventListener('close',()=>{if(dialog.open)return;const id=context?.id;context=null;const target=[...host.querySelectorAll('[data-trap-id]')].find(e=>e.dataset.trapId===id)||opener;if(target?.isConnected&&target.getClientRects().length)target.focus({preventScroll:true});else $('[data-trap-toevoegen]')?.focus({preventScroll:true});});
+  document.addEventListener('click',e=>{if(e.target.closest('[data-trap-toevoegen]'))open();const b=e.target.closest('[data-trap-edit]');if(b)open(b.dataset.trapEdit);});
+  function projection(){return planWeergave==='isometrie'?BouwPlan.projectie(actieveRuimte(),planCamera.hoek).P:planWeergave==='aanzicht'?BouwPlan.aanzichtProjectie(actieveRuimte(),planVlak).P:BouwPlan.planProjectie(actieveRuimte()).P;}
+  function redraw(t){
+    const node=[...host.querySelectorAll('[data-trap-id]')].find(e=>e.dataset.trapId===t.id);if(node)node.outerHTML=BouwPlan.trapOverlay({...actieveRuimte(),trappen:[t]},projection(),planWeergave==='isometrie');
+  }
+  function end(cancel=false){
+    if(!drag)return;const d=drag;drag=null;suppress=performance.now()+500;
+    if(host.hasPointerCapture?.(d.pointer))host.releasePointerCapture(d.pointer);
+    if(state.project!==d.project||actieveRuimte()?.id!==d.room){renderPlan();return;}
+    if(!d.moved){if(!cancel)open(d.id);return;}
+    if(cancel){renderPlan();return;}
+    try{check(d.draft,actieveRuimte());const t=actieveRuimte().trappen.find(t=>t.id===d.id);if(!t)throw Error('Trap niet gevonden.');wijzig(()=>Object.assign(t,{x:d.draft.x,y:d.draft.y}));}catch(error){renderPlan();toast(error.message);}
+  }
+  host.addEventListener('pointerdown',e=>{
+    const node=e.target.closest('[data-trap-id]');if(!node||!e.isPrimary||e.button!==0||planGereedschap!=='select')return;
+    // Wall elevations remain editable with the form; dragging uses the floor plane.
+    if(planWeergave==='aanzicht'&&!['vloer','plafond'].includes(planVlak))return;
+    const r=actieveRuimte(),t=r.trappen.find(t=>t.id===node.dataset.trapId),P=projection(),a=P(0,0,0),b=P(1,0,0),c=P(0,1,0),u=[b[0]-a[0],b[1]-a[1]],v=[c[0]-a[0],c[1]-a[1]],det=u[0]*v[1]-u[1]*v[0];if(Math.abs(det)<1e-8)return;
+    e.preventDefault();e.stopImmediatePropagation();drag={pointer:e.pointerId,project:state.project,room:r.id,id:t.id,draft:{...t},before:{...t},sx:e.clientX,sy:e.clientY,u,v,det,inverse:host.querySelector('svg').getScreenCTM().inverse(),moved:false};host.setPointerCapture(e.pointerId);host.focus({preventScroll:true});
+  },true);
+  host.addEventListener('pointermove',e=>{
+    const d=drag;if(!d||d.pointer!==e.pointerId)return;e.preventDefault();e.stopImmediatePropagation();
+    if(state.project!==d.project||actieveRuimte()?.id!==d.room){end(true);return;}
+    if(Math.hypot(e.clientX-d.sx,e.clientY-d.sy)<4&&!d.moved)return;d.moved=true;
+    const dx=d.inverse.a*(e.clientX-d.sx)+d.inverse.c*(e.clientY-d.sy),dy=d.inverse.b*(e.clientX-d.sx)+d.inverse.d*(e.clientY-d.sy);
+    d.draft.x=Math.round(Math.max(0,d.before.x+(dx*d.v[1]-dy*d.v[0])/d.det)*20)/20;
+    d.draft.y=Math.round(Math.max(0,d.before.y+(d.u[0]*dy-d.u[1]*dx)/d.det)*20)/20;redraw(d.draft);
+  },{capture:true,passive:false});
+  host.addEventListener('pointerup',e=>{if(drag?.pointer===e.pointerId){e.stopImmediatePropagation();end();}},true);
+  host.addEventListener('pointercancel',e=>{if(drag?.pointer===e.pointerId)end(true);},true);
+  host.addEventListener('lostpointercapture',()=>{if(drag)end(true);});
+  host.addEventListener('click',e=>{if(performance.now()<suppress){e.preventDefault();e.stopImmediatePropagation();return;}const t=e.target.closest('[data-trap-id]');if(t){e.preventDefault();e.stopImmediatePropagation();open(t.dataset.trapId);}},true);
+  host.addEventListener('keydown',e=>{if(e.key==='Escape'&&drag){e.preventDefault();end(true);return;}const t=e.target.closest('[data-trap-id]');if(t&&['Enter',' '].includes(e.key)){e.preventDefault();e.stopPropagation();open(t.dataset.trapId);}});
 })();
 
 </script>

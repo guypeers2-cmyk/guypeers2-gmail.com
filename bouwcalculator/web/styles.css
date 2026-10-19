@@ -1906,3 +1906,20 @@ body.huisstand-actief .object-snelknop,body.huisstand-actief .tekening-snelknop{
 #huis-indelen-direct .knop{min-width:0;padding:8px 4px;font-size:.75rem;white-space:normal}
 @media screen and (max-width:360px){#huis-paneel .plankop>h3{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}}
 [data-huis-cut]:focus{outline:none}
+/* Keep architectural objects next to the canvas, also on small screens. */
+.tekening-werkzone{display:grid;grid-template-columns:88px minmax(0,1fr);gap:8px;align-items:start}
+.tekening-objectrail .opening-snel{display:flex;flex-direction:column;margin:0;gap:6px}
+.tekening-objectrail .knop{width:100%;min-height:44px;padding:8px 4px;font-size:.75rem;white-space:normal}
+.tekening-werkzone>.planhouder{min-width:0}
+.trap-voet{fill:var(--goud-zacht);stroke:var(--goud);stroke-width:1.5}
+.trap-trede{fill:var(--goud-zacht);stroke:var(--goud);stroke-width:1}
+.trap-stootbord{fill:var(--goud-rand);stroke:var(--goud);stroke-width:1}
+.trap-pijl{fill:none;stroke:var(--tekst);stroke-width:2;pointer-events:none}
+.trap-label{fill:var(--tekst);font-size:11px;paint-order:stroke;stroke:var(--oppervlak);stroke-width:3px;pointer-events:none}
+.trap-object{cursor:grab;touch-action:none}.trap-object:focus{outline:none}.trap-object:focus-visible .trap-voet{stroke:var(--accent);stroke-width:4}
+#trap-fout{color:var(--rood)}#trap-fout[hidden],#trap-verwijder[hidden]{display:none!important}
+@media(max-width:400px){.tekening-werkzone{grid-template-columns:64px minmax(0,1fr);gap:4px}.tekening-objectrail .knop{font-size:.7rem}}
+@media print{.tekening-objectrail,#trap-menu{display:none!important}.tekening-werkzone{display:block}}
+#huis-plan .trap-object{pointer-events:none;cursor:inherit}
+.tekening-objectrail .knop{display:flex;align-items:center;justify-content:center;gap:4px}
+.objectrail-ico{width:16px;height:16px;flex:0 0 16px}

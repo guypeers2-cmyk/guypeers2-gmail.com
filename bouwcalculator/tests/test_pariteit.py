@@ -119,6 +119,15 @@ PROJECTS.append({**project('Extra wand',openingen=[dict(RAAM,muur='wand_5')],reg
     'ruimtes':[{'id':'r1','contour':[{'x':x,'y':y} for x,y in [(0,0),(4,0),(4,1.5),(2,1.5),(2,3),(0,3)]],
                 'openingen':[dict(RAAM,muur='wand_5')]}]})
 
+trap_project = project('Trap bewaard zonder vloer- of prijswijziging', regels=[regel()])
+trap_project['ruimtes'][0]['trappen'] = [
+    dict(id='t1', naam='Trap & <bordes>', x=.2, y=.3, breedte=.9,
+         lengte=2.4, hoogte=2.5, richting=90, treden=14),
+    dict(naam='Tweede trap', richting=270),
+]
+PROJECTS.append(trap_project)
+
+
 class TestPariteit(unittest.TestCase):
     """De JS-port en de Python-kern leveren identieke offertes."""
 

@@ -90,6 +90,7 @@ def bereken_offerte(project_data: Dict[str, Any]) -> Dict[str, Any]:
             "lengte": ruimte.lengte,
             "breedte": ruimte.breedte,
             "hoogte": ruimte.hoogte,
+            "trappen": [dict(t) for t in ruimte.trappen],
             "openingen": [o.naar_dict() for o in ruimte.openingen],
             "vlakken": vlakken,
             "wandoppervlak": money(sum(v["netto"] for v in vlakken if v["soort"] == "muur")),

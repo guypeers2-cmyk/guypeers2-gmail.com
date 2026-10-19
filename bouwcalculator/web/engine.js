@@ -74,6 +74,19 @@ function openingVanDict(d = {}) {
   };
 }
 
+function trappenVanDict(raw){
+  if(raw==null)return [];
+  if(!Array.isArray(raw)||raw.length>100)throw Error('Gebruik maximaal 100 trappen per kamer.');
+  const ids=new Set();return raw.map((d,i)=>{
+    if(!d||typeof d!=='object'||Array.isArray(d))throw Error('Ongeldige trap.');
+    const t={id:tekst(d.id)||'trap_'+(i+1),naam:tekst(d.naam,'Trap')||'Trap'};
+    for(const [key,value] of Object.entries({x:0,y:0,breedte:.9,lengte:2.4,hoogte:2.5,richting:0,treden:14}))t[key]=Vorm.number(d[key]===undefined?value:d[key]);
+    if(['x','y'].some(k=>t[k]<0||t[k]>1000)||['breedte','lengte','hoogte'].some(k=>t[k]<.05||t[k]>100))throw Error('Ongeldige trapmaten of positie.');
+    if(![0,90,180,270].includes(t.richting)||!Number.isInteger(t.treden)||t.treden<2||t.treden>40)throw Error('Kies een traprichting en 2 tot 40 treden.');
+    if(Array.from(t.id).length>100||Array.from(t.naam).length>100||ids.has(t.id))throw Error('Ongeldige of dubbele trapnaam/id.');ids.add(t.id);return t;
+  });
+}
+
 function ruimteVanDict(d = {}) {
   const contour=Vorm.contour(d.contour),dak=Vorm.roof(d.dak),wand_helling=Vorm.leaning(d.wand_helling),huis_positie=Vorm.position(d.huis_positie);
   const hoogte=dak?Math.max(dak.start,dak.eind):contour.length?Vorm.number(d.hoogte ?? 2.5):getal(d.hoogte,2.5);
@@ -86,6 +99,7 @@ function ruimteVanDict(d = {}) {
     lengte: contour.length?Math.max(...contour.map(p=>p.x)):getal(d.lengte,4.0),
     breedte: contour.length?Math.max(...contour.map(p=>p.y)):getal(d.breedte,3.0),
     hoogte,
+    trappen:trappenVanDict(d.trappen),
     openingen: (d.openingen || []).map(openingVanDict),
   };
   if(huis_positie||Object.keys(wand_helling).length){Vorm.contour(Vorm.points(room),false);if(!Number.isFinite(hoogte)||hoogte<.1||hoogte>100)throw Error('Plafondhoogten moeten tussen 0,10 en 100 meter liggen.');}
@@ -585,6 +599,7 @@ export function berekenOfferte(projectData = {}) {
       lengte: ruimte.lengte,
       breedte: ruimte.breedte,
       hoogte: ruimte.hoogte,
+      trappen:ruimte.trappen.map(t=>({...t})),
       openingen: ruimte.openingen.map((o) => ({ ...o })),
       vlakken,
       wandoppervlak: money(vlakken.filter((v) => v.soort === "muur")
@@ -657,6 +672,7 @@ export function berekenOfferte(projectData = {}) {
       ruimtes: project.ruimtes.map((r) => ({
         id: r.id, naam: r.naam, lengte: r.lengte, breedte: r.breedte, hoogte: r.hoogte,
         contour:r.contour.map(p=>({...p})),dak:r.dak?{...r.dak}:null,wand_helling:{...r.wand_helling},huis_positie:r.huis_positie?{...r.huis_positie}:null,
+        trappen:r.trappen.map(t=>({...t})),
         openingen: r.openingen.map((o) => ({
           naam: o.naam, muur: o.muur, breedte: o.breedte, hoogte: o.hoogte, aantal: o.aantal,
           positie: o.positie, borstwering: o.borstwering,
