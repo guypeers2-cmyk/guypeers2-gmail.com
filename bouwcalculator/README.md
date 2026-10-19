@@ -1051,3 +1051,27 @@ Controle: `python3 -m unittest discover -s bouwcalculator/tests`,
 `tools/stairs_review.mjs` (online en offline), plus de bestaande insertion-,
 compact- en directe-indelingsreviews. Browserreviews gebruiken een geïsoleerd
 profiel en schrijven niet naar het projectenarchief.
+
+### Gyproc-platen zichtbaar op het plan
+
+Een Gyproc-werkpost (`gyproc_wand_profiel`, `gyproc_plafond` of `gyproc_direct`)
+toont nu een schematische plaatverdeling op het bijbehorende vlak:
+
+- Standaard/15 mm: **120 × 260 cm**; GGL 30 mm: **120 × 240 cm**, overeenkomstig
+  het bestaande prijsboek. Rechtop op de wand, in lokale vlakmaten op het plafond.
+- Zichtbaar in kamer-2D (naden langs de wand), 3D, vlakaanzicht en huisoverzicht.
+  Deuren en ramen worden uit de plaatlaag gemaskeerd. Concave contouren, hellende
+  plafonds en schuine wanden blijven begrensd door hun werkelijke vlakcontour.
+- **Tekenopties → Gyproc-platen** verbergt de naden zonder werkposten of bedragen
+  te wijzigen. De bestaande laag **Gyproc & afwerking** verbergt ze eveneens.
+- Eén zichtbare laag per vlak; geen automatisch zaagplan, schroefpatroon,
+  constructieve naadcontrole, exact gedeeltelijk bekleed oppervlak of weergave
+  van alle lagen/zijden. De aantallen en het snijverlies blijven uitsluitend uit
+  de bestaande calculatie komen. De naden zijn geen nieuwe sleepbare objecten;
+  de bestaande werkregelmarker blijft bewerkbaar en verplaatsbaar.
+- Een SVG-patroon houdt de renderkosten beperkt; in het bovenaanzicht worden op
+  uitzonderlijk lange wanden maximaal circa 400 naadmarkeringen getoond.
+
+Browsercontrole: `tools/panels_review.mjs` (online/offline, beide thema's,
+320–1440 px, materiaalformaten, uitsparingen, vormgeometrie en ongewijzigde
+project-/prijsgegevens).

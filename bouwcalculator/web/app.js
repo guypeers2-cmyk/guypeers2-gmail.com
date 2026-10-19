@@ -725,7 +725,7 @@ let planSelectie = null;
 let planInspectieOpen = false;
 const planCamera = { hoek: 0, zoom: 1, maten: true, panX: 0, panY: 0 };
 let planGereedschap = "select";
-const planLagen = {afwerking: true, elektriciteit: true, sanitair: true};
+const planLagen = {platen: true, afwerking: true, elektriciteit: true, sanitair: true};
 
 function planRegels(ruimte) {
   const vlakken = vlakkenVoor(ruimte);
@@ -775,6 +775,7 @@ function renderPlan() {
     planSelectie=null;planInspectieOpen=false;
     houder.innerHTML='<div class="plan-leeg"><strong>Start met een ruimte</strong><p>Voeg een ruimte toe om te tekenen en objecten te plaatsen.</p><button type="button" class="knop primair" data-actie="ruimte-toevoegen">+ Ruimte toevoegen</button></div>';
     $('#plan-selectie').hidden=true;$('#plan-inspector').hidden=true;
+    $('#plan-plaat-info').hidden=true;
     $('#plan-legenda').innerHTML='';$('#plan-openingen').innerHTML='';
     $('#plan-objecten-aantal').textContent='Geen actieve ruimte';
     window.BouwMeten?.render();
@@ -794,6 +795,9 @@ function renderPlan() {
   const tekenaar = planWeergave === "aanzicht" ? window.BouwPlan.aanzicht : planWeergave === "isometrie" ? window.BouwPlan.isometrie : window.BouwPlan.plattegrond;
   const regels = planRegels(ruimte);
   houder.innerHTML = tekenaar(ruimte, vlakken, werk, {...planCamera, regels, lagen: planLagen, vlak: planVlak});
+  const plaatmaten=planLagen.platen&&planLagen.afwerking?[...new Set(regels.filter(r=>r.aantal>0&&(planWeergave!=='aanzicht'||r.oppervlak===planVlak)).map(r=>BouwPlan.plaatMaat(r)).filter(Boolean).map(m=>`120 × ${Math.round(m.lengte*100)} cm`))]:[];
+  $('#plan-plaat-info').hidden=!plaatmaten.length;
+  $('#plan-plaat-info').textContent=`Gyproc-plaatnaden · ${plaatmaten.join(' / ')} · schematisch, geen zaagplan. Verbergen via Tekenopties.`;
   const legenda = $("#plan-legenda");
   if (legenda) legenda.innerHTML = planLegenda(planWeergave === "aanzicht" ? regels.filter(r=>r.oppervlak===planVlak) : regels) || '<p class="vlak-leeg">Nog geen zichtbare werken op dit vlak. Voeg hieronder een werkregel toe of schakel een laag in.</p>';
   $("#plan-openingen").innerHTML = (ruimte.openingen || []).map((o,index)=> {

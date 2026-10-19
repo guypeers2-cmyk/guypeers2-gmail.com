@@ -1923,3 +1923,9 @@ body.huisstand-actief .object-snelknop,body.huisstand-actief .tekening-snelknop{
 #huis-plan .trap-object{pointer-events:none;cursor:inherit}
 .tekening-objectrail .knop{display:flex;align-items:center;justify-content:center;gap:4px}
 .objectrail-ico{width:16px;height:16px;flex:0 0 16px}
+/* Actual stock-size Gyproc seams: indicative visible layer, no cut list. */
+.gyproc-naad{fill:none;stroke:var(--accent);stroke-width:.012}
+.gyproc-plaatvulling{fill:var(--accent);fill-opacity:.07}
+.gyproc-plaatnaden{opacity:.8}
+.gyproc-plan-band{fill:none;stroke:var(--accent);stroke-opacity:.35;stroke-width:6}
+.gyproc-plan-naad{fill:none;stroke:var(--accent);stroke-width:1.5}

@@ -162,8 +162,55 @@
     return svg;
   }
 
+  /* Physical board-size seams, not a cutting plan or additional quantities.
+     An affine SVG pattern bounds rendering cost even for a 1000 m surface. */
+  function plaatMaat(regel){
+    if(!['gyproc_wand_profiel','gyproc_plafond','gyproc_direct'].includes(regel.pakket_id))return null;
+    const soort=regel.opties?.plaat|| (regel.pakket_id==='gyproc_direct'?'GGL 30 mm':'12,5 mm');
+    return {breedte:1.2,lengte:soort==='GGL 30 mm'?2.4:2.6,soort};
+  }
+  function plaatVlak(ruimte,r,P,opties={}){
+    const maat=plaatMaat(r),V=window.BouwVorm;
+    if(!maat||!V||!(r.aantal>0)||opties.lagen?.afwerking===false||opties.lagen?.platen===false)return '';
+    const f=V.wallFrame(ruimte,r.oppervlak),ceiling=r.oppervlak==='plafond';
+    if(!f&&!['vloer','plafond'].includes(r.oppervlak))return '';
+    let quad,origin,u,v;
+    if(f){quad=f.quad;origin=[f.a.x,f.a.y,0];u=f.u;v=f.v;}
+    else{
+      quad=(ceiling?V.top(ruimte):V.points(ruimte)).map(a=>[a.x,a.y,a.z||0]);
+      const h=(x,y)=>ceiling?V.height(ruimte,x,y):0,hx=h(1,0)-h(0,0),hy=h(0,1)-h(0,0);
+      origin=[0,0,h(0,0)];u=[1,0,hx].map(n=>n/Math.hypot(1,hx));v=[0,1,hy].map(n=>n/Math.hypot(1,hy));
+    }
+    const a=P(...origin),b=P(...origin.map((n,i)=>n+u[i])),c=P(...origin.map((n,i)=>n+v[i]));
+    const dx=[b[0]-a[0],b[1]-a[1]],dy=[c[0]-a[0],c[1]-a[1]],det=dx[0]*dy[1]-dx[1]*dy[0];
+    const id=uniq(),title=`Gyproc ${maat.soort} · ${F(maat.breedte)} × ${F(maat.lengte)} m · schematische plaatverdeling, geen zaagplan of exacte dekking`;
+    const holes=(ruimte.openingen||[]).map((o,i)=>o.muur===r.oppervlak?openingGeometrie(ruimte,i):null).filter(Boolean);
+    let defs='',body='';
+    if(Math.abs(det)<1e-6){
+      if(!f)return '';
+      // In plan, standing boards are seen edge-on: seam ticks along the wall.
+      const end=P(f.b.x,f.b.y,0),len=Math.hypot(end[0]-a[0],end[1]-a[1]);if(len<1e-6)return '';
+      const normal=[-(end[1]-a[1])/len*4,(end[0]-a[0])/len*4];
+      defs=`<mask id="${id}-mask" maskUnits="userSpaceOnUse" x="-10000" y="-10000" width="20000" height="20000"><rect x="-10000" y="-10000" width="20000" height="20000" fill="white"/>${holes.map(o=>`<path d="M${punten([P(...o.a)])} L${punten([P(...o.b)])}" fill="none" stroke="black" stroke-width="14"/>`).join('')}</mask>`;
+      body=`<path class="gyproc-plan-band" d="M${punten([a])} L${punten([end])}"/>`;
+      // Bound tick density on unusually long walls without changing the model.
+      const step=maat.breedte*Math.max(1,Math.ceil(f.lengte/maat.breedte/400));
+      for(let t=step;t<f.lengte-1e-6;t+=step){const q=P(f.a.x+f.u[0]*t,f.a.y+f.u[1]*t,0);body+=`<path class="gyproc-plan-naad" d="M${R(q[0]-normal[0])} ${R(q[1]-normal[1])} L${R(q[0]+normal[0])} ${R(q[1]+normal[1])}"/>`;}
+    }else{
+      const ps=punten(quad.map(q=>P(...q)));
+      defs=`<pattern id="${id}-plaat" patternUnits="userSpaceOnUse" width="${maat.breedte}" height="${maat.lengte}" patternTransform="matrix(${dx[0]} ${dx[1]} ${dy[0]} ${dy[1]} ${a[0]} ${a[1]})"><path class="gyproc-naad" d="M${maat.breedte} 0H0V${maat.lengte}"/></pattern><mask id="${id}-mask" maskUnits="userSpaceOnUse" x="-10000" y="-10000" width="20000" height="20000"><polygon fill="white" points="${ps}"/>${holes.map(o=>`<polygon fill="black" points="${punten([o.a,o.b,o.c,o.d].map(q=>P(...q)))}"/>`).join('')}</mask>`;
+      body=`<polygon class="gyproc-plaatvulling" points="${ps}"/><polygon class="gyproc-plaatnaden" points="${ps}" fill="url(#${id}-plaat)"/>`;
+    }
+    return `<g class="gyproc-platen" data-gyproc-vlak="${esc(r.oppervlak)}" data-plaat-breedte="${maat.breedte}" data-plaat-lengte="${maat.lengte}" pointer-events="none"><title>${esc(title)}</title><defs>${defs}</defs><g mask="url(#${id}-mask)">${body}</g></g>`;
+  }
+  function platenOverlay(ruimte,regels,P,opties={}){
+    const seen=new Set();return (regels||[]).map(r=>{
+      if(!plaatMaat(r)||seen.has(r.oppervlak)||!(r.aantal>0))return '';seen.add(r.oppervlak);return plaatVlak(ruimte,r,P,opties);
+    }).join('');
+  }
+
   function vlakMarkeringen(ruimte, opties, projecteer, zichtbaar = null) {
-    let svg = '';
+    let svg = '';const plaatvlakken=new Set();
     const L = Math.max(.2,get(ruimte.lengte,.2)), B = Math.max(.2,get(ruimte.breedte,.2)), H = Math.max(.2,get(ruimte.hoogte,.2));
     const vlakken = {
       noord:[[0,0,0],[L,0,0],[L,0,H],[0,0,H]], zuid:[[0,B,0],[L,B,0],[L,B,H],[0,B,H]],
@@ -180,6 +227,7 @@
       const [x,y] = projecteer(...anker);
       svg += `<g class="werk-vlak" data-fokus="plan_${esc(r.id)}" data-plan-drag="marker" data-plan-regel="${esc(r.id)}" tabindex="0" role="button" aria-label="${esc(r.pakket.naam)} — werkregel bewerken"><title>${esc(r.pakket.naam)} · ${F(r.aantal)} m²; vlakmarkering, geen exacte dekking</title>`;
       svg += `<polygon class="werk-vlak-markering" points="${punten(punten2d)}"/>`;
+      if(plaatMaat(r)&&!plaatvlakken.has(r.oppervlak)){svg+=plaatVlak(ruimte,r,projecteer,opties);plaatvlakken.add(r.oppervlak);}
       svg += `<circle class="sleep-hit" cx="${R(x)}" cy="${R(y)}" r="11"/><circle class="werk-vlak-badge" cx="${R(x)}" cy="${R(y)}" r="11"/><text class="werk-vlak-nummer" x="${R(x)}" y="${R(y+4)}" text-anchor="middle">${r.nummer}</text></g>`;
     }
     return svg;
@@ -267,11 +315,13 @@
       svg+=`<title>${esc(o.naam)} · ${F(o.breedte)} × ${F(o.hoogte)} m</title></g>`;
     });
     const gekozen={...opties,regels:(opties.regels||[]).filter(r=>!front||r.oppervlak===opties.vlak)};
+    const plaatvlakken=new Set();
     for(const r of gekozen.regels){
       if(r.pakket?.eenheid!=='m2'||r.aantal<=0||opties.lagen?.afwerking===false)continue;
       const e=edges.find(e=>e.id===r.oppervlak),ps=e?wall(e):r.oppervlak==='plafond'?roof:floor;
       const pos=P(...werkGeometrie(r,ruimte).a);
-      svg+=`<g class="werk-vlak" data-fokus="plan_${esc(r.id)}" data-plan-drag="marker" data-plan-regel="${esc(r.id)}" tabindex="0" role="button" aria-label="${esc(r.pakket.naam)} bewerken">${poly(ps,'werk-vlak-markering')}<circle class="sleep-hit" cx="${R(pos[0])}" cy="${R(pos[1])}" r="15"/><circle class="werk-vlak-badge" cx="${R(pos[0])}" cy="${R(pos[1])}" r="11"/><text class="werk-vlak-nummer" x="${R(pos[0])}" y="${R(pos[1]+4)}" text-anchor="middle">${r.nummer}</text></g>`;
+      const platen=plaatvlakken.has(r.oppervlak)?'':plaatVlak(ruimte,r,P,opties);if(platen)plaatvlakken.add(r.oppervlak);
+      svg+=`<g class="werk-vlak" data-fokus="plan_${esc(r.id)}" data-plan-drag="marker" data-plan-regel="${esc(r.id)}" tabindex="0" role="button" aria-label="${esc(r.pakket.naam)} bewerken">${poly(ps,'werk-vlak-markering')}${platen}<circle class="sleep-hit" cx="${R(pos[0])}" cy="${R(pos[1])}" r="15"/><circle class="werk-vlak-badge" cx="${R(pos[0])}" cy="${R(pos[1])}" r="11"/><text class="werk-vlak-nummer" x="${R(pos[0])}" y="${R(pos[1]+4)}" text-anchor="middle">${r.nummer}</text></g>`;
     }
     svg+=werkOverlay(ruimte,gekozen,P,iso);
     const title=front?(vm[opties.vlak]?.naam || opties.vlak)+(g.wand?' · binnenaanzicht vanaf startpunt':' · bovenprojectie'):iso?'3D · contour en plafondhelling':'Bovenaanzicht · binnencontour';
@@ -630,5 +680,5 @@
     const P=mode==='iso'?projectie(room,options.hoek).P:mode==='front'?aanzichtProjectie(room,options.vlak).P:planProjectie(room).P;
     return base.replace('</svg>',trapOverlay(room,P,mode==='iso'||mode==='front'&&!['vloer','plafond'].includes(options.vlak))+'</svg>');
   };}
-  window.BouwPlan = { trapGeometrie,trapOverlay,traceLengte,plattegrond:metTrappen(plattegrond,'plan'),isometrie:metTrappen(isometrie,'iso'), laag, werkGeometrie, tint, projectie, planProjectie, openingGeometrie, aanzichtProjectie,aanzicht:metTrappen(aanzicht,'front') };
+  window.BouwPlan = { plaatMaat,platenOverlay,trapGeometrie,trapOverlay,traceLengte,plattegrond:metTrappen(plattegrond,'plan'),isometrie:metTrappen(isometrie,'iso'), laag, werkGeometrie, tint, projectie, planProjectie, openingGeometrie, aanzichtProjectie,aanzicht:metTrappen(aanzicht,'front') };
 })();
