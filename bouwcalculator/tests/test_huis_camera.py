@@ -27,3 +27,6 @@ class HuisCameraTest(unittest.TestCase):
 
     def test_ongeldige_invoer_is_atomair(self):
         self.check_js("const c=C.maak(),before=c.lees();assert.throws(()=>c.zoom(NaN));assert.throws(()=>c.draai(Infinity));assert.throws(()=>c.verschuif(50,NaN));assert.deepEqual(c.lees(),before);")
+
+    def test_vrije_rotatie_behoudt_pan_en_afstanden(self):
+        self.check_js("const c=C.maak();c.verschuif(12,34);assert(Math.abs(c.stelHoek(.37).hoek-.37)<1e-10);assert.equal(c.lees().x,12);assert.equal(c.lees().y,34);for(const a of [.13,.5,1.27,2.73,3.99]){const p=C.draai(2,3,10,8,a),q=C.draai(5,7,10,8,a);assert(Math.abs(Math.hypot(q[0]-p[0],q[1]-p[1])-5)<1e-10);}const before=c.lees();assert.throws(()=>c.stelHoek(NaN));assert.deepEqual(c.lees(),before);assert(Math.abs(c.stelHoek(4.37).hoek-.37)<1e-10);")

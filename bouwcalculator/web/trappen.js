@@ -62,7 +62,7 @@
     const node=[...host.querySelectorAll('[data-trap-id]')].find(e=>e.dataset.trapId===t.id);if(node)node.outerHTML=BouwPlan.trapOverlay({...actieveRuimte(),trappen:[t]},projection(),planWeergave==='isometrie');
   }
   function end(cancel=false){
-    if(!drag)return;const d=drag;drag=null;suppress=performance.now()+500;
+    if(!drag)return;const d=drag;drag=null;host.classList.remove('is-slepen');suppress=performance.now()+500;
     if(host.hasPointerCapture?.(d.pointer))host.releasePointerCapture(d.pointer);
     if(state.project!==d.project||actieveRuimte()?.id!==d.room){renderPlan();return;}
     if(!d.moved){if(!cancel)open(d.id);return;}
@@ -79,7 +79,7 @@
   host.addEventListener('pointermove',e=>{
     const d=drag;if(!d||d.pointer!==e.pointerId)return;e.preventDefault();e.stopImmediatePropagation();
     if(state.project!==d.project||actieveRuimte()?.id!==d.room){end(true);return;}
-    if(Math.hypot(e.clientX-d.sx,e.clientY-d.sy)<4&&!d.moved)return;d.moved=true;
+    if(Math.hypot(e.clientX-d.sx,e.clientY-d.sy)<4&&!d.moved)return;d.moved=true;host.classList.add('is-slepen');
     const dx=d.inverse.a*(e.clientX-d.sx)+d.inverse.c*(e.clientY-d.sy),dy=d.inverse.b*(e.clientX-d.sx)+d.inverse.d*(e.clientY-d.sy);
     d.draft.x=Math.round(Math.max(0,d.before.x+(dx*d.v[1]-dy*d.v[0])/d.det)*20)/20;
     d.draft.y=Math.round(Math.max(0,d.before.y+(d.u[0]*dy-d.u[1]*dx)/d.det)*20)/20;redraw(d.draft);

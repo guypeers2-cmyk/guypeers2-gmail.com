@@ -1128,3 +1128,26 @@ offertepost. Trappen verwijderen wijzigt alleen de tekening. Undo/redo blijft
 beschikbaar en een verouderde huisobjectselectie wordt automatisch opgeheven.
 Controle: `tools/delete_review.mjs` (online/offline, deur/raam/werk/trap,
 bevestigen/annuleren, herberekening, undo en 320–1440 px).
+
+### 3D-model met slepen rondom bekijken
+
+Kies **3D → 3D-model draaien** (ronde pijl). Sleep links/rechts met muis, pen of
+één vinger om de camera vrij 360° rond de kamer of het huis te bewegen. Dit is
+horizontaal rondom kijken; de verticale kijkhelling blijft isometrisch.
+
+- Scroll boven het 3D-model om te zoomen; +/− blijven beschikbaar op touch.
+- **Hand** verschuift het beeld; **Selecteren** verplaatst objecten. De nieuwe
+  cameramodus verplaatst geen objecten en voegt geen undo-stappen toe.
+- **Escape**/pointer-annulering herstelt de camera vóór de sleepbeweging.
+- Met focus op het model draaien links/rechts 7,5° (Shift: 30°) en zoomen
+  omhoog/omlaag. In de kamer activeert **R** de draaistand; **V/H/M/F** blijven
+  selecteren/hand/meten/passend. De knop is in 2D verborgen.
+- De bestaande 90°-knoppen blijven werken. **Passend** herstelt zoom en pan;
+  in het huis blijft de gekozen kijkrichting daarbij behouden.
+- Camera-instellingen zijn alleen weergavestatus; project, maten, opgeslagen
+  objectposities, offerteprijzen en de vaste offerteplattegronden veranderen niet.
+
+Controle: `tools/orbit_review.mjs` (online/offline, muis/touch/toetsenbord,
+vrije hoek, annuleren, wielzoom, verschuiven, passend, 2D-overgang en geen
+project-/prijs-/undo-/API-mutatie). De pure camerageometrie en drag-projecties
+worden ook met niet-rechte kijkhoeken getest.

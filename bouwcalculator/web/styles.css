@@ -1955,3 +1955,6 @@ body.huisstand-actief .object-snelknop,body.huisstand-actief .tekening-snelknop{
 @media print{#huis-object-acties,#plan-selectie{display:none!important}}
 /* Surface shading must not intercept a door/window underneath. Use its badge. */
 .werk-vlak-markering{pointer-events:none}
+[data-plan-gereedschap="draai"][hidden],[data-huis-tool="draai"][hidden]{display:none!important}
+.draai-actief,.draai-actief *{cursor:grab!important}
+.draai-actief.is-pannen,.draai-actief.is-pannen *,.draai-actief.huis-pannen,.draai-actief.huis-pannen *{cursor:grabbing!important}

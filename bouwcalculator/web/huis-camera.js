@@ -8,9 +8,14 @@
   };
   const bound = (n, lo, hi) => Math.max(lo, Math.min(hi, finite(n)));
   function draai(x, y, lengte, breedte, hoek = 0) {
-    const index = ((Math.trunc(finite(hoek)) % 4) + 4) % 4;
-    return [[x,y], [y,lengte-x], [lengte-x,breedte-y], [breedte-y,x]][index];
+    const angle = ((finite(hoek) % 4) + 4) % 4;
+    if(Number.isInteger(angle))return [[x,y], [y,lengte-x], [lengte-x,breedte-y], [breedte-y,x]][angle];
+    const c=Math.cos(angle*Math.PI/2),s=Math.sin(angle*Math.PI/2);
+    const minU=Math.min(0,lengte*c,breedte*s,lengte*c+breedte*s);
+    const minV=Math.min(0,-lengte*s,breedte*c,-lengte*s+breedte*c);
+    return [x*c+y*s-minU,-x*s+y*c-minV];
   }
+
   function viewBox(center, zoom = 1, x = 0, y = 0) {
     zoom = bound(zoom, 1, 3);
     const width = 800/zoom, height = 500/zoom;
@@ -25,7 +30,8 @@
       lees,
       zoom(n) { zoom = bound(n,1,3); return lees(); },
       verschuif(nx, ny) { const px = bound(nx,-800,800), py = bound(ny,-500,500); x = px; y = py; return lees(); },
-      draai(delta) { hoek = ((hoek+Math.trunc(finite(delta)))%4+4)%4; x = y = 0; return lees(); },
+      draai(delta) { hoek = ((hoek+finite(delta))%4+4)%4; x = y = 0; return lees(); },
+      stelHoek(n) { hoek = ((finite(n)%4)+4)%4; return lees(); },
       passend() { zoom = 1; x = y = 0; return lees(); },
     };
   }

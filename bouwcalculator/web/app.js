@@ -794,6 +794,10 @@ function renderPlan() {
   $('.vlak-keuze').innerHTML=keuzes.map(v=>`<button type="button" data-aanzicht-vlak="${esc(v.sleutel)}" data-fokus="vlak_${esc(v.sleutel)}" aria-pressed="false"><span>${esc(v.naam)}</span><small></small></button>`).join('');
   const vlakken = vlakkenVoor(ruimte);
   const tekenaar = planWeergave === "aanzicht" ? window.BouwPlan.aanzicht : planWeergave === "isometrie" ? window.BouwPlan.isometrie : window.BouwPlan.plattegrond;
+  if(planWeergave!=='isometrie'&&planGereedschap==='draai'){planGereedschap='select';$('#plan-sleepstatus').textContent='Selecteren: sleep objecten of klik om te selecteren.';}
+  houder.classList.toggle('draai-actief',planGereedschap==='draai');
+  $('[data-plan-gereedschap="draai"]').hidden=planWeergave!=='isometrie';
+  $$('[data-plan-gereedschap]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.planGereedschap===planGereedschap)));
   const regels = planRegels(ruimte);
   houder.innerHTML = tekenaar(ruimte, vlakken, werk, {...planCamera, regels, lagen: planLagen, vlak: planVlak});
   const plaatmaten=planLagen.platen&&planLagen.afwerking?[...new Set(regels.filter(r=>r.aantal>0&&(planWeergave!=='aanzicht'||r.oppervlak===planVlak)).map(r=>BouwPlan.plaatMaat(r)).filter(Boolean).map(m=>`120 × ${Math.round(m.lengte*100)} cm`))]:[];
@@ -823,7 +827,7 @@ function renderPlan() {
     ? "Sleep werken naar hun positie op dit vlak. Kies de locatie van een werkregel om die aan een ander vlak toe te wijzen."
     : "Klik op een wand om het objectmenu te openen. In 3D kun je draaien om alle wanden te bekijken.";
   const richting = $("#iso-richting");
-  if (richting) richting.textContent = (planWeergave === "isometrie" ? ["Noord / west", "Noord / oost", "Zuid / oost", "Zuid / west"][planCamera.hoek] + " · " : "") + `${Math.round(planCamera.zoom * 100)}%`;
+  if (richting) richting.textContent = (planWeergave === "isometrie" ? ["Noord / west", "Noord / oost", "Zuid / oost", "Zuid / west"][Math.round(planCamera.hoek)%4] + ` · ${Math.round(planCamera.hoek*90)}° · ` : "") + `${Math.round(planCamera.zoom * 100)}%`;
   const matenKnop = $('[data-camera="maten"]');
   if (matenKnop) matenKnop.setAttribute("aria-pressed", String(planCamera.maten));
   const minKnop = $('[data-camera="uit"]'), maxKnop = $('[data-camera="in"]');

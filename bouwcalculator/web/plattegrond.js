@@ -339,14 +339,16 @@
 
   function projectie(ruimte, hoek = 0) {
     const L = Math.max(.2,get(ruimte.lengte,.2)), B = Math.max(.2,get(ruimte.breedte,.2)), H = Math.max(.2,get(ruimte.hoogte,.2));
-    hoek = ((Math.trunc(hoek) % 4) + 4) % 4;
+    hoek = ((get(hoek) % 4) + 4) % 4;
     const W = 780, HP = 560, K = Math.cos(Math.PI / 6), S = 0.5;
-    const LX = hoek % 2 ? B : L, BY = hoek % 2 ? L : B;
+    const c=Math.cos(hoek*Math.PI/2),s=Math.sin(hoek*Math.PI/2);
+    const LX=Number.isInteger(hoek)?(hoek%2?B:L):Math.abs(L*c)+Math.abs(B*s),BY=Number.isInteger(hoek)?(hoek%2?L:B):Math.abs(L*s)+Math.abs(B*c);
     const schaal = Math.min(620 / ((LX + BY) * K), 390 / (H * 0.9 + (LX + BY) * S));
     const ox = (W - (LX + BY) * K * schaal) / 2 + BY * K * schaal;
     const oy = (HP - (H * 0.9 + (LX + BY) * S) * schaal) / 2 + H * 0.9 * schaal;
     // Rotatie in modelcoördinaten; afstanden van openingen blijven aan hun eigen wand gekoppeld.
-    const draai = (x, y) => [[x, y], [y, L - x], [L - x, B - y], [B - y, x]][hoek];
+    const minU=Math.min(0,L*c,B*s,L*c+B*s),minV=Math.min(0,-L*s,B*c,-L*s+B*c);
+    const draai = (x,y) => Number.isInteger(hoek)?[[x,y],[y,L-x],[L-x,B-y],[B-y,x]][hoek]:[x*c+y*s-minU,-x*s+y*c-minV];
     const P = (x, y, z = 0) => {
       const [u, v] = draai(x, y);
       return [ox + (u - v) * K * schaal, oy + (u + v) * S * schaal - z * 0.9 * schaal];
@@ -545,9 +547,9 @@
     if(complex(ruimte))return vormTekening(ruimte,vlakken,werk,opties,'isometrie');
     const maat = v => Math.max(0.2, Number.parseFloat(v) || 0.2);
     const L = maat(ruimte.lengte), B = maat(ruimte.breedte), H = maat(ruimte.hoogte);
-    const hoek = ((Math.trunc(opties.hoek || 0) % 4) + 4) % 4;
+    const yaw=((get(opties.hoek)%4)+4)%4,hoek=Math.round(yaw)%4;
     const maten = opties.maten !== false;
-    const {P,W,HP} = projectie(ruimte, hoek);
+    const {P,W,HP} = projectie(ruimte, yaw);
     const lijn = (a, b, cls) => `<line class="${cls}" x1="${R(a[0])}" y1="${R(a[1])}" x2="${R(b[0])}" y2="${R(b[1])}"/>`;
     const poly = (ps, cls) => `<polygon class="${cls}" points="${punten(ps)}"/>`;
     const tekst = (p, inhoud, cls) => `<text class="${cls}" x="${R(p[0])}" y="${R(p[1])}" text-anchor="middle">${esc(inhoud)}</text>`;
@@ -559,7 +561,8 @@
     const stap = Math.max(0.5, Math.ceil(Math.max(L, B) / 24));
     for (let x = stap; x < L; x += stap) svg += lijn(P(x,0), P(x,B), 'iso-raster');
     for (let y = stap; y < B; y += stap) svg += lijn(P(0,y), P(L,y), 'iso-raster');
-    const zichtbaar = [['noord', 'west'], ['noord', 'oost'], ['zuid', 'oost'], ['zuid', 'west']][hoek];
+    const centers={noord:[L/2,0],zuid:[L/2,B],oost:[L,B/2],west:[0,B/2]},depth=P(L/2,B/2)[1];
+    const zichtbaar=ZIJDEN.filter(side=>P(...centers[side])[1]<depth-1e-6);
     const muren = {
       noord: {len: L, p: (t,z) => P(t,0,z)}, zuid: {len: L, p: (t,z) => P(t,B,z)},
       west: {len: B, p: (t,z) => P(0,t,z)}, oost: {len: B, p: (t,z) => P(L,t,z)},

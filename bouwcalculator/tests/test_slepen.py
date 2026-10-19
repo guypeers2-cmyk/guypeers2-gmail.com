@@ -17,7 +17,7 @@ require(process.argv[1]+'/slepen.js');
 const {projectDelta,boundedDelta,positieActie} = window.BouwSleep;
 const room = {lengte:6,breedte:4,hoogte:2.7};
 const close = (a,b) => a.forEach((n,i)=>assert(Math.abs(n-b[i])<1e-9));
-for(let hoek=0;hoek<4;hoek++) {
+for(const hoek of [0,1,2,3,.13,.77,1.31,2.17,3.62]) {
  const {P} = window.BouwPlan.projectie(room,hoek);
  for (const [plane,delta] of [['xy',[.3,-.2,0]],['xz',[.3,0,.2]],['yz',[0,-.2,.3]]]) {
   const p=P(0,0,0),q=P(...delta);

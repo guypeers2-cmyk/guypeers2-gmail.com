@@ -105,12 +105,14 @@
     if(redraw)renderCanvas();
     renderSelectie();syncObjectDelete();
     const cam=camera.lees();
+    $('[data-huis-tool="draai"]').hidden=view!=='3d'||!state.project.huis;
+    host.classList.toggle('draai-actief',gereedschap==='draai');
     $('#huis-draaien').hidden=view!=='3d';
-    $('#huis-camera-status').textContent=`${Math.round(cam.zoom*100)}%${view==='3d'?` · ${cam.hoek*90}°`:''}`;
+    $('#huis-camera-status').textContent=`${Math.round(cam.zoom*100)}%${view==='3d'?` · ${Math.round(cam.hoek*90)}°`:''}`;
     document.querySelectorAll('[data-huis-zoom]').forEach(b=>{b.disabled=b.dataset.huisZoom==='in'?cam.zoom>=3:b.dataset.huisZoom==='uit'?cam.zoom<=1:false;});
     document.querySelectorAll('[data-huis-tool]').forEach(b=>{const on=b.dataset.huisTool===gereedschap;b.setAttribute('aria-pressed',String(on));b.classList.toggle('actief',on);});
     host.classList.toggle('huis-hand',gereedschap==='hand');
-    $('#huis-camera-hulp').textContent=gereedschap==='hand'?'Hand: sleep het beeld, niet de kamers. Pijltjes verschuiven; Escape annuleert de beweging.':'Sleep objecten, openingen, trappen of werkmarkeringen om ze te verplaatsen. Dubbelklik opent de kamer. Hand verschuift alleen het beeld.';
+    $('#huis-camera-hulp').textContent=gereedschap==='hand'?'Hand: sleep het beeld, niet de kamers. Pijltjes verschuiven; Escape annuleert de beweging.':gereedschap==='draai'?'Draaien: sleep links/rechts rond het 3D-model. Scroll om te zoomen; Escape annuleert.':'Sleep objecten, openingen, trappen of werkmarkeringen om ze te verplaatsen. Dubbelklik opent de kamer. Hand verschuift alleen het beeld.';
     const h=state.project.huis,rs=state.project.ruimtes.filter(r=>r.huis_positie),total=rs.reduce((s,r)=>s+Math.abs(V().area(V().points(r))),0),apart=state.project.ruimtes.length-rs.length;
     // Progressive disclosure: camera/placement controls need an actual contour.
     $('#huis-paneel').querySelectorAll('[data-huis-ready]').forEach(el=>el.hidden=!h);
@@ -334,7 +336,7 @@
   document.addEventListener('click',e=>{
     if(!e.target.closest('#huis-hulp'))$('#huis-hulp').open=false;
     const level=e.target.closest('[data-ontwerpniveau]');if(level)setLevel(level.dataset.ontwerpniveau);
-    const vw=e.target.closest('[data-huis-view]');if(vw){eindePan(true);view=vw.dataset.huisView;snede=null;camera.verschuif(0,0);render();}
+    const vw=e.target.closest('[data-huis-view]');if(vw){eindePan(true);view=vw.dataset.huisView;if(view!=='3d'&&gereedschap==='draai')gereedschap='select';snede=null;camera.verschuif(0,0);render();}
     const zm=e.target.closest('[data-huis-zoom]');if(zm){eindePan(true);if(zm.dataset.huisZoom==='reset')camera.passend();else camera.zoom(camera.lees().zoom+(zm.dataset.huisZoom==='in'?.25:-.25));render();}
     const turn=e.target.closest('[data-huis-draai]');if(turn){eindePan(true);camera.draai(Number(turn.dataset.huisDraai));render();}
     const tool=e.target.closest('[data-huis-tool]');if(tool){eindePan(true);suppress=0;gereedschap=tool.dataset.huisTool;snede=null;render();}
@@ -345,7 +347,7 @@
   $('#huis-plan').addEventListener('click',e=>{
     if(e.target.closest('[data-huis-start]')){$('#huis-tekenen').click();return;}
     if(performance.now()<suppress){suppress=0;e.preventDefault();return;}
-    if(gereedschap==='hand'||e.target.closest('[data-huis-cut]'))return;
+    if(gereedschap==='hand'||gereedschap==='draai'||e.target.closest('[data-huis-cut]'))return;
     if(snede){
       if(snede.punten.length===2){message('Snede klaar. Kies Splitsen toepassen of neem het laatste punt terug.');return;}
       const svgEl=$('#huis-plan svg'),r=selected(),point=svgEl.createSVGPoint();point.x=e.clientX;point.y=e.clientY;const q=point.matrixTransform(svgEl.getScreenCTM().inverse()),s=Number(svgEl.dataset.huisSchaal),o=r.huis_positie;
@@ -409,7 +411,11 @@
       if(pan){e.preventDefault();eindePan(true);return;}
       if(snede){e.preventDefault();snede=null;$('#huis-splits-invoer').open=false;render();cutFeedback();message('Snede geannuleerd.');}return;
     }
-    if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)&&(gereedschap==='hand'||e.target===host)){
+    if(gereedschap==='draai'&&view==='3d'&&['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)){
+      e.preventDefault();if(['ArrowLeft','ArrowRight'].includes(e.key))camera.stelHoek(camera.lees().hoek+(e.key==='ArrowRight'?1:-1)*(e.shiftKey?1/3:1/12));
+      else camera.zoom(camera.lees().zoom+(e.key==='ArrowUp'?.1:-.1));render();return;
+    }
+    if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)&&(gereedschap==='hand' ||e.target===host)){
       e.preventDefault();const cam=camera.lees(),step=(e.shiftKey?100:35)/cam.zoom;
       camera.verschuif(cam.x+(e.key==='ArrowLeft'?-step:e.key==='ArrowRight'?step:0),cam.y+(e.key==='ArrowUp'?-step:e.key==='ArrowDown'?step:0));renderCanvas();return;
     }
@@ -420,23 +426,28 @@
   function eindePan(cancel=false){
     if(!pan)return;
     const p=pan;pan=null;
-    if(cancel){camera.verschuif(p.voor.x,p.voor.y);renderCanvas();}
+    if(cancel){camera.stelHoek(p.voor.hoek);camera.verschuif(p.voor.x,p.voor.y);render();}
     host.classList.remove('huis-pannen');
     if(host.hasPointerCapture(p.id))host.releasePointerCapture(p.id);
     if(p.moved)suppress=performance.now()+500;
   }
   host.addEventListener('pointerdown',e=>{
-    if(pan||snede||!e.isPrimary||!(e.button===1||(e.button===0&&gereedschap==='hand')))return;
+    if(pan||snede||!e.isPrimary||!(e.button===1||(e.button===0&&(gereedschap==='hand'||gereedschap==='draai'&&view==='3d'))))return;
     const matrix=host.querySelector('svg')?.getScreenCTM()?.inverse();if(!matrix)return;
     e.preventDefault();host.focus({preventScroll:true});
-    pan={id:e.pointerId,cx:e.clientX,cy:e.clientY,voor:camera.lees(),matrix,moved:false};
+    pan={id:e.pointerId,cx:e.clientX,cy:e.clientY,voor:camera.lees(),matrix,moved:false,orbit:e.button===0&&gereedschap==='draai'};
     host.setPointerCapture(e.pointerId);host.classList.add('huis-pannen');
   });
   host.addEventListener('pointermove',e=>{
     if(pan?.id!==e.pointerId)return;e.preventDefault();
     const dx=e.clientX-pan.cx,dy=e.clientY-pan.cy;
     if(Math.hypot(dx,dy)<4&&!pan.moved)return;pan.moved=true;
+    if(pan.orbit){camera.stelHoek(pan.voor.hoek+dx/180);render();return;}
     camera.verschuif(pan.voor.x-pan.matrix.a*dx-pan.matrix.c*dy,pan.voor.y-pan.matrix.b*dx-pan.matrix.d*dy);renderCanvas();
+  },{passive:false});
+  host.addEventListener('wheel',e=>{
+    if(view!=='3d'||e.ctrlKey||pan||objectDrag||!state.project.huis)return;
+    e.preventDefault();camera.zoom(camera.lees().zoom*Math.exp(-Math.max(-100,Math.min(100,e.deltaY))*.0015));render();
   },{passive:false});
   host.addEventListener('pointerup',e=>{if(pan?.id===e.pointerId)eindePan();});
   host.addEventListener('pointercancel',e=>{if(pan?.id===e.pointerId)eindePan(true);});

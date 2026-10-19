@@ -2012,6 +2012,9 @@ body.huisstand-actief .object-snelknop,body.huisstand-actief .tekening-snelknop{
 @media print{#huis-object-acties,#plan-selectie{display:none!important}}
 /* Surface shading must not intercept a door/window underneath. Use its badge. */
 .werk-vlak-markering{pointer-events:none}
+[data-plan-gereedschap="draai"][hidden],[data-huis-tool="draai"][hidden]{display:none!important}
+.draai-actief,.draai-actief *{cursor:grab!important}
+.draai-actief.is-pannen,.draai-actief.is-pannen *,.draai-actief.huis-pannen,.draai-actief.huis-pannen *{cursor:grabbing!important}
 
 </style>
 </head>
@@ -2170,7 +2173,7 @@ body.huisstand-actief .object-snelknop,body.huisstand-actief .tekening-snelknop{
     <p id="studio-feedback" role="status" aria-live="polite" hidden></p>
 
     <section id="huis-paneel" class="plankaart" tabindex="-1" hidden aria-labelledby="huis-titel">
-      <header class="plankop"><h3 id="huis-titel">Hele huis</h3><button type="button" class="knop primair compact-icon" id="huis-tekenen" title="Huiscontour tekenen" aria-label="Huiscontour tekenen"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 5 4 4M4 20l4-1L20 7a2.8 2.8 0 0 0-4-4L4 15z"/></svg></button><div class="plankeuze" role="group" aria-label="Huisweergave" data-huis-ready><button type="button" class="planknop actief" data-huis-view="2d" aria-pressed="true">2D</button><button type="button" class="planknop" data-huis-view="3d" aria-pressed="false">3D</button></div><div class="plankeuze" role="group" aria-label="Huisplan zoom" data-huis-ready><button type="button" class="planknop compact-icon" data-huis-zoom="uit" title="Uitzoomen" aria-label="Uitzoomen"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h16"/></svg></button><button type="button" class="planknop compact-icon" data-huis-zoom="reset" title="Passend in beeld" aria-label="Passend in beeld"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/><path d="M8 8h8v8H8z"/></svg></button><button type="button" class="planknop compact-icon" data-huis-zoom="in" title="Inzoomen" aria-label="Inzoomen"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v16M4 12h16"/></svg></button></div><button type="button" class="knop klein compact-icon" id="huis-undo" title="Ongedaan maken" aria-label="Ongedaan maken"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 4-5 5 5 5M4 9h9a7 7 0 0 1 0 14"/></svg></button><button type="button" class="knop klein compact-icon" id="huis-redo" title="Opnieuw uitvoeren" aria-label="Opnieuw uitvoeren"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 4 5 5-5 5m5-5h-9a7 7 0 0 0 0 14"/></svg></button><div class="huis-camera-balk" data-huis-ready role="group" aria-label="Huisplan bedienen"><div class="plankeuze"><button type="button" class="planknop actief compact-icon" data-huis-tool="select" aria-pressed="true" title="Selecteren" aria-label="Selecteren"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 3 14 9-7 1-3 7z"/></svg></button><button type="button" class="planknop compact-icon" data-huis-tool="hand" aria-pressed="false" title="Beeld verschuiven" aria-label="Beeld verschuiven"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 12V5a2 2 0 0 1 4 0v6-7a2 2 0 0 1 4 0v8-5a2 2 0 0 1 4 0v8c0 5-3 7-7 7-3 0-5-2-7-5l-3-4a2 2 0 0 1 3-2l2 2"/></svg></button></div><div id="huis-draaien" class="plankeuze" hidden><button type="button" class="planknop compact-icon" data-huis-draai="-1" title="Huis 90° links draaien" aria-label="Huis 90° links draaien"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8 3-4 4 4 4m-4-4h9a7 7 0 1 1-6 11"/></svg></button><button type="button" class="planknop compact-icon" data-huis-draai="1" title="Huis 90° rechts draaien" aria-label="Huis 90° rechts draaien"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 3 4 4-4 4m4-4h-9a7 7 0 1 0 6 11"/></svg></button></div><output id="huis-camera-status" aria-live="polite">100%</output></div><details class="compact-help" id="huis-hulp"><summary class="compact-icon" title="Hulp bij het huisplan" aria-label="Hulp bij het huisplan"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6m0-10h.01"/></svg></summary><div>      <p class="hint huis-uitleg">Teken eerst de binnencontour van één verdieping. Splits de woning in kamers, selecteer daarna een kamer voor Gyproc, installaties en de offerte. Gedeelde wanden hebben twee afwerkingszijden; wanddikte is niet gemodelleerd.</p>      <p id="huis-camera-hulp" class="hint"></p><p class="hint">1. Huis tekenen → 2. Kamers indelen → 3. Werken per ruimte</p></div></details></header>
+      <header class="plankop"><h3 id="huis-titel">Hele huis</h3><button type="button" class="knop primair compact-icon" id="huis-tekenen" title="Huiscontour tekenen" aria-label="Huiscontour tekenen"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 5 4 4M4 20l4-1L20 7a2.8 2.8 0 0 0-4-4L4 15z"/></svg></button><div class="plankeuze" role="group" aria-label="Huisweergave" data-huis-ready><button type="button" class="planknop actief" data-huis-view="2d" aria-pressed="true">2D</button><button type="button" class="planknop" data-huis-view="3d" aria-pressed="false">3D</button></div><div class="plankeuze" role="group" aria-label="Huisplan zoom" data-huis-ready><button type="button" class="planknop compact-icon" data-huis-zoom="uit" title="Uitzoomen" aria-label="Uitzoomen"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h16"/></svg></button><button type="button" class="planknop compact-icon" data-huis-zoom="reset" title="Passend in beeld" aria-label="Passend in beeld"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/><path d="M8 8h8v8H8z"/></svg></button><button type="button" class="planknop compact-icon" data-huis-zoom="in" title="Inzoomen" aria-label="Inzoomen"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v16M4 12h16"/></svg></button></div><button type="button" class="knop klein compact-icon" id="huis-undo" title="Ongedaan maken" aria-label="Ongedaan maken"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 4-5 5 5 5M4 9h9a7 7 0 0 1 0 14"/></svg></button><button type="button" class="knop klein compact-icon" id="huis-redo" title="Opnieuw uitvoeren" aria-label="Opnieuw uitvoeren"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 4 5 5-5 5m5-5h-9a7 7 0 0 0 0 14"/></svg></button><div class="huis-camera-balk" data-huis-ready role="group" aria-label="Huisplan bedienen"><div class="plankeuze"><button type="button" class="planknop actief compact-icon" data-huis-tool="select" aria-pressed="true" title="Selecteren" aria-label="Selecteren"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 3 14 9-7 1-3 7z"/></svg></button><button type="button" class="planknop compact-icon" data-huis-tool="hand" aria-pressed="false" title="Beeld verschuiven" aria-label="Beeld verschuiven"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 12V5a2 2 0 0 1 4 0v6-7a2 2 0 0 1 4 0v8-5a2 2 0 0 1 4 0v8c0 5-3 7-7 7-3 0-5-2-7-5l-3-4a2 2 0 0 1 3-2l2 2"/></svg></button></div><button type="button" class="knop klein compact-icon" data-huis-tool="draai" aria-pressed="false" title="3D-model draaien: sleep links/rechts" aria-label="3D-model draaien" hidden><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 7l2 4-4 1M5 17l-2-4 4-1"/><path d="M20 11a8 8 0 0 0-14-5M4 13a8 8 0 0 0 14 5"/><path d="M12 6v12M8 12h8"/></svg></button><div id="huis-draaien" class="plankeuze" hidden><button type="button" class="planknop compact-icon" data-huis-draai="-1" title="Huis 90° links draaien" aria-label="Huis 90° links draaien"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8 3-4 4 4 4m-4-4h9a7 7 0 1 1-6 11"/></svg></button><button type="button" class="planknop compact-icon" data-huis-draai="1" title="Huis 90° rechts draaien" aria-label="Huis 90° rechts draaien"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 3 4 4-4 4m4-4h-9a7 7 0 1 0 6 11"/></svg></button></div><output id="huis-camera-status" aria-live="polite">100%</output></div><details class="compact-help" id="huis-hulp"><summary class="compact-icon" title="Hulp bij het huisplan" aria-label="Hulp bij het huisplan"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6m0-10h.01"/></svg></summary><div>      <p class="hint huis-uitleg">Teken eerst de binnencontour van één verdieping. Splits de woning in kamers, selecteer daarna een kamer voor Gyproc, installaties en de offerte. Gedeelde wanden hebben twee afwerkingszijden; wanddikte is niet gemodelleerd.</p>      <p id="huis-camera-hulp" class="hint"></p><p class="hint">1. Huis tekenen → 2. Kamers indelen → 3. Werken per ruimte</p></div></details></header>
 
       <ol id="huis-stappen" class="huis-stappen" aria-label="Werkvolgorde huisplan"><li data-huis-stap="1"><span aria-hidden="true">1</span> Contour</li><li data-huis-stap="2"><span aria-hidden="true">2</span> Indelen</li><li data-huis-stap="3"><span aria-hidden="true">3</span> Openen</li></ol>
       <div id="huis-statistiek" class="huis-statistiek" aria-live="polite"></div>
@@ -2221,6 +2224,7 @@ body.huisstand-actief .object-snelknop,body.huisstand-actief .tekening-snelknop{
         <button type="button" class="knop klein compact-icon" data-camera="reset" aria-keyshortcuts="F" title="Beeld herstellen (F)" aria-label="Beeld herstellen"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/><path d="M8 8h8v8H8z"/></svg></button>
         <button type="button" class="knop klein compact-icon" data-camera="maten" aria-pressed="true" title="Maatlijnen tonen of verbergen" aria-label="Maatlijnen tonen of verbergen"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5v14m18-14v14M3 12h18m-5-4 5 4-5 4M8 8l-5 4 5 4"/></svg></button>
         <button type="button" class="knop klein compact-icon" data-plan-gereedschap="select" aria-keyshortcuts="V" aria-pressed="true" title="Selecteren" aria-label="Selecteren"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 3 14 9-7 1-3 7z"/></svg></button>
+        <button type="button" class="knop klein compact-icon" data-plan-gereedschap="draai" aria-keyshortcuts="R" aria-pressed="false" title="3D-model draaien: sleep links/rechts (R)" aria-label="3D-model draaien" hidden><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 7l2 4-4 1M5 17l-2-4 4-1"/><path d="M20 11a8 8 0 0 0-14-5M4 13a8 8 0 0 0 14 5"/><path d="M12 6v12M8 12h8"/></svg></button>
         <button type="button" class="knop klein compact-icon" data-plan-gereedschap="hand" aria-keyshortcuts="H" aria-pressed="false" title="Beeld verschuiven" aria-label="Beeld verschuiven"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 12V5a2 2 0 0 1 4 0v6-7a2 2 0 0 1 4 0v8-5a2 2 0 0 1 4 0v8c0 5-3 7-7 7-3 0-5-2-7-5l-3-4a2 2 0 0 1 3-2l2 2"/></svg></button>
         <button type="button" class="knop klein compact-icon" data-plan-gereedschap="meet" aria-keyshortcuts="M" aria-pressed="false" title="Afstand meten" aria-label="Afstand meten"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 17 14-14 4 4L7 21zM7 13l2 2m2-6 2 2m2-6 2 2"/></svg></button>
         <button type="button" class="knop klein compact-icon" id="plan-undo" disabled title="Ongedaan maken (Ctrl/Cmd+Z)" aria-label="Ongedaan maken (Ctrl/Cmd+Z)"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 4-5 5 5 5M4 9h9a7 7 0 0 1 0 14"/></svg></button>
@@ -4475,14 +4479,16 @@ if (typeof window !== "undefined") {
 
   function projectie(ruimte, hoek = 0) {
     const L = Math.max(.2,get(ruimte.lengte,.2)), B = Math.max(.2,get(ruimte.breedte,.2)), H = Math.max(.2,get(ruimte.hoogte,.2));
-    hoek = ((Math.trunc(hoek) % 4) + 4) % 4;
+    hoek = ((get(hoek) % 4) + 4) % 4;
     const W = 780, HP = 560, K = Math.cos(Math.PI / 6), S = 0.5;
-    const LX = hoek % 2 ? B : L, BY = hoek % 2 ? L : B;
+    const c=Math.cos(hoek*Math.PI/2),s=Math.sin(hoek*Math.PI/2);
+    const LX=Number.isInteger(hoek)?(hoek%2?B:L):Math.abs(L*c)+Math.abs(B*s),BY=Number.isInteger(hoek)?(hoek%2?L:B):Math.abs(L*s)+Math.abs(B*c);
     const schaal = Math.min(620 / ((LX + BY) * K), 390 / (H * 0.9 + (LX + BY) * S));
     const ox = (W - (LX + BY) * K * schaal) / 2 + BY * K * schaal;
     const oy = (HP - (H * 0.9 + (LX + BY) * S) * schaal) / 2 + H * 0.9 * schaal;
     // Rotatie in modelcoördinaten; afstanden van openingen blijven aan hun eigen wand gekoppeld.
-    const draai = (x, y) => [[x, y], [y, L - x], [L - x, B - y], [B - y, x]][hoek];
+    const minU=Math.min(0,L*c,B*s,L*c+B*s),minV=Math.min(0,-L*s,B*c,-L*s+B*c);
+    const draai = (x,y) => Number.isInteger(hoek)?[[x,y],[y,L-x],[L-x,B-y],[B-y,x]][hoek]:[x*c+y*s-minU,-x*s+y*c-minV];
     const P = (x, y, z = 0) => {
       const [u, v] = draai(x, y);
       return [ox + (u - v) * K * schaal, oy + (u + v) * S * schaal - z * 0.9 * schaal];
@@ -4681,9 +4687,9 @@ if (typeof window !== "undefined") {
     if(complex(ruimte))return vormTekening(ruimte,vlakken,werk,opties,'isometrie');
     const maat = v => Math.max(0.2, Number.parseFloat(v) || 0.2);
     const L = maat(ruimte.lengte), B = maat(ruimte.breedte), H = maat(ruimte.hoogte);
-    const hoek = ((Math.trunc(opties.hoek || 0) % 4) + 4) % 4;
+    const yaw=((get(opties.hoek)%4)+4)%4,hoek=Math.round(yaw)%4;
     const maten = opties.maten !== false;
-    const {P,W,HP} = projectie(ruimte, hoek);
+    const {P,W,HP} = projectie(ruimte, yaw);
     const lijn = (a, b, cls) => `<line class="${cls}" x1="${R(a[0])}" y1="${R(a[1])}" x2="${R(b[0])}" y2="${R(b[1])}"/>`;
     const poly = (ps, cls) => `<polygon class="${cls}" points="${punten(ps)}"/>`;
     const tekst = (p, inhoud, cls) => `<text class="${cls}" x="${R(p[0])}" y="${R(p[1])}" text-anchor="middle">${esc(inhoud)}</text>`;
@@ -4695,7 +4701,8 @@ if (typeof window !== "undefined") {
     const stap = Math.max(0.5, Math.ceil(Math.max(L, B) / 24));
     for (let x = stap; x < L; x += stap) svg += lijn(P(x,0), P(x,B), 'iso-raster');
     for (let y = stap; y < B; y += stap) svg += lijn(P(0,y), P(L,y), 'iso-raster');
-    const zichtbaar = [['noord', 'west'], ['noord', 'oost'], ['zuid', 'oost'], ['zuid', 'west']][hoek];
+    const centers={noord:[L/2,0],zuid:[L/2,B],oost:[L,B/2],west:[0,B/2]},depth=P(L/2,B/2)[1];
+    const zichtbaar=ZIJDEN.filter(side=>P(...centers[side])[1]<depth-1e-6);
     const muren = {
       noord: {len: L, p: (t,z) => P(t,0,z)}, zuid: {len: L, p: (t,z) => P(t,B,z)},
       west: {len: B, p: (t,z) => P(0,t,z)}, oost: {len: B, p: (t,z) => P(L,t,z)},
@@ -5659,6 +5666,10 @@ function renderPlan() {
   $('.vlak-keuze').innerHTML=keuzes.map(v=>`<button type="button" data-aanzicht-vlak="${esc(v.sleutel)}" data-fokus="vlak_${esc(v.sleutel)}" aria-pressed="false"><span>${esc(v.naam)}</span><small></small></button>`).join('');
   const vlakken = vlakkenVoor(ruimte);
   const tekenaar = planWeergave === "aanzicht" ? window.BouwPlan.aanzicht : planWeergave === "isometrie" ? window.BouwPlan.isometrie : window.BouwPlan.plattegrond;
+  if(planWeergave!=='isometrie'&&planGereedschap==='draai'){planGereedschap='select';$('#plan-sleepstatus').textContent='Selecteren: sleep objecten of klik om te selecteren.';}
+  houder.classList.toggle('draai-actief',planGereedschap==='draai');
+  $('[data-plan-gereedschap="draai"]').hidden=planWeergave!=='isometrie';
+  $$('[data-plan-gereedschap]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.planGereedschap===planGereedschap)));
   const regels = planRegels(ruimte);
   houder.innerHTML = tekenaar(ruimte, vlakken, werk, {...planCamera, regels, lagen: planLagen, vlak: planVlak});
   const plaatmaten=planLagen.platen&&planLagen.afwerking?[...new Set(regels.filter(r=>r.aantal>0&&(planWeergave!=='aanzicht'||r.oppervlak===planVlak)).map(r=>BouwPlan.plaatMaat(r)).filter(Boolean).map(m=>`120 × ${Math.round(m.lengte*100)} cm`))]:[];
@@ -5688,7 +5699,7 @@ function renderPlan() {
     ? "Sleep werken naar hun positie op dit vlak. Kies de locatie van een werkregel om die aan een ander vlak toe te wijzen."
     : "Klik op een wand om het objectmenu te openen. In 3D kun je draaien om alle wanden te bekijken.";
   const richting = $("#iso-richting");
-  if (richting) richting.textContent = (planWeergave === "isometrie" ? ["Noord / west", "Noord / oost", "Zuid / oost", "Zuid / west"][planCamera.hoek] + " · " : "") + `${Math.round(planCamera.zoom * 100)}%`;
+  if (richting) richting.textContent = (planWeergave === "isometrie" ? ["Noord / west", "Noord / oost", "Zuid / oost", "Zuid / west"][Math.round(planCamera.hoek)%4] + ` · ${Math.round(planCamera.hoek*90)}° · ` : "") + `${Math.round(planCamera.zoom * 100)}%`;
   const matenKnop = $('[data-camera="maten"]');
   if (matenKnop) matenKnop.setAttribute("aria-pressed", String(planCamera.maten));
   const minKnop = $('[data-camera="uit"]'), maxKnop = $('[data-camera="in"]');
@@ -6959,47 +6970,61 @@ function sluitTekenFocus() {
   window.addEventListener('afterprint',()=>{if(heropenNaPrint){heropenNaPrint=false;openFocus();}});
   document.addEventListener('click',e=>{
     const knop=e.target.closest('[data-plan-gereedschap]');if(!knop)return;
+    einde(true);
     planGereedschap=knop.dataset.planGereedschap;
     document.querySelectorAll('[data-plan-gereedschap]').forEach(b=>b.setAttribute('aria-pressed',String(b===knop)));
     host.classList.toggle('hand-actief',planGereedschap==='hand');
+    host.classList.toggle('draai-actief',planGereedschap==='draai');
     document.getElementById('plan-sleepstatus').textContent=planGereedschap==='hand'
-      ? 'Hand: sleep het beeld. Objecten blijven op hun plaats.' : planGereedschap==='meet' ? 'Meten: wijs twee punten aan of sleep een meetlijn.' : 'Selecteren: sleep objecten of klik om te selecteren.';
+      ? 'Hand: sleep het beeld. Objecten blijven op hun plaats.' : planGereedschap==='draai'?'Draaien: sleep links/rechts rond het 3D-model. Scroll om te zoomen; Escape annuleert.': planGereedschap==='meet' ? 'Meten: wijs twee punten aan of sleep een meetlijn.' : 'Selecteren: sleep objecten of klik om te selecteren.';
     window.BouwMeten?.render();
   });
   const begrens=(n,max)=>Math.max(-max,Math.min(max,n));
   function einde(annuleer=false) {
     if(!pan)return;
     const p=pan;pan=null;
-    if(annuleer){planCamera.panX=p.x;planCamera.panY=p.y;renderPlan();}
+    if(annuleer){planCamera.panX=p.x;planCamera.panY=p.y;planCamera.hoek=p.hoek;renderPlan();}
     host.classList.remove('is-pannen');
     if(host.hasPointerCapture(p.id))host.releasePointerCapture(p.id);
     suppress=performance.now()+500;
   }
   host.addEventListener('pointerdown',e=>{
-    if(pan || !e.isPrimary || !(e.button===1 || (e.button===0 && planGereedschap==='hand')))return;
+    if(pan || !e.isPrimary || !(e.button===1 || (e.button===0 && (planGereedschap==='hand'||planGereedschap==='draai'&&planWeergave==='isometrie'))))return;
     const m=host.querySelector('svg')?.getScreenCTM()?.inverse();if(!m)return;
     e.preventDefault();e.stopImmediatePropagation();
-    pan={id:e.pointerId,cx:e.clientX,cy:e.clientY,x:planCamera.panX,y:planCamera.panY,m};
-    host.setPointerCapture(e.pointerId);host.classList.add('is-pannen');
+    pan={id:e.pointerId,cx:e.clientX,cy:e.clientY,x:planCamera.panX,y:planCamera.panY,hoek:planCamera.hoek,orbit:e.button===0&&planGereedschap==='draai',m};
+    host.setPointerCapture(e.pointerId);host.classList.add('is-pannen');host.focus({preventScroll:true});
   },true);
   host.addEventListener('pointermove',e=>{
     if(!pan || pan.id!==e.pointerId)return;
+    if(pan.orbit&&(planGereedschap!=='draai'||planWeergave!=='isometrie')){einde(true);return;}
     e.preventDefault();e.stopImmediatePropagation();
     const dx=e.clientX-pan.cx,dy=e.clientY-pan.cy;
+    if(pan.orbit){planCamera.hoek=((pan.hoek+dx/180)%4+4)%4;renderPlan();return;}
     planCamera.panX=begrens(pan.x-(pan.m.a*dx+pan.m.c*dy),780);
     planCamera.panY=begrens(pan.y-(pan.m.b*dx+pan.m.d*dy),560);
     renderPlan();
   },true);
+  host.addEventListener('wheel',e=>{
+    if(planWeergave!=='isometrie'||e.ctrlKey||pan||host.classList.contains('is-slepen')||!host.querySelector('svg'))return;
+    e.preventDefault();planCamera.zoom=Math.max(.75,Math.min(3,planCamera.zoom*Math.exp(-Math.max(-100,Math.min(100,e.deltaY))*.0015)));renderPlan();
+  },{passive:false});
   host.addEventListener('pointerup',e=>{if(pan?.id===e.pointerId){e.stopImmediatePropagation();einde();}},true);
   host.addEventListener('pointercancel',e=>{if(pan?.id===e.pointerId)einde(true);},true);
   host.addEventListener('lostpointercapture',()=>{if(pan)einde(true);});
   document.addEventListener('click',e=>{
-    if(host.querySelector('svg') && e.target.closest?.('#plan') && (planGereedschap==='hand' || performance.now()<suppress)){
+    if(host.querySelector('svg') && e.target.closest?.('#plan') && (['hand','draai'].includes(planGereedschap) || performance.now()<suppress)){
       e.preventDefault();e.stopImmediatePropagation();suppress=0;
     }
   },true);
   document.addEventListener('keydown',e=>{
     if(e.key==='Escape' && pan){e.preventDefault();e.stopImmediatePropagation();einde(true);return;}
+    if(planGereedschap==='draai'&&planWeergave==='isometrie'&&e.target.closest?.('#plan')&&['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)){
+      e.preventDefault();e.stopImmediatePropagation();
+      if(['ArrowLeft','ArrowRight'].includes(e.key))planCamera.hoek=((planCamera.hoek+(e.key==='ArrowRight'?1:-1)*(e.shiftKey?1/3:1/12))%4+4)%4;
+      else planCamera.zoom=Math.max(.75,Math.min(3,planCamera.zoom+(e.key==='ArrowUp'?.1:-.1)));
+      renderPlan();return;
+    }
     if(planGereedschap!=='hand' || !e.target.closest?.('#plan') || !['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key))return;
     e.preventDefault();e.stopImmediatePropagation();
     const stap=(e.shiftKey?60:24)/planCamera.zoom;
@@ -7014,8 +7039,8 @@ function sluitTekenFocus() {
   const host=document.getElementById('plan');
   document.addEventListener('keydown',e=>{
     if(e.defaultPrevented||e.isComposing||e.repeat||e.ctrlKey||e.metaKey||e.altKey||!e.target.closest?.('#tekening')||e.target.closest('input,textarea,select')||e.target.isContentEditable)return;
-    const key=e.key.toLowerCase(),tool={v:'select',h:'hand',m:'meet'}[key];
-    if(!tool&&key!=='f')return;
+    const key=e.key.toLowerCase(),tool={v:'select',h:'hand',m:'meet',r:'draai'}[key];
+    if(!tool&&key!=='f'||tool==='draai'&&planWeergave!=='isometrie')return;
     e.preventDefault();
     const button=document.querySelector(tool?`[data-plan-gereedschap="${tool}"]`:'[data-camera="reset"]');
     button?.click();
@@ -7307,9 +7332,14 @@ function sluitTekenFocus() {
   };
   const bound = (n, lo, hi) => Math.max(lo, Math.min(hi, finite(n)));
   function draai(x, y, lengte, breedte, hoek = 0) {
-    const index = ((Math.trunc(finite(hoek)) % 4) + 4) % 4;
-    return [[x,y], [y,lengte-x], [lengte-x,breedte-y], [breedte-y,x]][index];
+    const angle = ((finite(hoek) % 4) + 4) % 4;
+    if(Number.isInteger(angle))return [[x,y], [y,lengte-x], [lengte-x,breedte-y], [breedte-y,x]][angle];
+    const c=Math.cos(angle*Math.PI/2),s=Math.sin(angle*Math.PI/2);
+    const minU=Math.min(0,lengte*c,breedte*s,lengte*c+breedte*s);
+    const minV=Math.min(0,-lengte*s,breedte*c,-lengte*s+breedte*c);
+    return [x*c+y*s-minU,-x*s+y*c-minV];
   }
+
   function viewBox(center, zoom = 1, x = 0, y = 0) {
     zoom = bound(zoom, 1, 3);
     const width = 800/zoom, height = 500/zoom;
@@ -7324,7 +7354,8 @@ function sluitTekenFocus() {
       lees,
       zoom(n) { zoom = bound(n,1,3); return lees(); },
       verschuif(nx, ny) { const px = bound(nx,-800,800), py = bound(ny,-500,500); x = px; y = py; return lees(); },
-      draai(delta) { hoek = ((hoek+Math.trunc(finite(delta)))%4+4)%4; x = y = 0; return lees(); },
+      draai(delta) { hoek = ((hoek+finite(delta))%4+4)%4; x = y = 0; return lees(); },
+      stelHoek(n) { hoek = ((finite(n)%4)+4)%4; return lees(); },
       passend() { zoom = 1; x = y = 0; return lees(); },
     };
   }
@@ -7440,12 +7471,14 @@ function sluitTekenFocus() {
     if(redraw)renderCanvas();
     renderSelectie();syncObjectDelete();
     const cam=camera.lees();
+    $('[data-huis-tool="draai"]').hidden=view!=='3d'||!state.project.huis;
+    host.classList.toggle('draai-actief',gereedschap==='draai');
     $('#huis-draaien').hidden=view!=='3d';
-    $('#huis-camera-status').textContent=`${Math.round(cam.zoom*100)}%${view==='3d'?` · ${cam.hoek*90}°`:''}`;
+    $('#huis-camera-status').textContent=`${Math.round(cam.zoom*100)}%${view==='3d'?` · ${Math.round(cam.hoek*90)}°`:''}`;
     document.querySelectorAll('[data-huis-zoom]').forEach(b=>{b.disabled=b.dataset.huisZoom==='in'?cam.zoom>=3:b.dataset.huisZoom==='uit'?cam.zoom<=1:false;});
     document.querySelectorAll('[data-huis-tool]').forEach(b=>{const on=b.dataset.huisTool===gereedschap;b.setAttribute('aria-pressed',String(on));b.classList.toggle('actief',on);});
     host.classList.toggle('huis-hand',gereedschap==='hand');
-    $('#huis-camera-hulp').textContent=gereedschap==='hand'?'Hand: sleep het beeld, niet de kamers. Pijltjes verschuiven; Escape annuleert de beweging.':'Sleep objecten, openingen, trappen of werkmarkeringen om ze te verplaatsen. Dubbelklik opent de kamer. Hand verschuift alleen het beeld.';
+    $('#huis-camera-hulp').textContent=gereedschap==='hand'?'Hand: sleep het beeld, niet de kamers. Pijltjes verschuiven; Escape annuleert de beweging.':gereedschap==='draai'?'Draaien: sleep links/rechts rond het 3D-model. Scroll om te zoomen; Escape annuleert.':'Sleep objecten, openingen, trappen of werkmarkeringen om ze te verplaatsen. Dubbelklik opent de kamer. Hand verschuift alleen het beeld.';
     const h=state.project.huis,rs=state.project.ruimtes.filter(r=>r.huis_positie),total=rs.reduce((s,r)=>s+Math.abs(V().area(V().points(r))),0),apart=state.project.ruimtes.length-rs.length;
     // Progressive disclosure: camera/placement controls need an actual contour.
     $('#huis-paneel').querySelectorAll('[data-huis-ready]').forEach(el=>el.hidden=!h);
@@ -7669,7 +7702,7 @@ function sluitTekenFocus() {
   document.addEventListener('click',e=>{
     if(!e.target.closest('#huis-hulp'))$('#huis-hulp').open=false;
     const level=e.target.closest('[data-ontwerpniveau]');if(level)setLevel(level.dataset.ontwerpniveau);
-    const vw=e.target.closest('[data-huis-view]');if(vw){eindePan(true);view=vw.dataset.huisView;snede=null;camera.verschuif(0,0);render();}
+    const vw=e.target.closest('[data-huis-view]');if(vw){eindePan(true);view=vw.dataset.huisView;if(view!=='3d'&&gereedschap==='draai')gereedschap='select';snede=null;camera.verschuif(0,0);render();}
     const zm=e.target.closest('[data-huis-zoom]');if(zm){eindePan(true);if(zm.dataset.huisZoom==='reset')camera.passend();else camera.zoom(camera.lees().zoom+(zm.dataset.huisZoom==='in'?.25:-.25));render();}
     const turn=e.target.closest('[data-huis-draai]');if(turn){eindePan(true);camera.draai(Number(turn.dataset.huisDraai));render();}
     const tool=e.target.closest('[data-huis-tool]');if(tool){eindePan(true);suppress=0;gereedschap=tool.dataset.huisTool;snede=null;render();}
@@ -7680,7 +7713,7 @@ function sluitTekenFocus() {
   $('#huis-plan').addEventListener('click',e=>{
     if(e.target.closest('[data-huis-start]')){$('#huis-tekenen').click();return;}
     if(performance.now()<suppress){suppress=0;e.preventDefault();return;}
-    if(gereedschap==='hand'||e.target.closest('[data-huis-cut]'))return;
+    if(gereedschap==='hand'||gereedschap==='draai'||e.target.closest('[data-huis-cut]'))return;
     if(snede){
       if(snede.punten.length===2){message('Snede klaar. Kies Splitsen toepassen of neem het laatste punt terug.');return;}
       const svgEl=$('#huis-plan svg'),r=selected(),point=svgEl.createSVGPoint();point.x=e.clientX;point.y=e.clientY;const q=point.matrixTransform(svgEl.getScreenCTM().inverse()),s=Number(svgEl.dataset.huisSchaal),o=r.huis_positie;
@@ -7744,7 +7777,11 @@ function sluitTekenFocus() {
       if(pan){e.preventDefault();eindePan(true);return;}
       if(snede){e.preventDefault();snede=null;$('#huis-splits-invoer').open=false;render();cutFeedback();message('Snede geannuleerd.');}return;
     }
-    if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)&&(gereedschap==='hand'||e.target===host)){
+    if(gereedschap==='draai'&&view==='3d'&&['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)){
+      e.preventDefault();if(['ArrowLeft','ArrowRight'].includes(e.key))camera.stelHoek(camera.lees().hoek+(e.key==='ArrowRight'?1:-1)*(e.shiftKey?1/3:1/12));
+      else camera.zoom(camera.lees().zoom+(e.key==='ArrowUp'?.1:-.1));render();return;
+    }
+    if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)&&(gereedschap==='hand' ||e.target===host)){
       e.preventDefault();const cam=camera.lees(),step=(e.shiftKey?100:35)/cam.zoom;
       camera.verschuif(cam.x+(e.key==='ArrowLeft'?-step:e.key==='ArrowRight'?step:0),cam.y+(e.key==='ArrowUp'?-step:e.key==='ArrowDown'?step:0));renderCanvas();return;
     }
@@ -7755,23 +7792,28 @@ function sluitTekenFocus() {
   function eindePan(cancel=false){
     if(!pan)return;
     const p=pan;pan=null;
-    if(cancel){camera.verschuif(p.voor.x,p.voor.y);renderCanvas();}
+    if(cancel){camera.stelHoek(p.voor.hoek);camera.verschuif(p.voor.x,p.voor.y);render();}
     host.classList.remove('huis-pannen');
     if(host.hasPointerCapture(p.id))host.releasePointerCapture(p.id);
     if(p.moved)suppress=performance.now()+500;
   }
   host.addEventListener('pointerdown',e=>{
-    if(pan||snede||!e.isPrimary||!(e.button===1||(e.button===0&&gereedschap==='hand')))return;
+    if(pan||snede||!e.isPrimary||!(e.button===1||(e.button===0&&(gereedschap==='hand'||gereedschap==='draai'&&view==='3d'))))return;
     const matrix=host.querySelector('svg')?.getScreenCTM()?.inverse();if(!matrix)return;
     e.preventDefault();host.focus({preventScroll:true});
-    pan={id:e.pointerId,cx:e.clientX,cy:e.clientY,voor:camera.lees(),matrix,moved:false};
+    pan={id:e.pointerId,cx:e.clientX,cy:e.clientY,voor:camera.lees(),matrix,moved:false,orbit:e.button===0&&gereedschap==='draai'};
     host.setPointerCapture(e.pointerId);host.classList.add('huis-pannen');
   });
   host.addEventListener('pointermove',e=>{
     if(pan?.id!==e.pointerId)return;e.preventDefault();
     const dx=e.clientX-pan.cx,dy=e.clientY-pan.cy;
     if(Math.hypot(dx,dy)<4&&!pan.moved)return;pan.moved=true;
+    if(pan.orbit){camera.stelHoek(pan.voor.hoek+dx/180);render();return;}
     camera.verschuif(pan.voor.x-pan.matrix.a*dx-pan.matrix.c*dy,pan.voor.y-pan.matrix.b*dx-pan.matrix.d*dy);renderCanvas();
+  },{passive:false});
+  host.addEventListener('wheel',e=>{
+    if(view!=='3d'||e.ctrlKey||pan||objectDrag||!state.project.huis)return;
+    e.preventDefault();camera.zoom(camera.lees().zoom*Math.exp(-Math.max(-100,Math.min(100,e.deltaY))*.0015));render();
   },{passive:false});
   host.addEventListener('pointerup',e=>{if(pan?.id===e.pointerId)eindePan();});
   host.addEventListener('pointercancel',e=>{if(pan?.id===e.pointerId)eindePan(true);});
@@ -8152,7 +8194,7 @@ function sluitTekenFocus() {
     const node=[...host.querySelectorAll('[data-trap-id]')].find(e=>e.dataset.trapId===t.id);if(node)node.outerHTML=BouwPlan.trapOverlay({...actieveRuimte(),trappen:[t]},projection(),planWeergave==='isometrie');
   }
   function end(cancel=false){
-    if(!drag)return;const d=drag;drag=null;suppress=performance.now()+500;
+    if(!drag)return;const d=drag;drag=null;host.classList.remove('is-slepen');suppress=performance.now()+500;
     if(host.hasPointerCapture?.(d.pointer))host.releasePointerCapture(d.pointer);
     if(state.project!==d.project||actieveRuimte()?.id!==d.room){renderPlan();return;}
     if(!d.moved){if(!cancel)open(d.id);return;}
@@ -8169,7 +8211,7 @@ function sluitTekenFocus() {
   host.addEventListener('pointermove',e=>{
     const d=drag;if(!d||d.pointer!==e.pointerId)return;e.preventDefault();e.stopImmediatePropagation();
     if(state.project!==d.project||actieveRuimte()?.id!==d.room){end(true);return;}
-    if(Math.hypot(e.clientX-d.sx,e.clientY-d.sy)<4&&!d.moved)return;d.moved=true;
+    if(Math.hypot(e.clientX-d.sx,e.clientY-d.sy)<4&&!d.moved)return;d.moved=true;host.classList.add('is-slepen');
     const dx=d.inverse.a*(e.clientX-d.sx)+d.inverse.c*(e.clientY-d.sy),dy=d.inverse.b*(e.clientX-d.sx)+d.inverse.d*(e.clientY-d.sy);
     d.draft.x=Math.round(Math.max(0,d.before.x+(dx*d.v[1]-dy*d.v[0])/d.det)*20)/20;
     d.draft.y=Math.round(Math.max(0,d.before.y+(d.u[0]*dy-d.u[1]*dx)/d.det)*20)/20;redraw(d.draft);
