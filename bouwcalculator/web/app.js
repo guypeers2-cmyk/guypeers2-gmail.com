@@ -774,6 +774,7 @@ function renderPlan() {
   if (!ruimte || !window.BouwPlan) {
     planSelectie=null;planInspectieOpen=false;
     houder.innerHTML='<div class="plan-leeg"><strong>Start met een ruimte</strong><p>Voeg een ruimte toe om te tekenen en objecten te plaatsen.</p><button type="button" class="knop primair" data-actie="ruimte-toevoegen">+ Ruimte toevoegen</button></div>';
+    $('#plan-object-verwijder').hidden=true;
     $('#plan-selectie').hidden=true;$('#plan-inspector').hidden=true;
     $('#plan-plaat-info').hidden=true;
     $('#plan-legenda').innerHTML='';$('#plan-openingen').innerHTML='';
@@ -804,7 +805,7 @@ function renderPlan() {
     if(planWeergave === "aanzicht" && o.muur !== planVlak) return "";
     return `<div class="plan-opening-rij"><button type="button" class="plan-opening-select" data-plan-opening-select="${index}" aria-pressed="false"><strong>${esc(o.naam)}</strong><small>Opening · wand ${esc(o.muur)}</small></button><button type="button" class="plan-vuilbak" data-plan-opening-verwijder="${index}" aria-label="${esc(o.naam)} op wand ${esc(o.muur)} verwijderen" title="Opening verwijderen">${vuilbakIcoon}</button></div>`;
   }).join("");
-  $("#plan-openingen").innerHTML += (ruimte.trappen||[]).map(t=>`<div class="plan-opening-rij"><button type="button" class="plan-opening-select" data-trap-edit="${esc(t.id)}"><strong>${esc(t.naam)}</strong><small>Trap · ${NR.format(t.breedte)} × ${NR.format(t.lengte)} m · bewerken/verwijderen</small></button></div>`).join('');
+  $("#plan-openingen").innerHTML += (ruimte.trappen||[]).map(t=>`<div class="plan-opening-rij"><button type="button" class="plan-opening-select" data-trap-edit="${esc(t.id)}"><strong>${esc(t.naam)}</strong><small>Trap · ${NR.format(t.breedte)} × ${NR.format(t.lengte)} m · bewerken</small></button><button type="button" class="plan-vuilbak" data-trap-verwijder="${esc(t.id)}" aria-label="${esc(t.naam)} verwijderen" title="Trap verwijderen">${vuilbakIcoon}</button></div>`).join('');
   $("#vlak-bediening").hidden = planWeergave !== "aanzicht";
   $("#sleepvlak-keuze").hidden = planWeergave !== "isometrie";
   $$("[data-aanzicht-vlak]").forEach(b=>{
@@ -1098,7 +1099,7 @@ function renderPlanSelectie() {
   $$('#plan [data-opening-index]').forEach(el=>el.classList.toggle('plan-geselecteerd',!!opening && Number(el.dataset.openingIndex)===planSelectie.index));
   $$('#plan [data-plan-regel]').forEach(el=>el.classList.toggle('plan-geselecteerd',!!regel && el.dataset.planRegel===regel.id));
   const verwijder=$("#plan-selectie-verwijder");
-  verwijder.innerHTML=vuilbakIcoon;
+  verwijder.innerHTML=vuilbakIcoon+'<span>Verwijderen</span>';
   delete verwijder.dataset.planVerwijder;delete verwijder.dataset.planOpeningVerwijder;
   if(regel) {
     $("#plan-selectie-naam").textContent=state.prijsboek.pakketten.find(p=>p.id===regel.pakket_id)?.naam || 'Werkregel';
@@ -1108,6 +1109,13 @@ function renderPlanSelectie() {
     $("#plan-selectie-naam").textContent=`${opening.naam} · wand ${opening.muur}`;
     verwijder.dataset.planOpeningVerwijder=String(planSelectie.index);
   }
+  const rail=$('#plan-object-verwijder');rail.hidden=!regel&&!opening;
+  delete rail.dataset.planVerwijder;delete rail.dataset.planOpeningVerwijder;
+  if(regel)rail.dataset.planVerwijder=regel.id;
+  if(opening)rail.dataset.planOpeningVerwijder=String(planSelectie.index);
+  const naam=opening?opening.naam:regel?$('#plan-selectie-naam').textContent:'';
+  rail.setAttribute('aria-label',`${naam||'Geselecteerd object'} verwijderen`);
+  verwijder.setAttribute('aria-label',`${naam||'Geselecteerd object'} verwijderen`);
 }
 function studioOpen(id, opties) {
   if(window.BouwStudio)return window.BouwStudio.open(id, opties);

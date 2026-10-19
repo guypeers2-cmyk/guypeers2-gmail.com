@@ -1947,3 +1947,11 @@ body.huisstand-actief .object-snelknop,body.huisstand-actief .tekening-snelknop{
 /* Hit regions must stay invisible in quote/print SVGs and both themes too. */
 .huis-object .huis-object-hit{fill:transparent;stroke:none}
 .huis-object .huis-trace-hit{fill:none;stroke:transparent!important;stroke-width:18;pointer-events:stroke}
+#plan-object-verwijder[hidden],#huis-object-acties[hidden]{display:none!important}
+#plan-selectie-verwijder{display:flex;align-items:center;gap:6px;min-height:44px;padding:8px;border:1px solid var(--rand);border-radius:8px;background:var(--oppervlak);color:var(--rood);cursor:pointer}
+.tekening-objectrail .rail-verwijder{flex-direction:column;gap:2px;font-size:.7rem;color:var(--rood)}
+.huis-object-acties{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:8px 0;padding:8px;border:1px solid var(--accent-rand);border-radius:8px;background:var(--accent-zacht)}
+.huis-object-acties strong{flex:1;min-width:0;overflow-wrap:anywhere}.huis-object-acties button{min-height:44px}
+@media print{#huis-object-acties,#plan-selectie{display:none!important}}
+/* Surface shading must not intercept a door/window underneath. Use its badge. */
+.werk-vlak-markering{pointer-events:none}

@@ -1113,3 +1113,18 @@ rechtstreeks verplaatsbaar in het huisoverzicht én de kamerwerkstudio. Gebruik
 Controle: `tools/all_objects_review.mjs` (hele catalogus, kamer/huis,
 2D/3D, muis/touch/toetsenbord, uitsluitend conceptmutatie tijdens huis-slepen,
 annuleren, undo/redo en identieke calculatietotalen).
+
+### Direct zichtbare knop Verwijderen
+
+Selecteer in de kamertekening een raam, deur of werkobject. **Verwijderen** staat
+nu met tekst in de selectiebalk én in de rechter knoppenkolom, zonder eerst een
+paneel open te klappen. De objectenlijst heeft ook een vuilbakknop naast trappen.
+In het huisoverzicht verschijnt na objectselectie een balk met objectnaam en
+**Verwijderen**; Tab-focus op een object werkt eveneens.
+
+Elke verwijderactie vraagt bevestiging. Openingen verwijderen berekent de netto
+oppervlakken en offerte opnieuw; een werkobject verwijderen verwijdert ook zijn
+offertepost. Trappen verwijderen wijzigt alleen de tekening. Undo/redo blijft
+beschikbaar en een verouderde huisobjectselectie wordt automatisch opgeheven.
+Controle: `tools/delete_review.mjs` (online/offline, deur/raam/werk/trap,
+bevestigen/annuleren, herberekening, undo en 320–1440 px).

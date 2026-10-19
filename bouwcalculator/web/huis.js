@@ -4,7 +4,7 @@
   const $=s=>document.querySelector(s),clone=v=>JSON.parse(JSON.stringify(v));
   let niveau='ruimte',view='2d',snede=null,gekozen=null,gereedschap='select',pan=null,suppress=0;
   const camera=BouwHuisCamera.maak(),host=$('#huis-plan');
-  let huisProjectie=null,objectDrag=null,objectTap=null;
+  let huisProjectie=null,objectDrag=null,objectTap=null,objectSelection=null;
   const V=()=>window.BouwVorm;
   const selected=()=>state.project?.ruimtes.find(r=>r.id===gekozen);
   let placementRoom=null,placementDirty=false,placementProject=null,cutDrag=null;
@@ -103,7 +103,7 @@
     document.querySelectorAll('[data-huis-view]').forEach(b=>{const on=b.dataset.huisView===view;b.setAttribute('aria-pressed',on);b.classList.toggle('actief',on);});
     $('#huis-undo').disabled=!projectHistorie.kanUndo();$('#huis-redo').disabled=!projectHistorie.kanRedo();
     if(redraw)renderCanvas();
-    renderSelectie();
+    renderSelectie();syncObjectDelete();
     const cam=camera.lees();
     $('#huis-draaien').hidden=view!=='3d';
     $('#huis-camera-status').textContent=`${Math.round(cam.zoom*100)}%${view==='3d'?` · ${cam.hoek*90}°`:''}`;
@@ -151,6 +151,30 @@
     $('#huis-plaats-status').textContent=placementDirty?'Nog niet toegepast. Kies Plaats / verplaats ruimte om te bevestigen.':r?.huis_positie?'Positie vanaf de linkerbovenhoek van het huisplan, in meter.':'Deze kamer staat buiten het huisplan. Werken blijven meetellen in de offerte.';
   }
   ['#huis-plaats-x','#huis-plaats-y'].forEach(id=>$(id).addEventListener('input',()=>{placementDirty=true;syncPlacement();}));
+  function selectedObjectModel(s){
+    const r=state.project?.ruimtes.find(r=>r.id===s.room);
+    return s.type==='opening'?r?.openingen[s.id]:s.type==='trap'?r?.trappen?.find(t=>t.id===s.id):state.project?.regels.find(w=>w.id===s.id&&w.ruimte_id===s.room);
+  }
+  function syncObjectDelete(){
+    const s=objectSelection,m=s&&selectedObjectModel(s);
+    if(s&&(state.project!==s.project||m!==s.model||JSON.stringify(m)!==s.snapshot))objectSelection=null;
+    $('#huis-object-acties').hidden=!objectSelection;
+    if(objectSelection)$('#huis-object-naam').textContent=objectSelection.naam;
+  }
+  function selectHouseObject(d){
+    const s={project:state.project,room:d.room.id,type:d.type,id:d.id,naam:d.type==='regel'?d.rule.pakket.naam:d.model.naam};
+    s.model=selectedObjectModel(s);s.snapshot=JSON.stringify(s.model);objectSelection=s;syncObjectDelete();
+  }
+  $('#huis-object-deselecteer').addEventListener('click',()=>{objectSelection=null;syncObjectDelete();host.focus({preventScroll:true});});
+  $('#huis-object-verwijder').addEventListener('click',()=>{
+    syncObjectDelete();const s=objectSelection;if(!s)return;
+    const note=s.type==='opening'?'De netto-oppervlakte en offerte worden opnieuw berekend.':s.type==='regel'?'Deze werkpost verdwijnt ook uit de offerte.':'Alleen de traptekening wordt verwijderd.';
+    if(!confirm(`“${s.naam}” verwijderen? ${note}`))return;
+    const room=state.project.ruimtes.find(r=>r.id===s.room);objectSelection=null;objectTap=null;
+    wijzig(()=>{if(s.type==='opening')room.openingen.splice(s.id,1);else if(s.type==='trap')room.trappen=room.trappen.filter(t=>t.id!==s.id);else state.project.regels=state.project.regels.filter(w=>w.id!==s.id);});
+    message('Object verwijderd. Gebruik Ongedaan maken om het terug te zetten.');host.focus({preventScroll:true});
+  });
+  host.addEventListener('focusin',e=>{const d=prepareObject(e.target);if(d)selectHouseObject(d);});
   // Draft-only object movement in the house overview. Capture belongs to the host.
   function prepareObject(target){
     const node=target.closest?.('[data-huis-object],[data-huis-opening],[data-huis-trap]'),owner=node?.closest('[data-huis-object-room]');
@@ -206,7 +230,7 @@
     if(d.pointer!=null&&host.hasPointerCapture(d.pointer))host.releasePointerCapture(d.pointer);
     if(!objectCurrent(d)){renderCanvas();return;}
     if(cancel){objectTap=null;renderCanvas();message('Verplaatsing geannuleerd.');return;}
-    if(!d.moved){const key=d.room.id+':'+d.type+':'+d.id,now=performance.now();choose(d.room.id);if(objectTap?.key===key&&now-objectTap.time<450){objectTap=null;openSelected();}else objectTap={key,time:now};return;}
+    if(!d.moved){const key=d.room.id+':'+d.type+':'+d.id,now=performance.now();choose(d.room.id);selectHouseObject(d);if(objectTap?.key===key&&now-objectTap.time<450){objectTap=null;openSelected();}else objectTap={key,time:now};return;}
     objectTap=null;
     try{validateObject(d);wijzig(()=>state.project=d.candidate);message('Objectpositie bewaard. Oppervlakten, hoeveelheden en prijzen blijven ongewijzigd.');}
     catch(error){renderCanvas();message(error.message);}
@@ -285,6 +309,7 @@
     niveau=n;snede=null;if(changed)window.render();else render();
   }
   function choose(id){
+    objectSelection=null;syncObjectDelete();
     const r=state.project.ruimtes.find(r=>r.id===id);if(!r)return;
     const unchanged=gekozen===id&&!!r.huis_positie&&!snede;
     gekozen=id;placementDirty=false;
