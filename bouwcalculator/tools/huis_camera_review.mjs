@@ -57,7 +57,9 @@ await click('[data-huis-zoom="reset"]');assert.equal(await box(),'0 0 800 500','
 assert.equal(await page.evaluate(()=>JSON.stringify(state.project)),project,'camera never changes measurements, works or positions');
 assert.equal(await page.evaluate(()=>state.offerte.totalen.totaal),total);
 assert.equal(await page.evaluate(()=>projectHistorie.kanUndo()),false,'no camera entries in project history');
-assert.equal(await page.evaluate(()=>BouwHuis.svg(state.project,'2d',null)),print,'print is unaffected');
+// Generated mask IDs are unique per render; compare geometry and reference structure.
+const canonicalSvg=svg=>{const ids=new Map();return svg.replace(/\bbp\d+/g,id=>{if(!ids.has(id))ids.set(id,'bp'+ids.size);return ids.get(id);});};
+assert.equal(canonicalSvg(await page.evaluate(()=>BouwHuis.svg(state.project,'2d',null))),canonicalSvg(print),'print is unaffected');
 await click('[data-huis-tool="select"]');
 await click('[data-huis-ruimte="b"] .huis-vloer');
 assert((await page.$eval('#huis-selectie-info',e=>e.textContent)).includes('Keuken'));

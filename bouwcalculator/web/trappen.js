@@ -5,12 +5,38 @@
   const fields=['naam','richting','breedte','lengte','hoogte','treden','x','y'];
   let context=null,opener=null,drag=null,suppress=0;
   function check(t,room){
+    if(t.x<0||t.y<0)throw Error('De trap valt buiten de kamer. Pas X/Y aan of draai terug.');
     if(!t.naam.trim()||t.naam.length>100)throw Error('Geef een trapnaam van 1 tot 100 tekens.');
     if(['x','y','breedte','lengte','hoogte','richting','treden'].some(k=>!Number.isFinite(t[k]))||t.x<0||t.y<0||['breedte','lengte','hoogte'].some(k=>t[k]<.05||t[k]>100)||![0,90,180,270].includes(t.richting)||!Number.isInteger(t.treden)||t.treden<2||t.treden>40)throw Error('Controleer de trapmaten, richting en het aantal treden.');
     const ps=BouwPlan.trapGeometrie(t).voet.map(a=>({x:a[0],y:a[1]}));
     if(!ps.every(p=>BouwVorm.inside(room,p))||!ps.every((p,i)=>BouwVorm.segmentInside(room,p,ps[(i+1)%ps.length])))throw Error('De trap past niet binnen de kamer. Pas de positie, richting of maten aan.');
     if(ps.some(p=>t.hoogte>BouwVorm.height(room,p.x,p.y)+.000001))throw Error('De trap komt boven het plafond. Controleer de hoogte en plaatsing.');
   }
+  function draft(){
+    const t={id:context.id};
+    fields.forEach(k=>t[k]=k==='naam'?$('#trap-'+k).value.trim():$('#trap-'+k).value===''?NaN:Number($('#trap-'+k).value));
+    return t;
+  }
+  function preview(){
+    if(!context)return;
+    const status=$('#trap-draai-status'),target=$('#trap-voorbeeld');
+    try{
+      const room=current(),t=draft();
+      if(['x','y','breedte','lengte','hoogte','richting','treden'].some(k=>!Number.isFinite(t[k]))||t.breedte<=0||t.lengte<=0||t.hoogte<=0||!Number.isInteger(t.treden)||t.treden<2||t.treden>40){target.innerHTML='';throw Error('Vul geldige trapmaten en 2 tot 40 treden in voor het voorbeeld.');}
+      const P=BouwPlan.planProjectie(room).P,points=BouwVorm.points(room).map(p=>P(p.x,p.y).join(',')).join(' ');
+      target.innerHTML=`<svg viewBox="0 0 780 540" role="img" aria-label="Traprichting op het kamerplan; noord is boven"><polygon class="trap-preview-kamer" points="${points}"/>${BouwPlan.trapOverlay({...room,trappen:[t]},P,false,false)}</svg>`;
+      check(t,room);$('#trap-fout').hidden=true;
+      status.textContent=`Stijgrichting: ${$('#trap-richting').selectedOptions[0].textContent}. Past binnen de kamer. Nog niet bewaard.`;
+    }catch(error){status.textContent=error.message;$('#trap-fout').textContent=error.message;$('#trap-fout').hidden=false;}
+  }
+  $('#trap-form').addEventListener('input',preview);
+  $('#trap-form').addEventListener('change',preview);
+  dialog.querySelectorAll('[data-trap-draai]').forEach(button=>button.addEventListener('click',()=>{
+    try{current();const t=draft();if(![t.x,t.y,t.breedte,t.lengte].every(Number.isFinite)||t.breedte<=0||t.lengte<=0)throw Error('Vul eerst geldige maten en een positie in.');
+      const next=BouwPlan.draaiTrap(t,Number(button.dataset.trapDraai));
+      ['x','y','richting'].forEach(k=>$('#trap-'+k).value=next[k]);preview();
+    }catch(error){$('#trap-fout').textContent=error.message;$('#trap-fout').hidden=false;}
+  }));
   function open(id){
     const room=actieveRuimte();if(!room)return;
     const existing=(room.trappen||[]).find(t=>t.id===id);
@@ -18,11 +44,11 @@
     const t=existing||{id:uid(),naam:'Trap',richting:0,breedte:.9,lengte:Math.min(2.4,room.breedte),hoogte:room.hoogte,treden:14,x:Math.max(0,(room.lengte-.9)/2),y:Math.max(0,(room.breedte-Math.min(2.4,room.breedte))/2)};
     opener=document.activeElement;context={project:state.project,room:room.id,id:t.id,existing:!!existing};
     fields.forEach(k=>$('#trap-'+k).value=t[k]);$('#trap-fout').hidden=true;$('#trap-verwijder').hidden=!existing;
-    $('#trap-titel').textContent=existing?'Trap bewerken':'Trap toevoegen';if(!dialog.open)dialog.showModal();$('#trap-naam').focus();
+    $('#trap-titel').textContent=existing?'Trap bewerken':'Trap toevoegen';preview();if(!dialog.open)dialog.showModal();$('#trap-naam').focus();
   }
   function current(){const r=actieveRuimte();if(!context||context.project!==state.project||context.room!==r?.id)throw Error('De kamer is veranderd. Sluit het venster en probeer opnieuw.');return r;}
   $('#trap-form').addEventListener('submit',e=>{
-    e.preventDefault();try{const r=current(),t={id:context.id};fields.forEach(k=>t[k]=k==='naam'?$('#trap-'+k).value.trim():Number($('#trap-'+k).value));check(t,r);
+    e.preventDefault();try{const r=current(),t=draft();check(t,r);
       const index=(r.trappen||[]).findIndex(t=>t.id===context.id);if(context.existing&&index<0)throw Error('Deze trap bestaat niet meer.');
       wijzig(()=>{r.trappen ||= [];if(index<0)r.trappen.push(t);else r.trappen[index]=t;});dialog.close();toast('Trap bewaard. Alleen de tekening is gewijzigd; geen offertepost toegevoegd.');
     }catch(error){$('#trap-fout').textContent=error.message;$('#trap-fout').hidden=false;}
@@ -62,5 +88,6 @@
   host.addEventListener('pointercancel',e=>{if(drag?.pointer===e.pointerId)end(true);},true);
   host.addEventListener('lostpointercapture',()=>{if(drag)end(true);});
   host.addEventListener('click',e=>{if(performance.now()<suppress){e.preventDefault();e.stopImmediatePropagation();return;}const t=e.target.closest('[data-trap-id]');if(t){e.preventDefault();e.stopImmediatePropagation();open(t.dataset.trapId);}},true);
+  window.BouwTrappen={check};
   host.addEventListener('keydown',e=>{if(e.key==='Escape'&&drag){e.preventDefault();end(true);return;}const t=e.target.closest('[data-trap-id]');if(t&&['Enter',' '].includes(e.key)){e.preventDefault();e.stopPropagation();open(t.dataset.trapId);}});
 })();

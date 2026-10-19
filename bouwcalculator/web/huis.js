@@ -4,6 +4,7 @@
   const $=s=>document.querySelector(s),clone=v=>JSON.parse(JSON.stringify(v));
   let niveau='ruimte',view='2d',snede=null,gekozen=null,gereedschap='select',pan=null,suppress=0;
   const camera=BouwHuisCamera.maak(),host=$('#huis-plan');
+  let huisProjectie=null,objectDrag=null,objectTap=null;
   const V=()=>window.BouwVorm;
   const selected=()=>state.project?.ruimtes.find(r=>r.id===gekozen);
   let placementRoom=null,placementDirty=false,placementProject=null,cutDrag=null;
@@ -57,6 +58,7 @@
     const bounds=V().points(h).flatMap(a=>[raw(a.x,a.y),raw(a.x,a.y,H)]),xs=bounds.map(p=>p[0]),ys=bounds.map(p=>p[1]);
     const minX=Math.min(...xs),maxX=Math.max(...xs),minY=iso?Math.min(...ys):0,maxY=iso?Math.max(...ys):B,s=Math.min(680/Math.max(.1,maxX-minX),400/Math.max(.1,maxY-minY));
     const P=(x,y,z=0)=>{const a=raw(x,y,z);return [(800-(maxX-minX)*s)/2+(a[0]-minX)*s,50+(400-(maxY-minY)*s)/2+(a[1]-minY)*s];};
+    if(options.trackProjection)huisProjectie=P;
     const polygon=(ps,cls,attrs='')=>`<polygon class="${cls}" points="${ps.map(a=>P(a.x,a.y,a.z||0).map(v=>v.toFixed(2)).join(',')).join(' ')}" ${attrs}/>`;
     const text=(a,t,cls='huis-label',dy=0)=>{const q=P(a.x,a.y,a.z||0);return `<text class="${cls}" text-anchor="middle" x="${q[0]}" y="${q[1]+dy}">${esc(t)}</text>`;};
     let out=polygon(V().points(h),'huis-buiten');
@@ -67,13 +69,15 @@
       out+=`<g class="huis-kamer${cls}" data-huis-ruimte="${esc(r.id)}" tabindex="0" role="button" aria-pressed="${r.id===selection}" aria-label="Selecteer ${esc(r.naam)}">`;
       out+=polygon(ps.map(world),'huis-vloer');
       if(iso){const ts=V().top(r);for(let i=0;i<ps.length;i++)out+=polygon([ps[i],ps[(i+1)%ps.length],ts[(i+1)%ps.length],ts[i]].map(world),'huis-wand');out+=polygon(ts.map(world),'huis-dak');}
+      out+='</g><g data-huis-object-room="'+esc(r.id)+'">';
+      const regels=planRegels(r).map(w=>({...w,...project.regels.find(m=>m.id===w.id)}));
       if(window.BouwPlan){
-        (r.openingen||[]).forEach((o,i)=>{const g=BouwPlan.openingGeometrie(r,i);if(!g)return;const ps=(iso?[g.a,g.b,g.c,g.d]:[g.a,g.b]).map(a=>world({x:a[0],y:a[1],z:iso?a[2]:0}));out+=`<g class="huis-opening"><title>${esc(o.naam)} · ${esc(r.naam)}</title>`+(iso?polygon(ps,'huis-opening-vlak'):`<polyline points="${ps.map(a=>P(a.x,a.y).join(',')).join(' ')}"/>`)+'</g>';});
-        project.regels.filter(w=>w.ruimte_id===r.id).forEach((w,i)=>{const pakket=state.prijsboek?.pakketten.find(p=>p.id===w.pakket_id);if(!pakket)return;const g=BouwPlan.werkGeometrie({...w,pakket,nummer:i+1},r),a=P(g.a[0]+o.x,g.a[1]+o.y,iso?g.a[2]:0),b=P(g.b[0]+o.x,g.b[1]+o.y,iso?g.b[2]:0);out+=`<g class="huis-object"><title>${esc(pakket.naam)} · ${esc(r.naam)} · open de kamer om te bewerken</title>${pakket.eenheid==='m'?`<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}"/>`:''}<circle cx="${a[0]}" cy="${a[1]}" r="6"/></g>`;});
+        (r.openingen||[]).forEach((o,i)=>{const g=BouwPlan.openingGeometrie(r,i);if(!g)return;const ps=(iso?[g.a,g.b,g.c,g.d]:[g.a,g.b]).map(a=>world({x:a[0],y:a[1],z:iso?a[2]:0}));out+=`<g class="huis-opening" ${options.trackProjection?`data-huis-opening="${i}" tabindex="0" role="button" aria-label="${esc(o.naam)} verplaatsen"`:'aria-hidden="true"'}><title>${esc(o.naam)} · ${esc(r.naam)}</title>`+(iso?polygon(ps,'huis-opening-vlak'):`<polyline points="${ps.map(a=>P(a.x,a.y).join(',')).join(' ')}"/>`)+'</g>';});
+        regels.forEach(w=>{const pakket=w.pakket;if(!pakket||!(w.aantal>0)||planLagen[BouwPlan.laag(w)]===false)return;const g=BouwPlan.werkGeometrie(w,r),a=P(g.a[0]+o.x,g.a[1]+o.y,iso?g.a[2]:0),b=P(g.b[0]+o.x,g.b[1]+o.y,iso?g.b[2]:0);out+=`<g class="huis-object" ${options.trackProjection?`data-huis-object="${esc(w.id)}" tabindex="0" role="button" aria-label="${esc(pakket.naam)} verplaatsen"`:'aria-hidden="true"'}><title>${esc(pakket.naam)} · sleep om te verplaatsen; dubbelklik om te bewerken</title><circle class="huis-object-hit" cx="${a[0]}" cy="${a[1]}" r="${16*(options.trackProjection?800/magnify/Math.max(1,host.clientWidth||800):1)}"/>${pakket.eenheid==='m'?`<line class="huis-trace-hit" x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}"/><line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}"/>`:''}<circle cx="${a[0]}" cy="${a[1]}" r="6"/></g>`;});
       }
-      if(window.BouwPlan?.platenOverlay)out+=BouwPlan.platenOverlay(r,planRegels(r),(x,y,z=0)=>P(x+o.x,y+o.y,z),{lagen:planLagen});
-      if(window.BouwPlan?.trapOverlay)out+=BouwPlan.trapOverlay(r,(x,y,z=0)=>P(x+o.x,y+o.y,z),iso,false);
-      const a=world(V().interior(r));out+=text(a,r.naam,'huis-label',-4)+text(a,NR.format(Math.abs(V().area(ps)))+' m²','huis-oppervlak',16);out+='</g>';
+      if(window.BouwPlan?.platenOverlay)out+=BouwPlan.platenOverlay(r,regels,(x,y,z=0)=>P(x+o.x,y+o.y,z),{lagen:planLagen});
+      if(window.BouwPlan?.trapOverlay)for(const t of r.trappen||[])out+=`<g ${options.trackProjection?`data-huis-trap="${esc(t.id)}" tabindex="0" role="button" aria-label="${esc(t.naam)} verplaatsen"`:'aria-hidden="true"'}>`+BouwPlan.trapOverlay({...r,trappen:[t]},(x,y,z=0)=>P(x+o.x,y+o.y,z),iso,false)+'</g>';
+      const a=world(V().interior(r));out+='</g>';out+=text(a,r.naam,'huis-label',-4)+text(a,NR.format(Math.abs(V().area(ps)))+' m²','huis-oppervlak',16);
     }
     const top=V().points(h);top.forEach((a,i)=>{const b=top[(i+1)%top.length];out+=text({x:(a.x+b.x)/2,y:(a.y+b.y)/2-.15},NR.format(Math.hypot(a.x-b.x,a.y-b.y))+' m','huis-maat');});
     const pieces=preview(selected());
@@ -87,7 +91,7 @@
     }
     if(snede?.room===selection&&!iso){for(const a of snede.punten){const q=P(a.x+selected().huis_positie.x,a.y+selected().huis_positie.y);out+=`<circle class="huis-snede-punt" cx="${q[0]}" cy="${q[1]}" r="7"/>`;}if(snede.punten.length===2){const [a,b]=snede.punten.map(a=>P(a.x+selected().huis_positie.x,a.y+selected().huis_positie.y));out+=`<line class="huis-snede-lijn" x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}"/>`;}}
     const focus=rooms.find(r=>r.id===selection),anchor=focus?V().interior(focus):{x:L/2,y:B/2},center=focus?P(anchor.x+focus.huis_positie.x,anchor.y+focus.huis_positie.y):[400,250],box=BouwHuisCamera.viewBox(center,magnify,options.x||0,options.y||0);
-    return `<svg viewBox="${box.join(' ')}" xmlns="http://www.w3.org/2000/svg" role="group" aria-label="${iso?'3D':'2D'} huisplan" data-huis-schaal="${s}" data-huis-x="${P(0,0)[0]}" data-huis-y="${P(0,0)[1]}">${out}</svg>`;
+    return `<svg viewBox="${box.join(' ')}" xmlns="http://www.w3.org/2000/svg" role="group" aria-label="${iso?'3D':'2D'} huisplan" data-huis-hoek="${options.hoek||0}" data-huis-schaal="${s}" data-huis-x="${P(0,0)[0]}" data-huis-y="${P(0,0)[1]}">${out}</svg>`;
   }
   function render(redraw=true){
     if(!state.project||!V())return;
@@ -106,7 +110,7 @@
     document.querySelectorAll('[data-huis-zoom]').forEach(b=>{b.disabled=b.dataset.huisZoom==='in'?cam.zoom>=3:b.dataset.huisZoom==='uit'?cam.zoom<=1:false;});
     document.querySelectorAll('[data-huis-tool]').forEach(b=>{const on=b.dataset.huisTool===gereedschap;b.setAttribute('aria-pressed',String(on));b.classList.toggle('actief',on);});
     host.classList.toggle('huis-hand',gereedschap==='hand');
-    $('#huis-camera-hulp').textContent=gereedschap==='hand'?'Hand: sleep het beeld, niet de kamers. Pijltjes verschuiven; Escape annuleert de beweging.':'Selecteer een kamer met klikken of Tab/Enter. Dubbelklik opent de kamer. Kies Hand om het beeld te verschuiven.';
+    $('#huis-camera-hulp').textContent=gereedschap==='hand'?'Hand: sleep het beeld, niet de kamers. Pijltjes verschuiven; Escape annuleert de beweging.':'Sleep objecten, openingen, trappen of werkmarkeringen om ze te verplaatsen. Dubbelklik opent de kamer. Hand verschuift alleen het beeld.';
     const h=state.project.huis,rs=state.project.ruimtes.filter(r=>r.huis_positie),total=rs.reduce((s,r)=>s+Math.abs(V().area(V().points(r))),0),apart=state.project.ruimtes.length-rs.length;
     // Progressive disclosure: camera/placement controls need an actual contour.
     $('#huis-paneel').querySelectorAll('[data-huis-ready]').forEach(el=>el.hidden=!h);
@@ -147,9 +151,95 @@
     $('#huis-plaats-status').textContent=placementDirty?'Nog niet toegepast. Kies Plaats / verplaats ruimte om te bevestigen.':r?.huis_positie?'Positie vanaf de linkerbovenhoek van het huisplan, in meter.':'Deze kamer staat buiten het huisplan. Werken blijven meetellen in de offerte.';
   }
   ['#huis-plaats-x','#huis-plaats-y'].forEach(id=>$(id).addEventListener('input',()=>{placementDirty=true;syncPlacement();}));
+  // Draft-only object movement in the house overview. Capture belongs to the host.
+  function prepareObject(target){
+    const node=target.closest?.('[data-huis-object],[data-huis-opening],[data-huis-trap]'),owner=node?.closest('[data-huis-object-room]');
+    const room=state.project.ruimtes.find(r=>r.id===owner?.dataset.huisObjectRoom);if(!node||!room||!huisProjectie)return null;
+    const candidate=clone(state.project),r=candidate.ruimtes.find(r=>r.id===room.id),o=r.huis_positie;
+    const type=node.hasAttribute('data-huis-opening')?'opening':node.hasAttribute('data-huis-trap')?'trap':'regel';
+    const id=type==='opening'?Number(node.dataset.huisOpening):type==='trap'?node.dataset.huisTrap:node.dataset.huisObject;
+    const model=type==='opening'?r.openingen[id]:type==='trap'?r.trappen.find(t=>t.id===id):candidate.regels.find(w=>w.id===id);
+    const rule=type==='regel'?planRegels(room).find(w=>w.id===id):null;if(!model)return null;
+    const g=type==='opening'?BouwPlan.openingGeometrie(room,id):type==='regel'?BouwPlan.werkGeometrie(rule,room):{a:[model.x,model.y,0],L:room.lengte,B:room.breedte,H:room.hoogte};if(!g)return null;
+    const baseP=huisProjectie,P=(x,y,z=0)=>baseP(x+o.x,y+o.y,z);
+    const surface=type==='opening'?model.muur:rule?.oppervlak,frame=V().wallFrame(room,surface);
+    if(type==='opening'){g.start??=(g.a[0]-frame.a.x)*frame.u[0]+(g.a[1]-frame.a.y)*frame.u[1];g.onder??=g.a[2];}
+    P.basis=frame?[frame.u,frame.v]:[[1,0,0],[0,1,0]];
+    if(!frame&&surface==='plafond'){const z=V().height(room,0,0);P.basis=[[1,0,V().height(room,1,0)-z],[0,1,V().height(room,0,1)-z]];}
+    const plane=view==='3d'&&(frame||surface==='plafond')&&type!=='trap'?'wand':'xy';
+    return {project:state.project,candidate,room:r,model,original:clone(model),type,id,rule,g,P,plane,mode:view,cam:JSON.stringify(camera.lees()),moved:false};
+  }
+  function objectCurrent(d){return state.project===d.project&&niveau==='huis'&&view===d.mode&&gereedschap==='select'&&!snede&&JSON.stringify(camera.lees())===d.cam;}
+  function applyObject(d,delta,snap=true){
+    const m=d.model,g=d.g,round=n=>Math.round(n*1000)/1000,quant=n=>round(snap?Math.round(n/.05)*.05:n);
+    if(d.type==='opening'){
+      const frame=V().wallFrame(d.room,m.muur),u=frame.u,v=frame.v;
+      const along=delta.reduce((s,n,i)=>s+n*u[i],0),up=delta.reduce((s,n,i)=>s+n*v[i],0);
+      m.positie=round(Math.max(0,Math.min(g.lengte-g.breedte,quant(g.start+along))));
+      if(view==='3d'&&!/^deur/i.test(m.naam||''))m.borstwering=round(Math.max(0,Math.min(g.H-g.hoogte,quant((g.onder||0)+up))));
+    }else if(d.type==='trap'){
+      m.x=quant(d.original.x+delta[0]);m.y=quant(d.original.y+delta[1]);
+    }else{
+      const route=d.rule.pakket.eenheid==='m',b=route?g.b:g.a,change=BouwSleep.boundedDelta(g.a,b,delta,[g.L,g.B,g.H],snap?.05:0);
+      m.visualisatie={...(d.original.visualisatie||{})};
+      ['x','y','z'].forEach((k,i)=>m.visualisatie[k]=round(g.a[i]+change[i]));
+      if(route)['x2','y2','z2'].forEach((k,i)=>m.visualisatie[k]=round(g.b[i]+change[i]));
+      if(d.rule.oppervlak==='plafond'){m.visualisatie.z=round(V().height(d.room,m.visualisatie.x,m.visualisatie.y));if(route)m.visualisatie.z2=round(V().height(d.room,m.visualisatie.x2,m.visualisatie.y2));}
+      if(Object.keys(d.room.wand_helling||{}).length&&V().wallFrame(d.room,d.rule.oppervlak)){
+        const fixed=BouwPlan.werkGeometrie({...d.rule,visualisatie:m.visualisatie},d.room);
+        ['x','y','z'].forEach((k,i)=>m.visualisatie[k]=round(fixed.a[i]));if(route)['x2','y2','z2'].forEach((k,i)=>m.visualisatie[k]=round(fixed.b[i]));
+      }
+    }
+    const cam=camera.lees();host.innerHTML=svg(d.candidate,view,gekozen,cam.zoom,{...cam,trackProjection:true});
+  }
+  function validateObject(d){
+    if(d.type==='trap'){BouwTrappen.check(d.model,d.room);return;}
+    if(d.type==='opening'){
+      const g=BouwPlan.openingGeometrie(d.room,d.id);
+      if(!g||g.breedte+1e-5<d.model.breedte||g.hoogte+1e-5<d.model.hoogte||g.a[2]+d.model.hoogte>Math.min(V().height(d.room,g.a[0],g.a[1]),V().height(d.room,g.b[0],g.b[1]))+1e-5)throw Error('De opening past niet op deze plek in de wand.');return;
+    }
+    const g=BouwPlan.werkGeometrie({...d.rule,visualisatie:d.model.visualisatie},d.room),ps=d.rule.pakket.eenheid==='m'?[g.a,g.b]:[g.a];
+    if(ps.some(p=>!V().inside(d.room,{x:p[0],y:p[1]})||p[2]>V().height(d.room,p[0],p[1])+1e-5)||ps.length===2&&!V().segmentInside(d.room,{x:ps[0][0],y:ps[0][1]},{x:ps[1][0],y:ps[1][1]}))throw Error('Het object of tracé past niet binnen de kamer.');
+  }
+  function endObject(cancel=false){
+    if(!objectDrag)return;const d=objectDrag;objectDrag=null;suppress=performance.now()+500;host.classList.remove('is-slepen');
+    if(d.pointer!=null&&host.hasPointerCapture(d.pointer))host.releasePointerCapture(d.pointer);
+    if(!objectCurrent(d)){renderCanvas();return;}
+    if(cancel){objectTap=null;renderCanvas();message('Verplaatsing geannuleerd.');return;}
+    if(!d.moved){const key=d.room.id+':'+d.type+':'+d.id,now=performance.now();choose(d.room.id);if(objectTap?.key===key&&now-objectTap.time<450){objectTap=null;openSelected();}else objectTap={key,time:now};return;}
+    objectTap=null;
+    try{validateObject(d);wijzig(()=>state.project=d.candidate);message('Objectpositie bewaard. Oppervlakten, hoeveelheden en prijzen blijven ongewijzigd.');}
+    catch(error){renderCanvas();message(error.message);}
+  }
+  host.addEventListener('pointerdown',e=>{
+    if(objectDrag||gereedschap!=='select'||snede||cutDrag||!e.isPrimary||e.button!==0)return;
+    const d=prepareObject(e.target);if(!d)return;
+    e.preventDefault();e.stopImmediatePropagation();const matrix=host.querySelector('svg').getScreenCTM();
+    objectDrag={...d,pointer:e.pointerId,sx:e.clientX,sy:e.clientY,inverse:matrix.inverse()};host.setPointerCapture(e.pointerId);host.focus({preventScroll:true});
+  },true);
+  host.addEventListener('pointermove',e=>{
+    const d=objectDrag;if(!d||d.pointer!==e.pointerId)return;e.preventDefault();e.stopImmediatePropagation();
+    if(!objectCurrent(d)){endObject(true);return;}if(!d.moved&&Math.hypot(e.clientX-d.sx,e.clientY-d.sy)<4)return;
+    d.moved=true;host.classList.add('is-slepen');const x=e.clientX-d.sx,y=e.clientY-d.sy,dx=d.inverse.a*x+d.inverse.c*y,dy=d.inverse.b*x+d.inverse.d*y;
+    applyObject(d,BouwSleep.projectDelta(d.P,d.plane,dx,dy),!e.altKey);
+  },{capture:true,passive:false});
+  host.addEventListener('pointerup',e=>{if(objectDrag?.pointer===e.pointerId){e.stopImmediatePropagation();endObject();}},true);
+  host.addEventListener('pointercancel',e=>{if(objectDrag?.pointer===e.pointerId)endObject(true);},true);
+  host.addEventListener('lostpointercapture',()=>{if(objectDrag)endObject(true);});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&objectDrag){e.preventDefault();endObject(true);}},true);
+  host.addEventListener('keydown',e=>{
+    if(objectDrag||gereedschap!=='select'||snede||!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Enter',' '].includes(e.key))return;
+    const d=prepareObject(e.target);if(!d)return;e.preventDefault();e.stopImmediatePropagation();
+    if(['Enter',' '].includes(e.key)){choose(d.room.id);openSelected();return;}
+    const step=e.altKey?.01:e.shiftKey?.25:.05,along=e.key==='ArrowLeft'?-step:e.key==='ArrowRight'?step:0,up=e.key==='ArrowUp'?step:e.key==='ArrowDown'?-step:0;
+    const delta=d.plane==='wand'?d.P.basis[0].map((n,i)=>along*n+(d.rule?.oppervlak==='plafond'?-up:up)*d.P.basis[1][i]):[along,-up,0];
+    objectDrag={...d,moved:true};applyObject(objectDrag,delta,false);endObject();
+    const attr=d.type==='opening'?'data-huis-opening':d.type==='trap'?'data-huis-trap':'data-huis-object';
+    [...host.querySelectorAll('['+attr+']')].find(el=>el.getAttribute(attr)===String(d.id)&&el.closest('[data-huis-object-room]').dataset.huisObjectRoom===d.room.id)?.focus({preventScroll:true});
+  },true);
   function renderCanvas(){
     if(!state.project||!V())return;
-    const cam=camera.lees();host.innerHTML=svg(state.project,view,gekozen,cam.zoom,cam);
+    const cam=camera.lees();host.innerHTML=svg(state.project,view,gekozen,cam.zoom,{...cam,trackProjection:true});
   }
   let renameRoom=null,renameProject=null,renameOriginal='',renameDirty=false;
   function syncName(r){

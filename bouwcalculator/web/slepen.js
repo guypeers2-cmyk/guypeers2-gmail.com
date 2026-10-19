@@ -155,7 +155,7 @@
   document.addEventListener('pointerdown',e=>{if(!host.contains(e.target))lastTap=null;},true);
   document.addEventListener('keydown',()=>{lastTap=null;},true);
   host.addEventListener('pointerdown',e=>{
-    if (drag || !e.isPrimary || e.button!==0) return;
+    if (drag || planGereedschap!=='select' || !e.isPrimary || e.button!==0) return;
     const d=prepare(e.target),point=svgPoint(e);
     if (!d || !point) {lastTap=null;return;}
     drag={...d,point,startX:e.clientX,startY:e.clientY,pointerId:e.pointerId,moved:false};
@@ -163,6 +163,7 @@
   });
   host.addEventListener('pointermove',e=>{
     if (!drag || drag.pointerId!==e.pointerId) return;
+    if(planGereedschap!=='select'){finish(true);return;}
     if (!drag.moved && Math.hypot(e.clientX-drag.startX,e.clientY-drag.startY)<4) return;
     const point=svgPoint(e); if(!point) return;
     e.preventDefault(); drag.moved=true;host.classList.add('is-slepen');

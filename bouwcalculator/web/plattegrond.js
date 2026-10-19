@@ -181,6 +181,12 @@
       const h=(x,y)=>ceiling?V.height(ruimte,x,y):0,hx=h(1,0)-h(0,0),hy=h(0,1)-h(0,0);
       origin=[0,0,h(0,0)];u=[1,0,hx].map(n=>n/Math.hypot(1,hx));v=[0,1,hy].map(n=>n/Math.hypot(1,hy));
     }
+    // Moving a work marker shifts the complete board scheme, never its measured surface.
+    if(r.visualisatie){
+      const base=werkGeometrie({...r,visualisatie:{}},ruimte).a,now=werkGeometrie(r,ruimte).a,d=now.map((n,i)=>n-base[i]);
+      const du=d.reduce((s,n,i)=>s+n*u[i],0),dv=d.reduce((s,n,i)=>s+n*v[i],0);
+      origin=origin.map((n,i)=>n+u[i]*du+v[i]*dv);
+    }
     const a=P(...origin),b=P(...origin.map((n,i)=>n+u[i])),c=P(...origin.map((n,i)=>n+v[i]));
     const dx=[b[0]-a[0],b[1]-a[1]],dy=[c[0]-a[0],c[1]-a[1]],det=dx[0]*dy[1]-dx[1]*dy[0];
     const id=uniq(),title=`Gyproc ${maat.soort} · ${F(maat.breedte)} × ${F(maat.lengte)} m · schematische plaatverdeling, geen zaagplan of exacte dekking`;
@@ -195,7 +201,8 @@
       body=`<path class="gyproc-plan-band" d="M${punten([a])} L${punten([end])}"/>`;
       // Bound tick density on unusually long walls without changing the model.
       const step=maat.breedte*Math.max(1,Math.ceil(f.lengte/maat.breedte/400));
-      for(let t=step;t<f.lengte-1e-6;t+=step){const q=P(f.a.x+f.u[0]*t,f.a.y+f.u[1]*t,0);body+=`<path class="gyproc-plan-naad" d="M${R(q[0]-normal[0])} ${R(q[1]-normal[1])} L${R(q[0]+normal[0])} ${R(q[1]+normal[1])}"/>`;}
+      const phase=(((origin[0]-f.a.x)*f.u[0]+(origin[1]-f.a.y)*f.u[1])%step+step)%step;
+      for(let t=phase>1e-6?phase:step;t<f.lengte-1e-6;t+=step){const q=P(f.a.x+f.u[0]*t,f.a.y+f.u[1]*t,0);body+=`<path class="gyproc-plan-naad" d="M${R(q[0]-normal[0])} ${R(q[1]-normal[1])} L${R(q[0]+normal[0])} ${R(q[1]+normal[1])}"/>`;}
     }else{
       const ps=punten(quad.map(q=>P(...q)));
       defs=`<pattern id="${id}-plaat" patternUnits="userSpaceOnUse" width="${maat.breedte}" height="${maat.lengte}" patternTransform="matrix(${dx[0]} ${dx[1]} ${dy[0]} ${dy[1]} ${a[0]} ${a[1]})"><path class="gyproc-naad" d="M${maat.breedte} 0H0V${maat.lengte}"/></pattern><mask id="${id}-mask" maskUnits="userSpaceOnUse" x="-10000" y="-10000" width="20000" height="20000"><polygon fill="white" points="${ps}"/>${holes.map(o=>`<polygon fill="black" points="${punten([o.a,o.b,o.c,o.d].map(q=>P(...q)))}"/>`).join('')}</mask>`;
@@ -652,6 +659,14 @@
     return `<svg class="plan aanzicht" viewBox="${zoomBox(780,550,opties)}" role="group" aria-label="${naam}, vlakaanzicht van ${esc(ruimte.naam)}">${svg}</svg>`;
   }
 
+  function draaiTrap(t,kwartslag=1){
+    const sideways=d=>d===90||d===270;
+    const richting=(t.richting+kwartslag*90+360)%360;
+    const before=sideways(t.richting)?[t.lengte,t.breedte]:[t.breedte,t.lengte];
+    const after=sideways(richting)?[t.lengte,t.breedte]:[t.breedte,t.lengte];
+    const round=n=>Math.round(n*1e6)/1e6;
+    return {...t,richting,x:round(t.x+(before[0]-after[0])/2),y:round(t.y+(before[1]-after[1])/2)};
+  }
   function trapGeometrie(t){
     const w=t.breedte,l=t.lengte;
     const point=(u,v,z=0)=>{const q=t.richting===90?[l-v,u]:t.richting===180?[w-u,l-v]:t.richting===270?[v,w-u]:[u,v];return [t.x+q[0],t.y+q[1],z];};
@@ -680,5 +695,5 @@
     const P=mode==='iso'?projectie(room,options.hoek).P:mode==='front'?aanzichtProjectie(room,options.vlak).P:planProjectie(room).P;
     return base.replace('</svg>',trapOverlay(room,P,mode==='iso'||mode==='front'&&!['vloer','plafond'].includes(options.vlak))+'</svg>');
   };}
-  window.BouwPlan = { plaatMaat,platenOverlay,trapGeometrie,trapOverlay,traceLengte,plattegrond:metTrappen(plattegrond,'plan'),isometrie:metTrappen(isometrie,'iso'), laag, werkGeometrie, tint, projectie, planProjectie, openingGeometrie, aanzichtProjectie,aanzicht:metTrappen(aanzicht,'front') };
+  window.BouwPlan = { plaatMaat,platenOverlay,draaiTrap,trapGeometrie,trapOverlay,traceLengte,plattegrond:metTrappen(plattegrond,'plan'),isometrie:metTrappen(isometrie,'iso'), laag, werkGeometrie, tint, projectie, planProjectie, openingGeometrie, aanzichtProjectie,aanzicht:metTrappen(aanzicht,'front') };
 })();

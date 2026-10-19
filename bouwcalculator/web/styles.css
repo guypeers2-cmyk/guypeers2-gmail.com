@@ -1907,7 +1907,7 @@ body.huisstand-actief .object-snelknop,body.huisstand-actief .tekening-snelknop{
 @media screen and (max-width:360px){#huis-paneel .plankop>h3{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}}
 [data-huis-cut]:focus{outline:none}
 /* Keep architectural objects next to the canvas, also on small screens. */
-.tekening-werkzone{display:grid;grid-template-columns:88px minmax(0,1fr);gap:8px;align-items:start}
+.tekening-werkzone{display:grid;grid-template-columns:minmax(0,1fr) 88px;gap:8px;align-items:start}
 .tekening-objectrail .opening-snel{display:flex;flex-direction:column;margin:0;gap:6px}
 .tekening-objectrail .knop{width:100%;min-height:44px;padding:8px 4px;font-size:.75rem;white-space:normal}
 .tekening-werkzone>.planhouder{min-width:0}
@@ -1918,7 +1918,7 @@ body.huisstand-actief .object-snelknop,body.huisstand-actief .tekening-snelknop{
 .trap-label{fill:var(--tekst);font-size:11px;paint-order:stroke;stroke:var(--oppervlak);stroke-width:3px;pointer-events:none}
 .trap-object{cursor:grab;touch-action:none}.trap-object:focus{outline:none}.trap-object:focus-visible .trap-voet{stroke:var(--accent);stroke-width:4}
 #trap-fout{color:var(--rood)}#trap-fout[hidden],#trap-verwijder[hidden]{display:none!important}
-@media(max-width:400px){.tekening-werkzone{grid-template-columns:64px minmax(0,1fr);gap:4px}.tekening-objectrail .knop{font-size:.7rem}}
+@media(max-width:400px){.tekening-werkzone{grid-template-columns:minmax(0,1fr) 64px;gap:4px}.tekening-objectrail .knop{font-size:.7rem}}
 @media print{.tekening-objectrail,#trap-menu{display:none!important}.tekening-werkzone{display:block}}
 #huis-plan .trap-object{pointer-events:none;cursor:inherit}
 .tekening-objectrail .knop{display:flex;align-items:center;justify-content:center;gap:4px}
@@ -1929,3 +1929,21 @@ body.huisstand-actief .object-snelknop,body.huisstand-actief .tekening-snelknop{
 .gyproc-plaatnaden{opacity:.8}
 .gyproc-plan-band{fill:none;stroke:var(--accent);stroke-opacity:.35;stroke-width:6}
 .gyproc-plan-naad{fill:none;stroke:var(--accent);stroke-width:1.5}
+.trap-draaien{display:flex;flex-wrap:wrap;gap:8px;grid-column:1/-1}
+.trap-draaien .knop{flex:1;min-height:44px}
+#trap-voorbeeld,#trap-draai-status{grid-column:1/-1}
+#trap-voorbeeld svg{display:block;width:100%;height:150px;background:var(--oppervlak-2);border:1px solid var(--rand);border-radius:8px}
+.trap-preview-kamer{fill:var(--oppervlak);stroke:var(--tekst-3);stroke-width:2}
+
+#tekening .tekening-objectrail .object-menu-start{margin:0;padding:8px 4px;font-size:.75rem}
+@media(max-width:400px){#tekening .tekening-objectrail .object-menu-start{font-size:.7rem}}
+#huis-plan{touch-action:none}
+[data-huis-object],[data-huis-opening],[data-huis-trap]{cursor:grab}
+#huis-plan [data-huis-trap] .trap-object{pointer-events:all}
+#huis-plan .huis-object-hit{fill:transparent;stroke:none;pointer-events:all}
+#huis-plan .huis-trace-hit{stroke:transparent;stroke-width:18;pointer-events:stroke}
+[data-huis-object]:focus-visible,[data-huis-opening]:focus-visible,[data-huis-trap]:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+#huis-plan [data-huis-object],#huis-plan [data-huis-opening]{pointer-events:all}
+/* Hit regions must stay invisible in quote/print SVGs and both themes too. */
+.huis-object .huis-object-hit{fill:transparent;stroke:none}
+.huis-object .huis-trace-hit{fill:none;stroke:transparent!important;stroke-width:18;pointer-events:stroke}

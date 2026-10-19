@@ -1075,3 +1075,41 @@ toont nu een schematische plaatverdeling op het bijbehorende vlak:
 Browsercontrole: `tools/panels_review.mjs` (online/offline, beide thema's,
 320–1440 px, materiaalformaten, uitsparingen, vormgeometrie en ongewijzigde
 project-/prijsgegevens).
+
+### Trap draaien met voorbeeld
+
+Klik een trap om **Trap bewerken** te openen. **90° links / 90° rechts** draait
+rond het middelpunt van de voetafdruk en past X/Y daarop aan. Het kamerplannetje
+laat de nieuwe stijgrichting onmiddellijk zien. De bestaande richtingskeuze en
+exacte X/Y-invoer blijven beschikbaar.
+
+Draaien is een concept: pas **Trap bewaren** wijzigt het project en de
+undo-geschiedenis. Sluiten/Escape annuleert. Een trap buiten de kamer of boven
+het plafond kan niet worden bewaard; verplaats het concept of draai terug.
+Prijs en werkposten blijven ongewijzigd. Controle:
+`tools/stair_rotation_review.mjs` (online/offline, vier kwartslagen, beide
+richtingen, middelpunt, annuleren, bewaren, undo/redo, ongeldige plaatsing en
+320–1440 px).
+
+### Objecten verslepen in kamer én huis
+
+Alle catalogusobjecten en werkmarkeringen, deuren, ramen en trappen zijn nu
+rechtstreeks verplaatsbaar in het huisoverzicht én de kamerwerkstudio. Gebruik
+**Selecteren**; **Hand** verschuift uitsluitend het beeld. In het huisplan:
+
+- Sleep met muis, pen of touch; vastklikken op 5 cm, Alt voor vrije plaatsing.
+- Tab/pijltjes werken ook: 5 cm, Shift 25 cm, Alt 1 cm. In 3D volgen wandobjecten
+  het wandvlak; een raam kan ook omhoog/omlaag. Deuren blijven op vloerniveau.
+- Huisverplaatsingen zijn een concept tot loslaten. Escape/pointer-annulering
+  herstelt de positie; buiten de kamer/plafond plaatsen wordt geweigerd.
+- Dubbelklik of Enter op een huisobject opent de bijbehorende kamer voor de
+  bestaande eigenschappen. Undo/redo en opgeslagen projecten bewaren posities.
+- Een Gyproc-werkmarkering verschuift de **hele schematische plaatverdeling**.
+  Het dekkingsvlak blijft aan de gemeten wand/plafond gekoppeld. Er ontstaan geen
+  losse plaatobjecten en oppervlakten, aantallen, snijverlies en prijzen wijzigen
+  niet door het verslepen. Tracés verplaatsen als geheel; afzonderlijke
+  eindpunten zijn in de kamerstudio instelbaar.
+
+Controle: `tools/all_objects_review.mjs` (hele catalogus, kamer/huis,
+2D/3D, muis/touch/toetsenbord, uitsluitend conceptmutatie tijdens huis-slepen,
+annuleren, undo/redo en identieke calculatietotalen).
