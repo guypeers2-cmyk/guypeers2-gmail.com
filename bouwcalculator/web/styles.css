@@ -2000,3 +2000,23 @@ body:not(.wizard-mode) .wizard-bottom{display:none}
 @media(max-width:600px){.wizard-mode .wizard-bottom{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:5px 10px}.wizard-mode .wizard-bottom>span{grid-row:1;grid-column:1/-1;text-align:center}.wizard-mode #wizard-back{grid-row:2;grid-column:1}.wizard-mode #wizard-next{grid-row:2;grid-column:2}.wizard-mode #calculator-paneel{padding-bottom:130px}}
 #wizard.wizard-configuring #wizard-content>.wizard-choices,#wizard.wizard-configuring #wizard-options>h3,#wizard.wizard-configuring #wizard-options>p{display:none}
 #wizard-message:empty,#wizard-error:empty{display:none}
+/* High contrast coordinates remain readable independently of SVG scaling. */
+.vorm-coord-status{display:flex;align-items:center;flex-wrap:wrap;gap:8px 18px;padding:12px;margin:8px 0;border:2px solid var(--accent);border-radius:10px;background:var(--oppervlak);color:var(--tekst);font-size:1rem;font-variant-numeric:tabular-nums}
+.vorm-coord-status span{white-space:nowrap}.vorm-coord-status b{font-size:1.2rem}.vorm-coord-status small{flex-basis:100%;font-size:.85rem;color:var(--tekst-2)}
+.ruimte-vorm .vorm-maat,.ruimte-vorm .vorm-hoek-label{fill:var(--tekst);font-weight:700;stroke:var(--oppervlak);stroke-width:5px;paint-order:stroke;stroke-linejoin:round}
+.vorm-snaplijn{stroke:var(--accent);stroke-width:3;stroke-dasharray:8 5;vector-effect:non-scaling-stroke;pointer-events:none}
+.vorm-punt-rij input{font-size:1rem!important;font-weight:600;font-variant-numeric:tabular-nums}
+.vorm-coord-status{position:sticky;top:0;z-index:3;box-shadow:0 2px 8px #0001}
+/* Keep the readout footprint fixed: live numbers must never move the canvas
+   underneath a finger or mouse while a point is being placed. */
+.vorm-coord-status{display:grid;grid-template-columns:minmax(0,.8fr) repeat(2,minmax(0,1fr));grid-template-rows:44px 40px;gap:4px 8px;box-sizing:border-box;height:116px;font-size:.9rem;align-items:center}
+.vorm-coord-status small{grid-column:1/-1;font-size:.8rem;line-height:1.25}.vorm-coord-status b{font-size:1rem}.vorm-coord-status span{white-space:normal}
+.vorm-coord-status{font-size:1rem}
+/* Guided mode: only the current decision; no parallel editing or future-step links. */
+.wizard-mode:not(.wizard-final) .hoofdnavigatie,.wizard-mode:not(.wizard-final) .topbar-acties,.wizard-mode:not(.wizard-final) .wizard-extra,.wizard-mode .studio-context,.wizard-mode #ruimtechips{display:none!important}
+.wizard-mode #tekening .plankop,.wizard-mode #tekening .plan-gereedschappen,.wizard-mode #tekening .iso-bediening,.wizard-mode #tekening #vlak-bediening,.wizard-mode #tekening .studio-vouw,.wizard-mode #tekening #plan-selectie,.wizard-mode #tekening #plan-inspector,.wizard-mode #tekening #meet-paneel{display:none!important}
+.wizard-mode #tekening{pointer-events:none}.wizard-mode #wizard-progress{overflow:visible;color:var(--tekst-2);font-size:.85rem}
+.wizard-pending{padding:12px;border-left:3px solid var(--accent);background:var(--accent-zacht);font-size:.9rem}
+#stroom-number{font-size:1.25rem}#stroom-error{color:var(--rood)}
+.wizard-mode #plan-sleepstatus,.wizard-mode #plan-plaat-info{display:none!important}
+.wizard-wall-map{width:140px;height:100px;display:block;margin:8px auto;background:var(--oppervlak);border-radius:8px}.wizard-wall-map polygon{fill:var(--oppervlak-2);stroke:none}.wizard-wall-map line{stroke:var(--tekst-2);stroke-width:2}.wizard-wall-map line.current{stroke:var(--accent);stroke-width:6}.wizard-wall-map text{fill:var(--tekst);font-size:12px;font-weight:700;paint-order:stroke;stroke:var(--oppervlak);stroke-width:3px}

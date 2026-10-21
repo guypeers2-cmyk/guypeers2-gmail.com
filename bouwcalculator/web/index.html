@@ -370,7 +370,8 @@
       <div class="vorm-presets" role="group" aria-label="Startvorm">
         <button type="button" class="knop klein" data-vorm="rechthoek">▭ Rechthoek</button><button type="button" class="knop klein" data-vorm="l">L-vorm</button><button type="button" class="knop klein" data-vorm="t">T-vorm</button><button type="button" class="knop klein" data-vorm="u">U-vorm</button><button type="button" class="knop klein" data-vorm="trapezium">Trapezium</button><button type="button" class="knop klein" data-vorm="afgeschuind">Afgeschuinde hoek</button><button type="button" class="knop klein" data-vorm="achthoek">Achthoek</button><button type="button" class="knop klein" data-vorm="driehoek">Driehoek</button><button type="button" class="knop primair klein" data-vorm="vrij">✎ Vrij tekenen</button>
       </div>
-      <div class="vorm-bereik"><label>Tekenbereik X (m)<input id="vorm-bereik-x" type="number" min="0.2" max="1000" step="any" required></label><label>Tekenbereik Y (m)<input id="vorm-bereik-y" type="number" min="0.2" max="1000" step="any" required></label><label><input id="vorm-snap" type="checkbox" checked> Raster 5 cm</label></div>
+      <div class="vorm-bereik"><label>Tekenbereik X (m)<input id="vorm-bereik-x" type="number" min="0.2" max="1000" step="any" required></label><label>Tekenbereik Y (m)<input id="vorm-bereik-y" type="number" min="0.2" max="1000" step="any" required></label><label><input id="vorm-snap" type="checkbox" checked> Raster 5 cm</label><label><input id="vorm-haaks" type="checkbox" checked> Vastklikken op rechte hoeken</label></div>
+      <output id="vorm-coord-status" class="vorm-coord-status" aria-live="off">Wijs een hoek aan om de maten te zien.</output>
       <svg id="vorm-canvas" viewBox="0 0 800 500" role="group" aria-label="Plaats hoeken met tikken. Sleep bestaande hoeken, of bewerk de coördinaten hieronder." tabindex="0"></svg>
       <p id="vorm-instructie" class="hint"></p>
       <div class="vorm-knoppen"><button type="button" class="knop klein" id="vorm-terug">Stap terug</button><button type="button" class="knop klein" id="vorm-sluit">Contour sluiten</button><button type="button" class="knop klein" id="vorm-punt">Hoek toevoegen</button></div>
@@ -411,6 +412,7 @@
 <script src="openingen.js"></script>
 <script src="trappen.js"></script>
 <script src="combinaties.js"></script>
+<script src="elektriciteit-wizard.js"></script>
 <script src="wizard.js"></script>
 </body>
 </html>

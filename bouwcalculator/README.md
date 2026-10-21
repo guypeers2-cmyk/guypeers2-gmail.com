@@ -1225,7 +1225,7 @@ De standaardweergave begeleidt per actieve ruimte door zeven stappen:
 **maten → ramen/deuren/trap → elektriciteit → sanitair/water → Gyproc → afwerking
 → offerte**. De bestaande interactieve tekening blijft onder de vraag staan.
 Op mobiel staan Vorige/Volgende vast onderaan met veilige schermrandruimte.
-De stapnavigatie is horizontaal scrollbaar; werkstappen zijn optioneel.
+De stapindicator toont alleen de huidige stap; werkstappen zijn optioneel.
 
 - Maten beginnen met de huidige waarden, niet met een leeg of nieuw project.
   Alleen bevestigen past ze toe. Zelf tekenen blijft een alternatief met de
@@ -1278,7 +1278,7 @@ als er nog een onderdeel niet bewaard is.
   geschikte vlakken zijn beschikbaar: wandbekleding op muren, plafondbekleding
   op het plafond. Niet alle muren worden automatisch tegelijk gefactureerd.
 - De algemene invoegrail is verborgen in de begeleide kamerweergave zodat gebruikers
-  niet per ongeluk een andere toevoegroute openen. De tekening blijft interactief;
+  niet per ongeluk een andere toevoegroute openen. De tekening is een rustig overzicht;
   Meer mogelijkheden biedt de oorspronkelijke bediening. De laatste stap geeft
   een korte checklist voor klantgegevens, prijscontrole, bewaren en afdrukken.
 
@@ -1287,3 +1287,117 @@ prijs vóór bevestigen, geen API- of projectmutatie bij kiezen/voorbeeld, blokk
 van onbewaarde stapwissels, hele stuks, annuleren, 320/390px en print. De uitgebreide
 `wizard_review.mjs` controleert ook direct aanpassen, bevestigen/annuleren van
 weghalen en de beschermde Gyproc-vlakkeuzes.
+
+### Leesbare tekenmaten en rechte hoeken
+
+In de gedeelde ruimte-/huiscontour-editor staat een contrastrijke, vaste uitleesbalk
+bij de tekening: hoeknummer, X en Y in meter (tot op een millimeter). X loopt naar
+rechts en Y naar beneden. Aanwijzen, slepen en toetsenbordfocus tonen de betreffende
+hoek; tijdens vrij tekenen zie je de voorgestelde nieuwe positie. SVG-maatlabels
+schalen mee met de schermbreedte en hebben een duidelijke achtergrondomlijning.
+
+**Vastklikken op rechte hoeken** staat standaard aan, los van het raster van 5 cm:
+- bij plaatsen klikt een bijna horizontale/verticale lijn vast op de vorige hoek;
+- na een schuine lijn is ook een exacte loodrechte vervolglijn mogelijk;
+- bij hoekverplaatsing helpen de aangrenzende hoeken met X/Y-uitlijning;
+- een stippellijn en tekst tonen de actieve uitlijning, binnen 12 schermpixels;
+- zet het vinkje uit voor vrij tekenen; Alt onderdrukt de hoekhulp tijdelijk.
+
+Exact ingevoerde coördinaten en numeriek ingevoerde wandrichtingen worden niet
+stilzwijgend aangepast. Haaks tekenen maakt bestaande schuine wanden niet ineens
+recht. Alles blijft een ontwerp tot Toepassen; annuleren en stap terug behouden
+hun bestaande werking. Dit controleert geen onderlinge botsingen of bouwkundige
+uitvoerbaarheid.
+
+Controle: `tools/drawing_snap_review.mjs` online/standalone voor X/Y-uitlijning,
+loodrechte vervolgwand, twee aangrenzende hoeken, buiten tolerantie, echte
+pointerinvoer, Alt, leesbalk, projectisolatie/annuleren en 320/390/768px.
+
+### Strikt begeleide keuzes: plan → elektriciteit
+
+De begeleide weergave toont alleen het huidige beslispunt. De voortgang is een
+leesbare stapindicator, geen reeks links naar toekomstige schermen. Tijdens de
+vragen zijn algemene tabbladen, bestandacties, kamerwissels en vrije bediening
+verborgen. De tekening is een niet-bewerkbaar overzicht; het plan verandert via
+zijn eigen maat-/tekenstap. De volledige bediening is beschikbaar na de controle
+van de offerte, of rechtstreeks via `?weergave=vrij`.
+
+Elektriciteit heeft een eigen deelwizard (`web/elektriciteit-wizard.js`):
+1. Eerst toestemming om extra elektriciteitswerken te begroten.
+2. Aantal nieuwe stopcontacten → muur → prijs → expliciet bevestigen.
+3. Eventueel nog een andere muur; daarna schakelaars en plafondlichtpunten.
+4. Sleuf nodig? Ja / nee / nog onbekend. Geen veronderstelde sleuflengte op basis
+   van aansluitpunten; de gebruiker vult gemeten meters per muur in.
+5. Alleen na een toegevoegde sleuf: dichtzetten? Ook dit krijgt een eigen prijs
+   en bevestiging. Het voorstel geldt voor de laatst toegevoegde sleuf, niet voor
+   alle sleuven in het project.
+6. Overzicht van werkelijk opgenomen posten en wat de vakman nog moet controleren.
+
+- ‘Geen extra nodig’ slaat alleen de huidige vraag over, zonder bestaande regels
+  te wissen. Bestaande aantallen worden vermeld; revisits vragen extra aantallen
+  zodat bestaande regels niet stilzwijgend worden vervangen of opnieuw geteld.
+- Hoeveelheid, plaats en bevestiging zijn aparte beslissingen. Een voorbeeld
+  verandert geen project of offertegeschiedenis. Een gewijzigd project vereist
+  opnieuw controleren van de prijs. Elke bevestiging vormt één wijziging.
+- Op het scherm na toevoegen kan de laatste toevoeging worden weggehaald bij een
+  vergissing, waarna dezelfde vraag terugkomt.
+- Kabeltype, kabelafstand, circuits en beveiliging worden niet gegokt. Ze worden
+  hier niet automatisch begroot. De controlewaarschuwing blijft ook in de laatste
+  offertestap zichtbaar wanneer elektriciteitswerken aanwezig zijn. Dit is geen
+  verklaring dat een installatie compleet of conform is.
+- ‘Nog onbekend’ wordt in het huidige elektriciteitsoverzicht als onbeslist getoond,
+  zonder een sleufpost aan te maken. Die keuze is sessiestatus, geen opgeslagen
+  technische keuring of projectveld. Na herladen blijft de algemene waarschuwing
+  over volledigheid van elektrische posten gelden.
+- De eerste sanitairkeuze is beperkt tot toilet, lavabo, douche en wasmachine;
+  leidingen/aansluitingen zijn niet impliciet inbegrepen. De eindcontrole meldt
+  dat ontbrekende onderdelen apart moeten worden begroot.
+
+QA: `tools/guided_electricity_review.mjs` online en standalone voor de volledige
+volgorde, gescheiden hoeveelheden/plaatsen/prijzen/bevestiging, geen gegokte kabels,
+onbesliste sleuf, verlopen prijsvoorbeeld en mobiele schermen. De bestaande
+`wizard_review.mjs` en `novice_review.mjs` volgen nu eveneens de strikte volgorde;
+ze controleren ook correcties, komma-invoer, hele aantallen, overige werkstappen,
+planeditor en terugschakelen naar de volledige bediening.
+
+### Actuele wizard: eerst plan, vervolgens elke wand
+
+Deze route vervangt de eerdere kamerbrede werkvolgorde:
+
+1. **Plan vastleggen.** Vul binnenmaten en naam in, of teken de vorm. De kamer
+   toont de werkelijke vorm en het afgeleide aantal wanden: geen los ingevoerd
+   wandenaantal dat niet met de geometrie overeenkomt. Bevestig daarna het
+   genummerde plan met de lengte van elke wand en de kamerhoogte.
+2. **Wand voor wand.** Per wand komen achtereenvolgens ramen/deuren, elektriciteit,
+   sanitair, Gyproc en afwerking. Daarna volgt een controle van alleen die wand.
+   Alleen bevestigen van die controle gaat door naar de volgende wand.
+3. **Plafond apart.** Na alle wanden kunnen plafondbekleding en plafondlichtpunten
+   worden toegevoegd en geplaatst, gevolgd door plafondafwerking en de offerte.
+
+Een klein plan markeert de huidige wand. De grote tekening toont het bijbehorende
+vooraanzicht, zodat gebruikers niet hoeven te raden welke wand bedoeld wordt.
+De wandkeuze is vastgezet in objectformulieren en de openingseditor; objecten van
+andere wanden verschijnen niet in het actuele werkoverzicht. Buiten de wizard
+blijft de openingseditor vrij van wand kunnen wisselen.
+
+Elektrische aansluitpunten worden **één voor één geplaatst**, ook als de gebruiker
+vooraf meerdere stuks kiest. Elk punt krijgt een afstand langs de huidige wand en
+hoogte boven de vloer, daarna zijn eigen prijscontrole en bevestiging. Stoppen
+met de resterende punten voegt niets automatisch toe. Meterposten krijgen een
+begin, einde en hoogte voor het schematische tracé; de opgegeven gemeten meters
+blijven de offertehoeveelheid. Dichtzetten neemt het laatst bevestigde tracé over.
+
+Sanitaire toestellen vragen eveneens afstand/hoogte voor hun markeringspositie.
+Plafondlichtpunten krijgen X/Y binnen de kamer en volgen de plafondhoogte. Punten
+buiten de wand/kamer of boven een schuin plafond worden geweigerd, niet stilzwijgend
+verplaatst. Dit blijft een schematisch plaatsingsplan: geen botsingscontrole,
+installatieontwerp of verklaring dat alle benodigde posten inbegrepen zijn.
+
+QA: `tools/wall_wizard_review.mjs` controleert vier wanden, afgeleide wandtelling,
+wandvergrendeling, twee afzonderlijk geplaatste stopcontacten, ongeldige posities,
+Gyproc, alle controles, plafondlichtpunt en mobiele breedtes. `wall_shape_review.mjs`
+controleert een zelfgetekende L-kamer met zes wanden, stabiele wand-ID's, alle
+wandstappen zonder offertewijzigingen en reset bij een nieuw project.
+De oude `wizard_review.mjs`/`guided_electricity_review.mjs`-ingangen verwijzen naar
+de nieuwe wandregressie; `novice_review.mjs` controleert de actuele komma-invoer,
+hele aantallen, bevestiging en corrigeren van een toevoeging.

@@ -44,7 +44,7 @@
     const edges=BouwVorm.edges(room),wall=edges.some(e=>e.id===vlak)?vlak:planWeergave==='aanzicht'&&edges.some(e=>e.id===planVlak)?planVlak:edges[0]?.id;
     $('#opening-titel').textContent=context.soort+' toevoegen';
     $('#opening-wand').innerHTML=ruimteWanden(room).map(w=>`<option value="${esc(w.sleutel)}">${esc(w.naam)}</option>`).join('');
-    $('#opening-wand').value=wall;
+    $('#opening-wand').disabled=false;$('#opening-wand').value=wall;
     $('#opening-breedte').value=soort==='Raam'?1.2:.9;$('#opening-hoogte').value=soort==='Raam'?1.2:2.1;
     $('#opening-onderkant').value=soort==='Raam'?.9:0;$('#opening-positie').value='';
     $('#opening-presets').innerHTML=presets().map((p,i)=>`<button type="button" class="knop" data-opening-preset="${i}" aria-pressed="false">${NR.format(p[0])} × ${NR.format(p[1])} m</button>`).join('');
