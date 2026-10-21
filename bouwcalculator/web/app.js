@@ -1072,12 +1072,14 @@ function selecteerPlanRegel(id) {
   $("#plan-acties").open=false;
   if(planSelectie?.type!=='regel'||planSelectie.id!==id)planInspectieOpen=false;
   planSelectie = {type:'regel',id};
+  if(document.body.classList.contains('wizard-mode'))planInspectieOpen=true;
   renderPlanSelectie();
 }
 function selecteerPlanOpening(index) {
   $("#plan-acties").open=false;
   if(planSelectie?.type!=='opening'||planSelectie.index!==index||planSelectie.ruimteId!==actieveRuimte()?.id)planInspectieOpen=false;
   planSelectie = {type:'opening',index,ruimteId:actieveRuimte()?.id};
+  if(document.body.classList.contains('wizard-mode'))planInspectieOpen=true;
   renderPlanSelectie();
 }
 function renderPlanSelectie() {
@@ -1782,10 +1784,13 @@ function renderPlanInspector(regel,opening) {
   let inhoud=`<label>Vlak<select name="vlak" data-fokus="ins_${key}_vlak">${vlakken.map(v=>`<option value="${esc(v.sleutel)}" ${v.sleutel===vlak?'selected':''}>${esc(v.naam)}</option>`).join('')}</select></label>`;
   if(regel){
     const r=planRegels(room).find(r=>r.id===regel.id),g=window.BouwPlan.werkGeometrie(r,room);
+    const types=/^elek_(stopcontact|schakelaar|lichtpunt)/.test(regel.pakket_id)?state.prijsboek.pakketten.filter(p=>/^elek_(stopcontact|schakelaar|lichtpunt)/.test(p.id)):[];
+    if(types.length)inhoud+=`<label>Type en uitvoering<select name="pakket">${types.map(p=>`<option value="${esc(p.id)}" ${p.id===regel.pakket_id?'selected':''}>${esc(p.naam)}${p.id==='elek_lichtpunt'?'':p.id.endsWith('_opbouw')?' · opbouw':' · inbouw'}</option>`).join('')}</select></label>`;
+    inhoud+=`<p class="hint"><strong>${NRL.format(r.aantal)} ${esc(r.pakket.eenheid==='m2'?'m²':r.pakket.eenheid)}</strong> · ${esc(r.pakket.naam)} · ${r.pakket.eenheid==='m2'?'Oppervlakte uit dit werkvlak, rekening houdend met openingen':r.pakket.eenheid==='m'?'Gemeten lengte bepaalt de prijs':'Eén plaats per aansluitpunt'}</p>`;
     const coord=(arr,eind=false)=>arr.map((value,i)=>veld(['x','y','z'][i]+(eind?'2':''),`${eind?'Eind ':''}${['X vanaf west','Y vanaf noord','Z boven vloer'][i]} (m)`,value,[L,B,H][i])).join('');
     inhoud+=coord(g.a);
     if(r.pakket.eenheid==='m')inhoud+=coord(g.b,true);
-    if(r.pakket.eenheid!=='m2')inhoud+=veld('aantal',r.pakket.eenheid==='m'?'Gemeten lengte (m)':'Aantal',regel.hoeveelheid ?? r.aantal,null,.01,'any');
+    if(r.pakket.eenheid!=='m2')inhoud+=veld('aantal',r.pakket.eenheid==='m'?'Gemeten lengte (m)':'Aantal',regel.hoeveelheid ?? r.aantal,null,r.pakket.eenheid==='st'?1:.01,r.pakket.eenheid==='st'?1:'any');
   }else{
     const g=window.BouwPlan.openingGeometrie(room,planSelectie.index);
     inhoud+=veld('positie','Vanaf start wand (m)',g.start ?? g.a[['noord','zuid'].includes(vlak)?0:1],null);
@@ -1818,6 +1823,7 @@ document.addEventListener('submit',e=>{
     const regel=state.project.regels.find(r=>r.id===planSelectie?.id);
     if(!regel)return;
     wijzig(()=>{
+      if(data.has('pakket')&&/^elek_(stopcontact|schakelaar|lichtpunt)/.test(regel.pakket_id)&&state.prijsboek.pakketten.some(p=>p.id===data.get('pakket')&&/^elek_(stopcontact|schakelaar|lichtpunt)/.test(p.id)))regel.pakket_id=data.get('pakket');
       regel.oppervlak=vlak;regel.visualisatie={...(regel.visualisatie || {})};
       for(const k of ['x','y','z','x2','y2','z2'])if(data.has(k))regel.visualisatie[k]=waarde(k);
       if(data.has('aantal'))regel.hoeveelheid=waarde('aantal');
