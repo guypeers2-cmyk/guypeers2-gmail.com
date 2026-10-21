@@ -2067,3 +2067,8 @@ body:not(.wizard-mode) .wizard-bottom{display:none}
 .wizard-mode.wizard-name-only .wizard-bottom{grid-template-columns:minmax(0,1fr)}
 .wizard-mode.wizard-name-only #wizard-next{grid-column:1/-1}
 .wizard-mode:not(.wizard-final) #wizard-total,.wizard-mode.wizard-name-only .guided-counter{display:none!important}
+/* Project actions remain visible in every wizard phase, including the name question. */
+.project-header-acties{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-left:auto}
+.project-header-acties .knop{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:48px;padding:10px 12px;white-space:normal;touch-action:manipulation}
+@media(max-width:900px){.topbar{flex-wrap:wrap}.project-header-acties{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);width:100%;margin-left:0}.project-header-acties .knop{min-width:0;font-size:.8rem}.project-header-acties+.topbar-acties{margin-left:auto}}
+@media print{.project-header-acties{display:none!important}}

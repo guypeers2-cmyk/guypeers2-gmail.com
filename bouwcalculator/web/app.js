@@ -909,9 +909,28 @@ function lokaalVerwijderen(id) {
   } catch (_) { return false; }
 }
 
-let opslaanBezig=false;
+let opslaanBezig=false,projectVerwijderenBezig=false;
+async function verwijderHuidigProject(){
+  if(!state.project||projectVerwijderenBezig)return;
+  if(opslaanBezig){toast('Wacht tot het opslaan klaar is en probeer opnieuw.');return;}
+  const project=state.project,id=state.projectId,generatie=projectGeneratie;
+  if(!confirm(`Project ‘${project.naam||'Naamloos project'}’ definitief verwijderen? De huidige tekening en offerte worden gewist${id?', inclusief de opgeslagen versie':''}. Andere projecten blijven behouden. Dit kan niet ongedaan worden gemaakt.`))return;
+  projectVerwijderenBezig=true;
+  const buttons=[$('#btn-project-verwijderen'),$('#btn-nieuw')];buttons.forEach(b=>b.disabled=true);buttons[0].setAttribute('aria-busy','true');
+  try{
+    if(id){
+      if(state.opslag==='lokaal'){if(!lokaalVerwijderen(id))throw Error('lokale opslag');}
+      else{const response=await fetch('/api/projecten/verwijder',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});if(!response.ok)throw Error('serverfout');const result=await response.json();if(result.fout||!result.verwijderd)throw Error('Niet verwijderd');}
+    }
+    if(projectGeneratie!==generatie||state.projectId!==id){toast('Vorig project verwijderd. Het huidige project is behouden.');return;}
+    localStorage.removeItem(OPSLAG_SLEUTEL);
+    laadProject(nieuwProject(),null);bewaarLokaal(false);
+    status('Project verwijderd');toast('Project verwijderd. Je kunt met een nieuw project beginnen.');
+  }catch(_){status('Verwijderen mislukt');toast('Project kon niet volledig worden verwijderd. Het huidige werk is behouden; probeer opnieuw.');}
+  finally{projectVerwijderenBezig=false;buttons.forEach(b=>b.disabled=false);buttons[0].removeAttribute('aria-busy');}
+}
 async function opslaan() {
-  if (!state.project||opslaanBezig) return;
+  if (!state.project||opslaanBezig||projectVerwijderenBezig) return;
   opslaanBezig=true;
   const button=$('#btn-opslaan');button.disabled=true;button.setAttribute('aria-busy','true');
   const origineel=projectGeneratie,id=state.projectId,snapshot=JSON.parse(JSON.stringify(state.project));
@@ -1311,10 +1330,14 @@ document.addEventListener("click", (e) => {
     return;
   }
 
-  if (e.target.id === "btn-nieuw") {
+  if (e.target.closest("#btn-nieuw")) {
+    if(projectVerwijderenBezig)return;
+    if(opslaanBezig){toast("Wacht tot het opslaan klaar is en probeer opnieuw.");return;}
     if (!confirm("Een nieuwe offerte starten? Het huidige werk gaat verloren (tenzij je het opgeslagen hebt).")) return;
     laadProject(nieuwProject(), null);
     toast("Nieuwe offerte");
+  } else if (e.target.closest("#btn-project-verwijderen")) {
+    verwijderHuidigProject();
   } else if (e.target.id === "btn-opslaan") {
     opslaan();
   } else if (e.target.id === "btn-openen") {

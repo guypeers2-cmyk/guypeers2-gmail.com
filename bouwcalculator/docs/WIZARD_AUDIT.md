@@ -109,3 +109,21 @@ vraag; de zichtbare vraagkop krijgt de focus, niet een verborgen hoofdtitel.
 maat-invoer, annuleren/bevestigen, behoud van regels, undo en de wijzigroute voor
 een eigen contour. De volledige wizard- en aansluitpuntreviews gebruiken echte
 klik-/toetsaanslagen in plaats van alleen programmatisch gezette invoerwaarden.
+
+## Vaste projectknoppen in de header
+
+Nieuw project en Project verwijderen staan buiten het verborgen bestandsmenu,
+ook in de wizard en bij de naamvraag. Beide hebben minimaal 48px hoge
+raakvlakken; op smalle schermen staan ze naast elkaar op een eigen rij.
+Nieuw project vraagt bevestiging en bewaart bestaande archiefkopieën.
+Project verwijderen vraagt expliciet bevestiging en verwijdert alleen de
+huidige archiefkopie (indien opgeslagen) plus het huidige werkconcept. Daarna
+begint een leeg project. Andere projecten, tarieven en combinatiebibliotheken
+worden niet gewist. Bij een mislukte verwijdering blijft het huidige werk in
+geheugen behouden. Tijdens opslaan wordt verwijderen uitgesteld; tijdens
+verwijderen zijn de projectknoppen geblokkeerd. Late serverreacties wissen geen
+intussen geopend ander project.
+
+`tools/project_header_review.mjs` controleert zichtbaarheid/raakvlakken,
+annuleren, klikken op pictogrammen, lokale archiefselectiviteit, nieuw beginnen
+en een gesimuleerde serverfout. Die fouttest verwijdert geen echte serverdata.

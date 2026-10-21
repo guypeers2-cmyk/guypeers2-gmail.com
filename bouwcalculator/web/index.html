@@ -31,11 +31,15 @@
   <button type="button" class="hoofdtab actief" data-hoofdtab="calculator" id="tab-calculator" role="tab" aria-selected="true" aria-controls="calculator-paneel">Ontwerp</button>
   <button type="button" class="hoofdtab tab" data-hoofdtab="tarieven" data-tab="tarieven" id="tab-tarieven" role="tab" aria-selected="false" aria-controls="paneel-tarieven" tabindex="-1">Tarieven</button>
 </nav>
+  <div class="project-header-acties" role="group" aria-label="Project beheren">
+    <button type="button" class="knop" id="btn-nieuw" title="Nieuw project starten"><span aria-hidden="true">＋</span> Nieuw project</button>
+    <button type="button" class="knop gevaar" id="btn-project-verwijderen" title="Huidig project verwijderen"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/></svg> Project verwijderen</button>
+  </div>
   <div class="topbar-acties">
     <span class="status" id="status" role="status" aria-live="polite"></span>
     <button type="button" class="knop compact-icon" id="btn-opslaan" title="Offerte opslaan" aria-label="Offerte opslaan"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 3h13l4 4v14H3V3zM8 3v6h8V3M7 21v-7h10v7"/></svg></button>
     <details id="bestand-menu" class="bestand-menu"><summary class="knop compact-icon" title="Bestand en weergave: openen, printen, licht of donker" aria-label="Bestandsmenu"><svg class="compact-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7V4h7l2 3h9v14H3z"/></svg></summary><div class="bestand-menu-inhoud">
-    <button type="button" class="knop" id="btn-nieuw" title="Nieuwe offerte beginnen"><svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V7z"/><path d="M14 3v4h4"/><path d="M12 11v6M9 14h6"/></svg> Nieuw</button>
+
     <button type="button" class="knop" id="btn-openen" title="Opgeslagen offertes openen"><svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg> Openen</button>
     <button type="button" class="knop primair" id="btn-print" title="Offerte printen of als pdf opslaan"><svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 9V4h10v5"/><path d="M7 18H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2"/><path d="M7 14h10v6H7z"/></svg> Offerte printen</button>
     <div class="thema-instelling">
