@@ -1800,6 +1800,7 @@ function renderPlanInspector(regel,opening) {
     inhoud+=veld('aantal','Aantal openingen',opening.aantal ?? 1,null,1,1);
   }
   panel.innerHTML=`<form id="plan-inspector-form"><header><strong>Eigenschappen bij de tekening</strong><span>Wijzig velden en bevestig met Toepassen.</span></header><div class="plan-inspector-velden">${inhoud}</div><p class="hint">${opening?'Openingmaten en aantallen wijzigen ook de netto-oppervlakte en offerte.':regel.pakket_id && state.prijsboek.pakketten.find(p=>p.id===regel.pakket_id)?.eenheid==='m2'?'Deze positie verplaatst alleen het m²-label; het gemeten vlak blijft gelijk.':'Posities wijzigen geen prijs. Aantal of gemeten lengte wijzigen de offerte wel.'}</p><p id="plan-inspector-fout" role="alert"></p><footer><button class="knop primair" type="submit">Toepassen</button><button class="knop" type="button" id="plan-volledige-regel">Alle instellingen</button></footer></form>`;
+  panel.querySelectorAll('input[type=number]:not([name=aantal])').forEach(input=>window.BouwUI?.metricButtons(input));
 }
 document.addEventListener('submit',e=>{
   if(e.target.id!=='plan-inspector-form')return;

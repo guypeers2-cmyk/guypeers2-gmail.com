@@ -2118,3 +2118,11 @@ body.wizard-mode #tekening #plan-inspector:not([hidden]){display:block!important
 #graphic-properties::backdrop{background:#10182888}#graphic-properties>header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}#graphic-properties>header button{min-height:48px}
 #graphic-properties #plan-inspector:not([hidden]){display:block!important;margin:0}
 #wizard-hub-objects{margin:10px 0}#wizard-hub-objects summary{min-height:48px;padding:12px;cursor:pointer}#wizard-hub-objects>div{display:grid;gap:6px}#wizard-hub-objects .knop{min-height:48px;text-align:left}
+/* On-site quote: explicit decisions, tappable measurements and client preview. */
+.client-view{display:flex;gap:8px;margin-bottom:10px}.client-view .knop{flex:1;min-height:48px;font-size:.8rem}.client-view [aria-pressed=true]{background:var(--accent);color:var(--oppervlak)}
+[data-room-measure]{cursor:pointer;pointer-events:all;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:4px}
+[data-room-measure]:focus-visible{outline:3px solid var(--accent)}
+#room-measure-dialog{width:min(480px,calc(100vw - 24px));max-height:85dvh;overflow:auto;padding:18px;border:1px solid var(--rand);border-radius:16px;color:var(--tekst);background:var(--oppervlak)}
+#room-measure-dialog::backdrop{background:#10182888}#room-measure-dialog label{display:block;margin:12px 0}#room-measure-dialog input{font-size:16px;min-height:48px}#room-measure-dialog footer{display:flex;flex-wrap:wrap;gap:8px}#room-measure-dialog button{min-height:48px}.measure-error{color:var(--rood)}
+@media(prefers-reduced-motion:no-preference){#wizard-hub-drawing #plan svg{animation:project-arrives .25s ease-out}@keyframes project-arrives{from{opacity:.7}to{opacity:1}}}
+.site-progress{display:grid;gap:4px;padding:12px;border-left:3px solid var(--accent);border-radius:8px;background:var(--accent-zacht);font-size:.8rem;font-variant-numeric:tabular-nums}.site-progress strong{color:var(--tekst)}
