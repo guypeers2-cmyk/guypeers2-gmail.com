@@ -2075,3 +2075,27 @@ body:not(.wizard-mode) .wizard-bottom{display:none}
 /* Confirmed context is separate from the blue draft and cannot intercept placement. */
 .confirmed-context{pointer-events:none;color:#087f5b}.confirmed-symbol{fill:#d3f9e8;stroke:#087f5b;stroke-width:2}.confirmed-route{fill:none;stroke:#087f5b;stroke-width:3}.confirmed-opening{fill:#d3f9e8;fill-opacity:.5;stroke:#087f5b;stroke-width:2}.confirmed-area{fill:#087f5b;fill-opacity:.08;stroke:#087f5b;stroke-width:1.5;stroke-dasharray:4 3}.confirmed-context .confirmed-number{font:9px system-ui;fill:#087f5b;paint-order:stroke;stroke:var(--oppervlak);stroke-width:2px}.opening-preview-gat{stroke-dasharray:5 3}
 @media screen{ :root[data-theme="dark"] .confirmed-context{color:#63e6be}:root[data-theme="dark"] .confirmed-symbol{fill:#123f35;stroke:#63e6be}:root[data-theme="dark"] .confirmed-route,:root[data-theme="dark"] .confirmed-opening,:root[data-theme="dark"] .confirmed-area{stroke:#63e6be}:root[data-theme="dark"] .confirmed-context .confirmed-number{fill:#63e6be}}
+/* Evidence-led mobile hierarchy: visual task first, one clear primary action. */
+.ui-field-error{display:block;color:var(--rood);font-size:.9rem;font-weight:650;margin:6px 0}
+#wizard [aria-invalid="true"]{border:2px solid var(--rood);box-shadow:0 0 0 2px color-mix(in srgb,var(--rood) 12%,transparent)}
+#wizard-error:empty,#point-error:empty,#wizard-message:empty,#point-status:empty{display:none}
+#wizard button:focus-visible,#wizard summary:focus-visible,#wizard input:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+.point-dot{stroke:var(--accent);fill:var(--accent-zacht);stroke-width:2.5;stroke-dasharray:3 2}
+@media(max-width:600px), (pointer:coarse) and (max-height:500px){
+ body.wizard-mode{padding-bottom:calc(var(--ui-footer-height,100px) + var(--ui-keyboard-offset,0px) + 24px)}
+ html{scroll-padding-top:calc(var(--ui-header-height,110px) + 12px);scroll-padding-bottom:calc(var(--ui-footer-height,100px) + var(--ui-keyboard-offset,0px) + 16px)}
+ #wizard{border-radius:16px;padding:16px 14px 24px;box-shadow:0 4px 20px #10182808}
+ #wizard-context{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:.8rem;margin-block:4px 10px}
+ #wizard-context .wizard-wall-map{flex:none;width:88px;height:62px;margin:0}
+ #wizard-progress .guided-phases{margin:4px 0 8px;gap:4px}.guided-phases li{font-size:.7rem;gap:3px}.guided-phases li span{width:20px;height:20px}
+ #wizard h2,.guided-heading h3{font-size:1.25rem;line-height:1.3;letter-spacing:-.02em}
+ .guided-preview{padding:8px;margin:10px 0 14px;border-radius:14px;background:var(--oppervlak-2)}
+ #point-drawing .point-figure{margin-top:0}.point-figure figcaption{font-size:.76rem;line-height:1.45}
+ #wizard label{font-weight:600;line-height:1.4}#wizard label input{margin-top:6px;border-radius:10px}
+ #wizard .point-choices .knop{border-radius:14px;background:var(--oppervlak);border:1px solid var(--rand-sterk);box-shadow:0 1px 2px #10182806}
+ #wizard .point-choices .knop:active{background:var(--accent-zacht);border-color:var(--accent)}
+ #wizard .wizard-bottom{bottom:var(--ui-keyboard-offset,0px);box-shadow:0 -4px 20px #1018280c}
+ #wizard-next{border-radius:12px;font-weight:700}#wizard-back{border-radius:12px;background:var(--oppervlak-2)}
+ .ui-keyboard-open #wizard-context,.ui-keyboard-open #wizard-progress{display:none}
+ .ui-keyboard-open .guided-preview svg,.ui-keyboard-open .point-figure svg{max-height:110px}
+}

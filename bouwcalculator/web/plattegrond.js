@@ -721,7 +721,7 @@
     }
     const g=BouwPlan.werkGeometrie(r,room),a=project(g.a),b=project(g.b);
     const symbol=pakket.eenheid==='m'?`<line class="confirmed-route" x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}"/>`:/^san_/.test(r.pakket_id)?`<rect class="confirmed-symbol" x="${a[0]-5}" y="${a[1]-5}" width="10" height="10" rx="2"/>`:`<circle class="confirmed-symbol" cx="${a[0]}" cy="${a[1]}" r="5"/>`;
-    objects+=`<g ${attrs}><title>Bevestigd: ${safe(name)}${raw.visualisatie?'':' · schematische voorbeeldplaats'}</title>${symbol}<text class="confirmed-number" x="${a[0]+7}" y="${a[1]-6}">${index+1}${raw.hoeveelheid>1?' ×'+safe(raw.hoeveelheid):''}</text></g>`;
+    objects+=`<g ${attrs}><title>Bevestigd: ${safe(name)}${raw.visualisatie?'':' · schematische voorbeeldplaats'}</title>${symbol}<text class="confirmed-number" x="${a[0]+7}" y="${a[1]-6}">✓${index+1}${raw.hoeveelheid>1?' ×'+safe(raw.hoeveelheid):''}</text></g>`;
    }catch{/* Malformed legacy objects never break a preview. */}
   });
   (room.openingen||[]).forEach((o,index)=>{

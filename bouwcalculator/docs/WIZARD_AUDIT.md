@@ -154,3 +154,7 @@ laagvoorkeuren worden niet overschreven. De naamvraag blijft zonder tekening.
 `tools/confirmed_context_review.mjs` controleert alle genoemde voorbeeldtypen,
 wand-/kamerscope, openingen/werkvlakken/tracés/trappen, geen voortijdige toevoeging,
 geen dubbel voorstelsymbool na opslaan, live wijziging/undo en behouden invoer.
+
+## Onderbouwde mobiele UI (22 oktober 2026)
+
+Zie [MOBILE_UX_RESEARCH.md](MOBILE_UX_RESEARCH.md) voor bronnen, concrete ontwerpkeuzes en testbeperkingen. Punt-/sleuftekening vóór coördinaten; compacte wandcontext; ✓ bij bevestigde punten en gestippeld voorstel; inline toegankelijke foutmeldingen met invoerbehoud; VisualViewport-/ResizeObserver-bediening boven het toetsenbord. Exacte invoer, klik-/sleepalternatieven, één vraag per stap, projectknoppen en prijsbevestiging behouden. Nieuwe regressie: `research_mobile_review.mjs`. Headerreview klikt nu op het SVG-pluspad in plaats van het oude letterteken; connection-review controleert de eerste positie van de echte tekening in plaats van een los decoratief pictogram.
