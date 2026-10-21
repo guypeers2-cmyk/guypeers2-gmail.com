@@ -1218,3 +1218,72 @@ bijvoorbeeld in het huidige prijsboek.
 Controle: `tools/next_steps_review.mjs` online en standalone: sleuf/kabel/punt/dichten,
 zoekfilter, geen automatische extra posten, 5 m behouden na één stuk, vlakcontext,
 undo/hervatten, verlopen bron, overslaan en 320–1440px zonder horizontale overflow.
+
+### Mobiele ruimtewizard
+
+De standaardweergave begeleidt per actieve ruimte door zeven stappen:
+**maten → ramen/deuren/trap → elektriciteit → sanitair/water → Gyproc → afwerking
+→ offerte**. De bestaande interactieve tekening blijft onder de vraag staan.
+Op mobiel staan Vorige/Volgende vast onderaan met veilige schermrandruimte.
+De stapnavigatie is horizontaal scrollbaar; werkstappen zijn optioneel.
+
+- Maten beginnen met de huidige waarden, niet met een leeg of nieuw project.
+  Alleen bevestigen past ze toe. Zelf tekenen blijft een alternatief met de
+  bestaande tekeneditor. Bij bijzondere vormen, huisplaatsingen of bestaande
+  objecten zijn de directe maatvelden alleen-lezen; gebruik de tekeneditor.
+- ‘Ja’ opent de objectkeuzes zonder offertewijziging. Een onderdeel kiezen opent eerst de vragen over plaats en hoeveelheid. Pas
+  ‘Toevoegen aan deze kamer’ voegt één werkpost toe, met de normale undo/rekenlogica. Een m²-post
+  meet het volledige gekozen vlak, nooit automatisch alle wanden. Plafond-Gyproc
+  gebruikt het plafond; wand-Gyproc vereist een wand. Hoeveelheid en muur zijn te wijzigen met ‘Aanpassen’ in het stappenplan.
+  Verdere werkopties en posities zijn te wijzigen bij Eigenschappen. Er worden geen voorgeschreven elektrische
+  circuits, leidingdiameters of technische conformiteitscontroles verondersteld.
+- Overslaan en teruggaan verwijderen geen werken. Een andere actieve kamer start
+  bij zijn eigen maten; de bestaande gegevens en werkposten blijven behouden.
+- De offertestap toont ook de bestaande project-/prijsinstellingen voor klant,
+  btw, korting en uurtarieven, met opslaan, print/PDF en ‘Nog een ruimte’.
+- Onder ‘Meer mogelijkheden’ herstelt ‘Zelf alles bedienen’ alle bestaande panelen;
+  ‘Terug naar stap voor stap’ keert terug.
+  Het huisplan gebruikt vrij ontwerpen. `?weergave=vrij` opent rechtstreeks de
+  geavanceerde weergave, ook bruikbaar voor bestaande browserregressies.
+- Wizardstappen zijn weergavestatus, geen nieuw projectschema. Bestaande JSON,
+  offlinecalculatie, prijsboek en server blijven ongewijzigd. De standalone bevat
+  de complete wizard, zonder extra externe bestanden of dependencies.
+
+Controle: `tools/wizard_review.mjs` online/standalone: ongeldige/gewijzigde maten,
+geen toevoeging door alleen ‘Ja’, aantallen, Gyproc-vlakken, overslaan, offerte,
+extra ruimte, kamerwissel zonder berekening, beschermde maten, tekeneditor,
+vrij ontwerpen en 320/390/768/1440px zonder horizontale overflow.
+
+
+### Begeleiding zonder computerkennis
+
+De begeleide schermen gebruiken gewone taal en leggen telkens uit wat een klik
+betekent. Eén onderdeel toevoegen volgt **kiezen → plaats/aantal invullen → prijs
+bekijken → bevestigen**. Alleen kiezen, annuleren of verder bladeren voegt niets
+stilzwijgend toe. Een open bewerkformulier blokkeert stapnavigatie tot bewaren of
+annuleren. Bij overschakelen naar zelf bedienen wordt om bevestiging gevraagd
+als er nog een onderdeel niet bewaard is.
+
+- Voorbeeldmaten zijn als voorbeelden aangeduid; er staat hoe je centimeters naar
+  meters omzet. Een komma én een punt werken voor maten en meterlengtes, ongeacht
+  de getalnotatie van de browser. Aantallen zijn hele stuks. Invoerfouten worden in
+  het Nederlands uitgelegd en het veld krijgt focus.
+- De prijs vóór bevestigen is het nieuwe **volledige offertotaal**, inclusief btw,
+  met het verschil ten opzichte van de huidige offerte. Het is geen prijs alleen
+  voor deze kamer. De rekenmotor berekent lokaal: geen projectmutatie of API-aanroep.
+- ‘Al toegevoegd in deze kamer’ toont aantallen, muur en rechtstreeks Aanpassen/
+  Weghalen. Aanpassen behoudt ID, werkopties en notitie. Weghalen vraagt bevestiging;
+  bestaande undo/redo blijft werken via de tekening.
+- Gyproc-keuzes hebben begrijpelijke namen en vragen geen aantal platen. Alleen
+  geschikte vlakken zijn beschikbaar: wandbekleding op muren, plafondbekleding
+  op het plafond. Niet alle muren worden automatisch tegelijk gefactureerd.
+- De algemene invoegrail is verborgen in de begeleide kamerweergave zodat gebruikers
+  niet per ongeluk een andere toevoegroute openen. De tekening blijft interactief;
+  Meer mogelijkheden biedt de oorspronkelijke bediening. De laatste stap geeft
+  een korte checklist voor klantgegevens, prijscontrole, bewaren en afdrukken.
+
+Extra controle: `tools/novice_review.mjs` online/standalone op mobiel: komma/punt,
+prijs vóór bevestigen, geen API- of projectmutatie bij kiezen/voorbeeld, blokkeren
+van onbewaarde stapwissels, hele stuks, annuleren, 320/390px en print. De uitgebreide
+`wizard_review.mjs` controleert ook direct aanpassen, bevestigen/annuleren van
+weghalen en de beschermde Gyproc-vlakkeuzes.

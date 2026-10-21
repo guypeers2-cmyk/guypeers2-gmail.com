@@ -1972,3 +1972,31 @@ body.huisstand-actief .object-snelknop,body.huisstand-actief .tekening-snelknop{
 #object-vervolg[hidden]{display:none!important}.object-vervolg-kop{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .object-vervolg-keuzes{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;max-width:100%}.object-vervolg-keuzes button{flex:0 0 190px;min-height:60px;text-align:left;white-space:normal}.object-vervolg-keuzes strong,.object-vervolg-keuzes small{display:block}.object-vervolg-keuzes small{font-size:.7rem;margin-top:4px;color:var(--tekst-2)}
 @media print{.object-vervolg{display:none!important}}
+/* Mobile-first guided room workflow; the underlying editors remain available. */
+#wizard{padding:16px;margin-bottom:16px;border:1px solid var(--rand);border-radius:14px;background:var(--oppervlak);scroll-margin-top:80px}
+.wizard-top{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:.75rem;color:var(--tekst-2)}
+#wizard-progress{display:flex;gap:6px;overflow-x:auto;margin:12px 0;max-width:100%;padding-bottom:4px}
+#wizard-progress button{flex:0 0 auto;min-height:44px;border:1px solid var(--rand);border-radius:8px;padding:8px;background:var(--oppervlak-2);color:var(--tekst);cursor:pointer;font:inherit;font-size:.8rem}#wizard-progress button span{margin-left:6px}#wizard-progress [aria-current]{background:var(--accent-zacht);border-color:var(--accent);font-weight:700}
+#wizard h2{font-size:1.3rem;margin:12px 0;text-transform:none;letter-spacing:-.02em}#wizard label{display:block;font-size:.85rem;margin-bottom:8px}#wizard input,#wizard select{width:100%;min-width:0;min-height:44px;margin-top:5px}#wizard button{min-height:44px}
+.wizard-dimensions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.wizard-choices{display:flex;flex-wrap:wrap;gap:8px}.wizard-fields{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.wizard-packages{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;max-height:260px;overflow:auto}.wizard-packages button{text-align:left;white-space:normal;padding:12px}.wizard-packages strong,.wizard-packages small{display:block}.wizard-packages small{margin-top:5px;font-size:.75rem;color:var(--tekst-2)}#wizard-options[hidden]{display:none!important}
+.wizard-bottom{display:flex;align-items:center;justify-content:space-between;gap:8px}.wizard-bottom span{font-size:.85rem;font-weight:700}#wizard-error{font-size:.85rem;overflow-wrap:anywhere}
+.wizard-mode #calculator-paneel{grid-template-columns:minmax(0,1fr);max-width:1050px;margin:auto;padding-bottom:100px}.wizard-mode .studio-nav,.wizard-mode #ruimte-invoer,.wizard-mode #werk-invoer,.wizard-mode #installatie-invoer,.wizard-mode #zijde,.wizard-mode #offertepaneel,.wizard-mode .object-snelknop,.wizard-mode .tekening-snelknop{display:none!important}
+.wizard-mode.wizard-final #offertepaneel,.wizard-mode.wizard-final #zijde{display:block!important}
+body:not(.wizard-mode) .wizard-bottom{display:none}
+@media(max-width:600px){.wizard-mode .wizard-bottom{position:fixed;bottom:0;left:0;right:0;z-index:45;padding:10px 12px calc(10px + env(safe-area-inset-bottom));border-top:1px solid var(--rand);background:var(--oppervlak);box-shadow:0 -4px 20px #0001}.wizard-mode #werkvlak{padding:10px}.wizard-mode #tekening{margin-top:8px}.wizard-mode #tekening .planhouder{min-height:220px}.wizard-mode .wizard-dimensions{gap:6px}.wizard-packages{grid-template-columns:1fr}#wizard{padding:12px}.wizard-mode .studio-context{margin-top:6px}}
+@media print{#wizard{display:none!important}.wizard-mode #offertepaneel{display:block!important}.wizard-mode #calculator-paneel{padding-bottom:0}}
+@media(max-width:600px){.wizard-mode #plan svg{min-height:200px;max-height:38dvh}.wizard-mode #studio-room-summary{display:none}.wizard-mode #ruimtechips{margin:4px 0}.wizard-mode #wizard-size>.knop{margin:4px 4px 4px 0}}
+/* Everyday language and a deliberate choose → explain → confirm sequence. */
+.wizard-extra{position:relative}.wizard-extra>summary{min-height:44px;display:flex;align-items:center;cursor:pointer;text-decoration:underline}.wizard-extra>button{margin-top:6px}
+#wizard .wizard-packages[hidden]{display:none!important}#wizard .wizard-packages{max-height:none;overflow:visible}
+#wizard-setup{scroll-margin-top:80px}#wizard-item{margin-top:12px;padding:12px;border:1px solid var(--accent);border-radius:10px;background:var(--accent-zacht)}
+#wizard-item-price{font-size:.9rem;font-weight:600}#wizard-message{font-size:.9rem;color:var(--tekst)}
+#wizard-added ul{list-style:none;padding:0}#wizard-added li{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 0;border-bottom:1px solid var(--rand)}#wizard-added li>span{flex:1 1 160px;min-width:0}#wizard-added strong,#wizard-added small{display:block;overflow-wrap:anywhere}#wizard-added small{margin-top:4px;color:var(--tekst-2);font-size:.8rem}
+#wizard .knop:disabled{opacity:.5;cursor:not-allowed}.wizard-mode #tekening .tekening-objectrail,.wizard-mode #tekening #ruimte-tekenen{display:none}
+.wizard-mode #tekening .tekening-werkzone{grid-template-columns:minmax(0,1fr)}
+@media(max-width:600px){.wizard-mode .studio-context .huis-navigatie,.wizard-mode .studio-scheider,.wizard-mode #studio-stap{display:none}.wizard-mode #ruimtechips{display:none}}
+#wizard button{white-space:normal;overflow-wrap:anywhere}#wizard-progress button{white-space:nowrap;overflow-wrap:normal}
+@media(max-width:600px){.wizard-mode .wizard-bottom{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:5px 10px}.wizard-mode .wizard-bottom>span{grid-row:1;grid-column:1/-1;text-align:center}.wizard-mode #wizard-back{grid-row:2;grid-column:1}.wizard-mode #wizard-next{grid-row:2;grid-column:2}.wizard-mode #calculator-paneel{padding-bottom:130px}}
+#wizard.wizard-configuring #wizard-content>.wizard-choices,#wizard.wizard-configuring #wizard-options>h3,#wizard.wizard-configuring #wizard-options>p{display:none}
+#wizard-message:empty,#wizard-error:empty{display:none}
