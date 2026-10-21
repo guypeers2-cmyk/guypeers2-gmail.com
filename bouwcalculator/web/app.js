@@ -1634,7 +1634,26 @@ init();
    through the separate installation sections. Native dialog traps focus. */
 (function objectCatalogus() {
   const menu = document.querySelector('#object-menu');
-  let categorie = 'alle';
+  let categorie = 'alle', vervolgBron=null;
+  function vervolg(regel) {
+    vervolgBron=regel?{room:regel.ruimte_id,id:regel.id,vlak:regel.oppervlak,snapshot:JSON.stringify(regel)}:null;
+    const panel=$('#object-vervolg'),room=actieveRuimte();
+    const bron=room&&vervolgBron&&state.project.regels.find(r=>r.id===vervolgBron.id&&r.ruimte_id===room.id&&r.oppervlak===$('#object-vlak').value);
+    panel.hidden=!bron;if(!bron){vervolgBron=null;return;}
+    const pakket=state.prijsboek.pakketten.find(p=>p.id===bron.pakket_id);
+    if(!pakket){panel.hidden=true;vervolgBron=null;return;}
+    const opties=BouwVervolg.suggesties(pakket.id,state.prijsboek.pakketten);
+    $('#object-vervolg-bron').textContent=`Na ${pakket.naam} op ${$('#object-vlak').selectedOptions[0].textContent.toLowerCase()}. ${opties.length?'Kies wat je hierna wilt toevoegen.':'Geen specifieke vervolgstap in het prijsboek. Je kunt hieronder verder kiezen; eindafwerking en controles zo nodig apart begroten.'}`;
+    $('#object-vervolg-keuzes').innerHTML=opties.map(p=>{
+      const vorigeMeter=[...state.project.regels].reverse().find(r=>r.ruimte_id===room.id&&r.oppervlak===bron.oppervlak&&state.prijsboek.pakketten.find(k=>k.id===r.pakket_id)?.eenheid==='m'&&Number(r.hoeveelheid)>0);
+      const aantal=p.eenheid==='m'&&vorigeMeter?Number(vorigeMeter.hoeveelheid):1;
+      const aanwezig=state.project.regels.some(r=>r.ruimte_id===room.id&&r.oppervlak===bron.oppervlak&&r.pakket_id===p.id);
+      return `<button type="button" class="knop" data-object-vervolg="${esc(p.id)}" data-vervolg-aantal="${aantal}"><strong>+ ${esc(p.naam)}</strong><small>${p.eenheid==='m2'?'Hele vlak opnieuw gemeten':NR.format(aantal)+' '+(p.eenheid==='m'?'m voorgesteld':'stuk')}${aanwezig?' · al op dit vlak':''}</small></button>`;
+    }).join('');
+  }
+  $('#object-vervolg-stop').addEventListener('click',()=>vervolg(null));
+  $('#object-vlak').addEventListener('change',()=>vervolg([...state.project.regels].reverse().find(r=>r.ruimte_id===actieveRuimte()?.id&&r.oppervlak===$('#object-vlak').value)));
+
   const normalize = s => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
   const groep = p => p.id.startsWith('elek_') ? 'elektriciteit' : p.id.startsWith('san_') ? 'sanitair' : 'afwerking';
   function catalogus() {
@@ -1652,8 +1671,10 @@ init();
     const room=actieveRuimte();
     if(!room || !state.prijsboek) {toast('Voeg eerst een ruimte toe.');return;}
     $('#object-menu-ruimte').textContent=`Voor ${room.naam} · selecteer het vlak en voeg direct toe`;
-    $('#object-vlak').innerHTML=vlakOpties(room,vlak || (planWeergave==='aanzicht' ? planVlak : ruimteWanden(room)[0].sleutel));
+    const geselecteerd=planSelectie?.type==='regel'&&state.project.regels.find(r=>r.id===planSelectie.id&&r.ruimte_id===room.id);
+    $('#object-vlak').innerHTML=vlakOpties(room,vlak || (planWeergave==='aanzicht' ? planVlak : geselecteerd?.oppervlak||ruimteWanden(room)[0].sleutel));
     $('#object-menu-status').textContent='Kies een object. Het menu blijft open om meerdere toe te voegen.';
+    vervolg(geselecteerd&&geselecteerd.oppervlak===$('#object-vlak').value?geselecteerd:[...state.project.regels].reverse().find(r=>r.ruimte_id===room.id&&r.oppervlak===$('#object-vlak').value));
     resultaten();if(!menu.open)menu.showModal();$('#object-zoek').focus();
   }
   document.addEventListener('bouw-object-menu',e=>openMenu(e.detail?.vlak));
@@ -1661,11 +1682,16 @@ init();
     if(e.target.closest('[data-object-menu]')) {openMenu();return;}
     const cat=e.target.closest('[data-object-categorie]');
     if(cat){categorie=cat.dataset.objectCategorie;$$('[data-object-categorie]').forEach(b=>b.setAttribute('aria-pressed',String(b===cat)));resultaten();return;}
-    const add=e.target.closest('[data-object-toevoegen]');
+    const add=e.target.closest('[data-object-toevoegen],[data-object-vervolg]');
     if(!add)return;
-    const room=actieveRuimte(),item=catalogus().find(p=>p.id===add.dataset.objectToevoegen);
+    const room=actieveRuimte(),item=catalogus().find(p=>p.id===(add.dataset.objectToevoegen||add.dataset.objectVervolg));
     if(!room || !item)return;
     const vlak=$('#object-vlak').value;
+    if(add.dataset.objectVervolg){
+      const bron=vervolgBron&&state.project.regels.find(r=>r.id===vervolgBron.id&&r.ruimte_id===room.id&&r.oppervlak===vlak);
+      if(!bron||JSON.stringify(bron)!==vervolgBron.snapshot||!BouwVervolg.suggesties(bron.pakket_id,state.prijsboek.pakketten).some(p=>p.id===item.id)){vervolg(null);$('#object-menu-status').textContent='De bron is gewijzigd. Open het objectmenu opnieuw.';return;}
+      $('#object-aantal').value=add.dataset.vervolgAantal;
+    }
     const opening=item.groep==='openingen';
     if(opening && ['vloer','plafond'].includes(vlak)){$('#object-menu-status').textContent='Kies een wand voor deze deur of dit raam.';$('#object-vlak').focus();return;}
     if(opening){menu.close();window.BouwOpeningen.open(item.naam,vlak);return;}
@@ -1674,6 +1700,7 @@ init();
     wijzig(()=>{
       state.project.regels.push({id,ruimte_id:room.id,oppervlak:vlak,pakket_id:item.id,opties:{},hoeveelheid:item.eenheid==='m2'?null:aantal,notitie:''});
     });
+    vervolg(state.project.regels.find(r=>r.id===id));
     $('#object-menu-status').textContent=`${item.naam} toegevoegd op ${$('#object-vlak').selectedOptions[0].textContent.toLowerCase()}. Je kunt nog een object kiezen of het menu sluiten.`;
   });
   $('#object-zoek').addEventListener('input',resultaten);

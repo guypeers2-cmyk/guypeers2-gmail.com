@@ -1958,3 +1958,17 @@ body.huisstand-actief .object-snelknop,body.huisstand-actief .tekening-snelknop{
 [data-plan-gereedschap="draai"][hidden],[data-huis-tool="draai"][hidden]{display:none!important}
 .draai-actief,.draai-actief *{cursor:grab!important}
 .draai-actief.is-pannen,.draai-actief.is-pannen *,.draai-actief.huis-pannen,.draai-actief.huis-pannen *{cursor:grabbing!important}
+.combinaties{margin:0 16px 12px;padding:12px;border:1px solid var(--rand);border-radius:10px;background:var(--oppervlak-2)}
+.combinaties>summary,#combi-maker>summary{cursor:pointer;font-weight:600;min-height:44px;padding:10px 0}
+.combinaties>summary span{font-size:.75rem;font-weight:400;color:var(--tekst-2)}
+.combinaties label{display:block;margin:8px 0}.combinaties input:not([type="checkbox"]),.combinaties select{width:100%;min-width:0}
+.combi-opties{display:grid;grid-template-columns:minmax(0,1fr);gap:4px}.combi-knoppen{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+#combi-bron{max-height:220px;overflow:auto}.combinaties .combi-bron-item{display:flex;align-items:center;gap:8px;min-height:44px;border-bottom:1px solid var(--rand);font-size:.8rem}
+.combi-bron-item input{flex:0 0 auto}.combi-bron-item span{overflow-wrap:anywhere}
+#combi-preview{padding:10px;border:1px solid var(--accent-rand);border-radius:8px;background:var(--accent-zacht)}#combi-preview[hidden]{display:none!important}
+#combi-preview-items{padding-left:20px;font-size:.8rem}#combi-status,#combi-preview-prijs{overflow-wrap:anywhere}
+@media print{.combinaties{display:none!important}}
+.object-vervolg{margin:0 16px 12px;padding:12px;border:1px solid var(--accent);border-radius:10px;background:var(--accent-zacht);flex-shrink:0}
+#object-vervolg[hidden]{display:none!important}.object-vervolg-kop{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.object-vervolg-keuzes{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;max-width:100%}.object-vervolg-keuzes button{flex:0 0 190px;min-height:60px;text-align:left;white-space:normal}.object-vervolg-keuzes strong,.object-vervolg-keuzes small{display:block}.object-vervolg-keuzes small{font-size:.7rem;margin-top:4px;color:var(--tekst-2)}
+@media print{.object-vervolg{display:none!important}}

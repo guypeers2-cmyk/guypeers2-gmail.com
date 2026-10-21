@@ -344,6 +344,19 @@
     </div>
     <p class="object-menu-hint">Klik op + om toe te voegen. Bij m²-posten gebruiken we het gemeten vlak; deuren en ramen horen op een wand.</p>
   </div>
+  <section id="object-vervolg" class="object-vervolg" aria-labelledby="object-vervolg-titel" hidden>
+    <div class="object-vervolg-kop"><strong id="object-vervolg-titel">Volgende stap</strong><button type="button" class="knop klein" id="object-vervolg-stop">Overslaan</button></div>
+    <p id="object-vervolg-bron" class="hint"></p><div id="object-vervolg-keuzes" class="object-vervolg-keuzes"></div>
+    <p class="hint">Optionele voorstellen, geen verplichte werkwijze of technisch advies. Vervolgknoppen voegen de getoonde hoeveelheid toe; pas die zo nodig daarna aan via Eigenschappen. Controleer toepassing, kabel-/leidingkeuze, sleufmaten en hoeveelheden. Elk object wordt apart toegevoegd; alle objecten blijven hieronder beschikbaar.</p>
+  </section>
+  <details id="combinaties" class="combinaties"><summary>Combinaties <span>Eerder gebruikte sets opnieuw toevoegen</span></summary>
+  <p class="hint">Bewaar een eigen set werken, deuren, ramen en trappen. Alleen op deze browser bewaard; geen project-/klantvelden, werknotities of tarieven. Toevoegen maakt nieuwe objecten en berekent m² opnieuw.</p>
+  <label>Bewaarde combinatie<select id="combi-keuze"><option value="">Nog geen combinaties</option></select></label>
+  <div class="combi-opties"><label>Vlakken<select id="combi-vlakmodus"><option value="behoud">Oorspronkelijke vlakken</option><option value="wand">Wandobjecten op de hierboven gekozen wand</option></select></label><label><input id="combi-posities" type="checkbox"> Posities overnemen (bij dezelfde wand)</label></div>
+  <div class="combi-knoppen"><button type="button" class="knop" id="combi-voorbeeld">Voorbeeld bekijken</button><button type="button" class="knop gevaar" id="combi-verwijder">Combinatie wissen</button></div>
+  <div id="combi-preview" hidden><ul id="combi-preview-items"></ul><p id="combi-preview-prijs"></p><button type="button" class="knop primair" id="combi-toevoegen">Combinatie toevoegen</button></div>
+  <details id="combi-maker"><summary>Nieuwe combinatie bewaren uit deze kamer</summary><form id="combi-bewaar-form"><label>Naam<input id="combi-naam" maxlength="80" placeholder="Bijv. Voorzetwand met stopcontacten" required></label><button type="button" class="knop klein" id="combi-alles">Alles kiezen</button><div id="combi-bron"></div><button type="submit" class="knop">Combinatie bewaren</button></form></details>
+  <p id="combi-status" class="hint" role="status" aria-live="polite"></p></details>
   <div id="object-resultaten" class="object-resultaten" aria-label="Beschikbare objecten"></div>
   <footer class="object-menu-voet"><span id="object-menu-status" role="status" aria-live="polite">Kies een object. Het menu blijft open om meerdere toe te voegen.</span></footer>
 </dialog>
@@ -383,6 +396,7 @@
   <footer><button type="button" class="knop" id="studio-room-house">Huisplan openen</button><small>↑ ↓ kiezen · Enter openen · Esc sluiten</small></footer>
 </dialog>
 
+<script src="vervolgstappen.js"></script>
 <script type="module" src="engine.js"></script>
 <script src="plattegrond.js"></script>
 <script src="geschiedenis.js"></script>
@@ -396,5 +410,6 @@
 <script src="studio.js"></script>
 <script src="openingen.js"></script>
 <script src="trappen.js"></script>
+<script src="combinaties.js"></script>
 </body>
 </html>

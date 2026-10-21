@@ -99,6 +99,7 @@ def main() -> int:
         '<link rel="stylesheet" href="styles.css">',
         f"<style>\n{css}\n</style>",
     )
+    html = html.replace('<script src="vervolgstappen.js"></script>', f"<script>\n{veilig(lees('vervolgstappen.js'))}\n</script>")
     html = html.replace('<script src="thema.js"></script>', f"<script>\n{veilig(lees('thema.js'))}\n</script>")
     html = html.replace(
         '<script type="module" src="engine.js"></script>\n'
@@ -111,8 +112,9 @@ def main() -> int:
 
     html = html.replace('<script src="openingen.js"></script>', f"<script>\n{veilig(lees('openingen.js'))}\n</script>")
     html = html.replace('<script src="trappen.js"></script>', f"<script>\n{veilig(lees('trappen.js'))}\n</script>")
+    html = html.replace('<script src="combinaties.js"></script>', f"<script>\n{veilig(lees('combinaties.js'))}\n</script>")
     if ("styles.css" in html or 'src="engine.js"' in html
-            or 'src="trappen.js"' in html or 'src="openingen.js"' in html or 'src="thema.js"' in html or 'src="huis-camera.js"' in html or 'src="studio.js"' in html or 'src="huis.js"' in html or 'src="ruimte-vorm.js"' in html or 'src="meten.js"' in html or 'src="navigatie.js"' in html or 'src="geschiedenis.js"' in html or 'src="slepen.js"' in html or 'src="app.js"' in html or 'src="plattegrond.js"' in html):
+            or 'src="vervolgstappen.js"' in html or 'src="combinaties.js"' in html or 'src="trappen.js"' in html or 'src="openingen.js"' in html or 'src="thema.js"' in html or 'src="huis-camera.js"' in html or 'src="studio.js"' in html or 'src="huis.js"' in html or 'src="ruimte-vorm.js"' in html or 'src="meten.js"' in html or 'src="navigatie.js"' in html or 'src="geschiedenis.js"' in html or 'src="slepen.js"' in html or 'src="app.js"' in html or 'src="plattegrond.js"' in html):
         print("FOUT: niet alle verwijzingen zijn vervangen", file=sys.stderr)
         return 1
 

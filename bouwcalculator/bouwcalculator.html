@@ -2015,6 +2015,20 @@ body.huisstand-actief .object-snelknop,body.huisstand-actief .tekening-snelknop{
 [data-plan-gereedschap="draai"][hidden],[data-huis-tool="draai"][hidden]{display:none!important}
 .draai-actief,.draai-actief *{cursor:grab!important}
 .draai-actief.is-pannen,.draai-actief.is-pannen *,.draai-actief.huis-pannen,.draai-actief.huis-pannen *{cursor:grabbing!important}
+.combinaties{margin:0 16px 12px;padding:12px;border:1px solid var(--rand);border-radius:10px;background:var(--oppervlak-2)}
+.combinaties>summary,#combi-maker>summary{cursor:pointer;font-weight:600;min-height:44px;padding:10px 0}
+.combinaties>summary span{font-size:.75rem;font-weight:400;color:var(--tekst-2)}
+.combinaties label{display:block;margin:8px 0}.combinaties input:not([type="checkbox"]),.combinaties select{width:100%;min-width:0}
+.combi-opties{display:grid;grid-template-columns:minmax(0,1fr);gap:4px}.combi-knoppen{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+#combi-bron{max-height:220px;overflow:auto}.combinaties .combi-bron-item{display:flex;align-items:center;gap:8px;min-height:44px;border-bottom:1px solid var(--rand);font-size:.8rem}
+.combi-bron-item input{flex:0 0 auto}.combi-bron-item span{overflow-wrap:anywhere}
+#combi-preview{padding:10px;border:1px solid var(--accent-rand);border-radius:8px;background:var(--accent-zacht)}#combi-preview[hidden]{display:none!important}
+#combi-preview-items{padding-left:20px;font-size:.8rem}#combi-status,#combi-preview-prijs{overflow-wrap:anywhere}
+@media print{.combinaties{display:none!important}}
+.object-vervolg{margin:0 16px 12px;padding:12px;border:1px solid var(--accent);border-radius:10px;background:var(--accent-zacht);flex-shrink:0}
+#object-vervolg[hidden]{display:none!important}.object-vervolg-kop{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.object-vervolg-keuzes{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;max-width:100%}.object-vervolg-keuzes button{flex:0 0 190px;min-height:60px;text-align:left;white-space:normal}.object-vervolg-keuzes strong,.object-vervolg-keuzes small{display:block}.object-vervolg-keuzes small{font-size:.7rem;margin-top:4px;color:var(--tekst-2)}
+@media print{.object-vervolg{display:none!important}}
 
 </style>
 </head>
@@ -2352,6 +2366,19 @@ body.huisstand-actief .object-snelknop,body.huisstand-actief .tekening-snelknop{
     </div>
     <p class="object-menu-hint">Klik op + om toe te voegen. Bij m²-posten gebruiken we het gemeten vlak; deuren en ramen horen op een wand.</p>
   </div>
+  <section id="object-vervolg" class="object-vervolg" aria-labelledby="object-vervolg-titel" hidden>
+    <div class="object-vervolg-kop"><strong id="object-vervolg-titel">Volgende stap</strong><button type="button" class="knop klein" id="object-vervolg-stop">Overslaan</button></div>
+    <p id="object-vervolg-bron" class="hint"></p><div id="object-vervolg-keuzes" class="object-vervolg-keuzes"></div>
+    <p class="hint">Optionele voorstellen, geen verplichte werkwijze of technisch advies. Vervolgknoppen voegen de getoonde hoeveelheid toe; pas die zo nodig daarna aan via Eigenschappen. Controleer toepassing, kabel-/leidingkeuze, sleufmaten en hoeveelheden. Elk object wordt apart toegevoegd; alle objecten blijven hieronder beschikbaar.</p>
+  </section>
+  <details id="combinaties" class="combinaties"><summary>Combinaties <span>Eerder gebruikte sets opnieuw toevoegen</span></summary>
+  <p class="hint">Bewaar een eigen set werken, deuren, ramen en trappen. Alleen op deze browser bewaard; geen project-/klantvelden, werknotities of tarieven. Toevoegen maakt nieuwe objecten en berekent m² opnieuw.</p>
+  <label>Bewaarde combinatie<select id="combi-keuze"><option value="">Nog geen combinaties</option></select></label>
+  <div class="combi-opties"><label>Vlakken<select id="combi-vlakmodus"><option value="behoud">Oorspronkelijke vlakken</option><option value="wand">Wandobjecten op de hierboven gekozen wand</option></select></label><label><input id="combi-posities" type="checkbox"> Posities overnemen (bij dezelfde wand)</label></div>
+  <div class="combi-knoppen"><button type="button" class="knop" id="combi-voorbeeld">Voorbeeld bekijken</button><button type="button" class="knop gevaar" id="combi-verwijder">Combinatie wissen</button></div>
+  <div id="combi-preview" hidden><ul id="combi-preview-items"></ul><p id="combi-preview-prijs"></p><button type="button" class="knop primair" id="combi-toevoegen">Combinatie toevoegen</button></div>
+  <details id="combi-maker"><summary>Nieuwe combinatie bewaren uit deze kamer</summary><form id="combi-bewaar-form"><label>Naam<input id="combi-naam" maxlength="80" placeholder="Bijv. Voorzetwand met stopcontacten" required></label><button type="button" class="knop klein" id="combi-alles">Alles kiezen</button><div id="combi-bron"></div><button type="submit" class="knop">Combinatie bewaren</button></form></details>
+  <p id="combi-status" class="hint" role="status" aria-live="polite"></p></details>
   <div id="object-resultaten" class="object-resultaten" aria-label="Beschikbare objecten"></div>
   <footer class="object-menu-voet"><span id="object-menu-status" role="status" aria-live="polite">Kies een object. Het menu blijft open om meerdere toe te voegen.</span></footer>
 </dialog>
@@ -2391,6 +2418,47 @@ body.huisstand-actief .object-snelknop,body.huisstand-actief .tekening-snelknop{
   <footer><button type="button" class="knop" id="studio-room-house">Huisplan openen</button><small>↑ ↓ kiezen · Enter openen · Esc sluiten</small></footer>
 </dialog>
 
+<script>
+/* Optional catalogue suggestions, never automatic quote lines or technical advice. */
+(function(root){
+  'use strict';
+  const routes={
+    elek_sleuf:['elek_kabel_3g25','elek_kabel_3g15','san_koudwater','san_warmwater','elek_sleuf_dichten'],
+    elek_kabel_3g25:['elek_stopcontact','elek_stopcontact_dubbel','elek_schakelaar','elek_lichtpunt','elek_sleuf_dichten'],
+    elek_kabel_3g15:['elek_schakelaar','elek_lichtpunt','elek_sleuf_dichten'],
+    elek_stopcontact:['elek_kabel_3g25','elek_sleuf','elek_sleuf_dichten'],
+    elek_stopcontact_dubbel:['elek_kabel_3g25','elek_sleuf','elek_sleuf_dichten'],
+    elek_schakelaar:['elek_kabel_3g15','elek_lichtpunt','elek_sleuf_dichten'],
+    elek_lichtpunt:['elek_kabel_3g15','elek_schakelaar','elek_sleuf_dichten'],
+    san_koudwater:['san_koppeling','san_afsluitkraan','san_collector','san_isolatie','san_druktest'],
+    san_warmwater:['san_koppeling','san_isolatie','san_afsluitkraan','san_druktest'],
+    san_koppeling:['san_afsluitkraan','san_collector','san_druktest'],
+    san_isolatie:['san_druktest','elek_sleuf_dichten'],
+    san_afsluitkraan:['san_mengkraan','san_wc','san_wasmachine','san_druktest'],
+    san_collector:['san_koudwater','san_warmwater','san_afsluitkraan','san_druktest'],
+    san_afvoer50:['san_afvoerstuk','san_lavabo','san_wasmachine'],
+    san_afvoer110:['san_afvoerstuk','san_wc'],
+    san_afvoerstuk:['san_afvoer50','san_afvoer110'],
+    san_wc:['san_koudwater','san_afvoer110','san_afsluitkraan','san_druktest'],
+    san_lavabo:['san_mengkraan','san_koudwater','san_warmwater','san_afvoer50','san_druktest'],
+    san_mengkraan:['san_koudwater','san_warmwater','san_afsluitkraan','san_druktest'],
+    san_douchekraan:['san_koudwater','san_warmwater','san_afvoer50','san_druktest'],
+    san_wasmachine:['san_koudwater','san_afvoer50','san_afsluitkraan','san_druktest'],
+    san_druktest:['san_isolatie','elek_sleuf_dichten'],
+    gyproc_wand_profiel:['elek_stopcontact','elek_schakelaar','gyproc_voegafwerking'],
+    gyproc_plafond:['elek_lichtpunt','gyproc_voegafwerking'],
+    gyproc_direct:['elek_stopcontact','gyproc_voegafwerking'],
+    gyproc_voegafwerking:['schilderen_gyproc'],
+    elek_sleuf_dichten:[],schilderen_gyproc:[]
+  };
+  function suggesties(id,pakketten){
+    const beschikbaar=new Map(pakketten.map(p=>[p.id,p]));
+    return (routes[id]||[]).filter(id=>beschikbaar.has(id)).map(id=>beschikbaar.get(id));
+  }
+  root.BouwVervolg={suggesties};
+})(typeof window==='undefined'?globalThis:window);
+
+</script>
 <script>
 
 (function () {
@@ -6501,7 +6569,26 @@ init();
    through the separate installation sections. Native dialog traps focus. */
 (function objectCatalogus() {
   const menu = document.querySelector('#object-menu');
-  let categorie = 'alle';
+  let categorie = 'alle', vervolgBron=null;
+  function vervolg(regel) {
+    vervolgBron=regel?{room:regel.ruimte_id,id:regel.id,vlak:regel.oppervlak,snapshot:JSON.stringify(regel)}:null;
+    const panel=$('#object-vervolg'),room=actieveRuimte();
+    const bron=room&&vervolgBron&&state.project.regels.find(r=>r.id===vervolgBron.id&&r.ruimte_id===room.id&&r.oppervlak===$('#object-vlak').value);
+    panel.hidden=!bron;if(!bron){vervolgBron=null;return;}
+    const pakket=state.prijsboek.pakketten.find(p=>p.id===bron.pakket_id);
+    if(!pakket){panel.hidden=true;vervolgBron=null;return;}
+    const opties=BouwVervolg.suggesties(pakket.id,state.prijsboek.pakketten);
+    $('#object-vervolg-bron').textContent=`Na ${pakket.naam} op ${$('#object-vlak').selectedOptions[0].textContent.toLowerCase()}. ${opties.length?'Kies wat je hierna wilt toevoegen.':'Geen specifieke vervolgstap in het prijsboek. Je kunt hieronder verder kiezen; eindafwerking en controles zo nodig apart begroten.'}`;
+    $('#object-vervolg-keuzes').innerHTML=opties.map(p=>{
+      const vorigeMeter=[...state.project.regels].reverse().find(r=>r.ruimte_id===room.id&&r.oppervlak===bron.oppervlak&&state.prijsboek.pakketten.find(k=>k.id===r.pakket_id)?.eenheid==='m'&&Number(r.hoeveelheid)>0);
+      const aantal=p.eenheid==='m'&&vorigeMeter?Number(vorigeMeter.hoeveelheid):1;
+      const aanwezig=state.project.regels.some(r=>r.ruimte_id===room.id&&r.oppervlak===bron.oppervlak&&r.pakket_id===p.id);
+      return `<button type="button" class="knop" data-object-vervolg="${esc(p.id)}" data-vervolg-aantal="${aantal}"><strong>+ ${esc(p.naam)}</strong><small>${p.eenheid==='m2'?'Hele vlak opnieuw gemeten':NR.format(aantal)+' '+(p.eenheid==='m'?'m voorgesteld':'stuk')}${aanwezig?' · al op dit vlak':''}</small></button>`;
+    }).join('');
+  }
+  $('#object-vervolg-stop').addEventListener('click',()=>vervolg(null));
+  $('#object-vlak').addEventListener('change',()=>vervolg([...state.project.regels].reverse().find(r=>r.ruimte_id===actieveRuimte()?.id&&r.oppervlak===$('#object-vlak').value)));
+
   const normalize = s => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
   const groep = p => p.id.startsWith('elek_') ? 'elektriciteit' : p.id.startsWith('san_') ? 'sanitair' : 'afwerking';
   function catalogus() {
@@ -6519,8 +6606,10 @@ init();
     const room=actieveRuimte();
     if(!room || !state.prijsboek) {toast('Voeg eerst een ruimte toe.');return;}
     $('#object-menu-ruimte').textContent=`Voor ${room.naam} · selecteer het vlak en voeg direct toe`;
-    $('#object-vlak').innerHTML=vlakOpties(room,vlak || (planWeergave==='aanzicht' ? planVlak : ruimteWanden(room)[0].sleutel));
+    const geselecteerd=planSelectie?.type==='regel'&&state.project.regels.find(r=>r.id===planSelectie.id&&r.ruimte_id===room.id);
+    $('#object-vlak').innerHTML=vlakOpties(room,vlak || (planWeergave==='aanzicht' ? planVlak : geselecteerd?.oppervlak||ruimteWanden(room)[0].sleutel));
     $('#object-menu-status').textContent='Kies een object. Het menu blijft open om meerdere toe te voegen.';
+    vervolg(geselecteerd&&geselecteerd.oppervlak===$('#object-vlak').value?geselecteerd:[...state.project.regels].reverse().find(r=>r.ruimte_id===room.id&&r.oppervlak===$('#object-vlak').value));
     resultaten();if(!menu.open)menu.showModal();$('#object-zoek').focus();
   }
   document.addEventListener('bouw-object-menu',e=>openMenu(e.detail?.vlak));
@@ -6528,11 +6617,16 @@ init();
     if(e.target.closest('[data-object-menu]')) {openMenu();return;}
     const cat=e.target.closest('[data-object-categorie]');
     if(cat){categorie=cat.dataset.objectCategorie;$$('[data-object-categorie]').forEach(b=>b.setAttribute('aria-pressed',String(b===cat)));resultaten();return;}
-    const add=e.target.closest('[data-object-toevoegen]');
+    const add=e.target.closest('[data-object-toevoegen],[data-object-vervolg]');
     if(!add)return;
-    const room=actieveRuimte(),item=catalogus().find(p=>p.id===add.dataset.objectToevoegen);
+    const room=actieveRuimte(),item=catalogus().find(p=>p.id===(add.dataset.objectToevoegen||add.dataset.objectVervolg));
     if(!room || !item)return;
     const vlak=$('#object-vlak').value;
+    if(add.dataset.objectVervolg){
+      const bron=vervolgBron&&state.project.regels.find(r=>r.id===vervolgBron.id&&r.ruimte_id===room.id&&r.oppervlak===vlak);
+      if(!bron||JSON.stringify(bron)!==vervolgBron.snapshot||!BouwVervolg.suggesties(bron.pakket_id,state.prijsboek.pakketten).some(p=>p.id===item.id)){vervolg(null);$('#object-menu-status').textContent='De bron is gewijzigd. Open het objectmenu opnieuw.';return;}
+      $('#object-aantal').value=add.dataset.vervolgAantal;
+    }
     const opening=item.groep==='openingen';
     if(opening && ['vloer','plafond'].includes(vlak)){$('#object-menu-status').textContent='Kies een wand voor deze deur of dit raam.';$('#object-vlak').focus();return;}
     if(opening){menu.close();window.BouwOpeningen.open(item.naam,vlak);return;}
@@ -6541,6 +6635,7 @@ init();
     wijzig(()=>{
       state.project.regels.push({id,ruimte_id:room.id,oppervlak:vlak,pakket_id:item.id,opties:{},hoeveelheid:item.eenheid==='m2'?null:aantal,notitie:''});
     });
+    vervolg(state.project.regels.find(r=>r.id===id));
     $('#object-menu-status').textContent=`${item.naam} toegevoegd op ${$('#object-vlak').selectedOptions[0].textContent.toLowerCase()}. Je kunt nog een object kiezen of het menu sluiten.`;
   });
   $('#object-zoek').addEventListener('input',resultaten);
@@ -8222,6 +8317,141 @@ function sluitTekenFocus() {
   host.addEventListener('click',e=>{if(performance.now()<suppress){e.preventDefault();e.stopImmediatePropagation();return;}const t=e.target.closest('[data-trap-id]');if(t){e.preventDefault();e.stopImmediatePropagation();open(t.dataset.trapId);}},true);
   window.BouwTrappen={check};
   host.addEventListener('keydown',e=>{if(e.key==='Escape'&&drag){e.preventDefault();end(true);return;}const t=e.target.closest('[data-trap-id]');if(t&&['Enter',' '].includes(e.key)){e.preventDefault();e.stopPropagation();open(t.dataset.trapId);}});
+})();
+
+</script>
+<script>
+/* Reusable object recipes are browser-local, not project/customer or price data.
+ * Preview uses the existing calculation engine; application is one undoable edit. */
+(function(){
+  'use strict';
+  const $=s=>document.querySelector(s),key='bouwcalculator.combinaties.v1',copy=v=>JSON.parse(JSON.stringify(v));
+  const menu=$('#object-menu');let library=[],source=null,prepared=null,storageError='';
+  const say=s=>$('#combi-status').textContent=s;
+  function validateLibrary(value){
+    if(!Array.isArray(value)||value.length>30)throw Error('Ongeldige combinatiebibliotheek. De bestaande opslag blijft onaangeroerd.');
+    const ids=new Set();for(const c of value){
+      if(!c||c.version!==1||typeof c.id!=='string'||!c.id||c.id.length>100||ids.has(c.id)||typeof c.naam!=='string'||!c.naam.trim()||c.naam.length>80||!Array.isArray(c.items)||!c.items.length||c.items.length>100)throw Error('Ongeldige combinatiebibliotheek. De bestaande opslag blijft onaangeroerd.');
+      ids.add(c.id);for(const i of c.items)if(!i||!['regel','opening','trap'].includes(i.type)||!i.data||typeof i.data!=='object'||Array.isArray(i.data))throw Error('Ongeldige objectgegevens in de combinatie.');
+    }return value;
+  }
+  function read(){
+    storageError='';try{const raw=localStorage.getItem(key);if(raw&&raw.length>1000000)throw Error('De combinatiebibliotheek is te groot.');library=validateLibrary(raw?JSON.parse(raw):[]);}
+    catch(error){library=[];storageError='Combinaties niet beschikbaar: '+error.message;}
+  }
+  function write(next){
+    if(storageError)throw Error(storageError);
+    validateLibrary(next);const json=JSON.stringify(next);if(json.length>1000000)throw Error('De combinatiebibliotheek is vol. Wis eerst een combinatie.');
+    try{localStorage.setItem(key,json);}catch{throw Error('Niet bewaard: browseropslag is vol of geblokkeerd. Er is niets overschreven.');}library=next;
+  }
+  function choices(id=''){
+    $('#combi-keuze').innerHTML=library.length?library.map(c=>`<option value="${esc(c.id)}">${esc(c.naam)} · ${c.items.length} objecten</option>`).join(''):'<option value="">Nog geen combinaties</option>';
+    if(library.some(c=>c.id===id))$('#combi-keuze').value=id;
+    $('#combi-voorbeeld').disabled=$('#combi-verwijder').disabled=!library.length||!!storageError;
+  }
+  function invalidate(){prepared=null;$('#combi-preview').hidden=true;}
+  function roomSnapshot(room){return JSON.stringify({room,regels:state.project.regels.filter(r=>r.ruimte_id===room.id)});}
+  function label(item){
+    if(item.type==='regel'){const p=state.prijsboek.pakketten.find(p=>p.id===item.data.pakket_id);return `${p?.naam||item.data.pakket_id} · ${item.data.oppervlak} · ${p?.eenheid==='m2'?'m² opnieuw gemeten':(item.data.hoeveelheid??0)+' '+(p?.eenheid||'')}`;}
+    return `${item.data.naam|| (item.type==='trap'?'Trap':'Opening')} · ${item.type==='trap'?'trap':item.data.muur}`;
+  }
+  function sourceItems(room){
+    const normal=BouwEngine.berekenOfferte(state.project).project,r=normal.ruimtes.find(r=>r.id===room.id);
+    return [
+      ...normal.regels.filter(w=>w.ruimte_id===r.id).map(w=>{const {id,ruimte_id,notitie,...data}=w;return {type:'regel',data};}),
+      ...r.openingen.map(data=>({type:'opening',data})),
+      ...(r.trappen||[]).map(t=>{const {id,...data}=t;return {type:'trap',data};})
+    ];
+  }
+  function refreshSource(){
+    const room=actieveRuimte();if(!room||!window.BouwEngine)return;
+    source={project:state.project,room:room.id,snapshot:roomSnapshot(room),items:sourceItems(room)};
+    $('#combi-bron').innerHTML=source.items.map((i,n)=>`<label class="combi-bron-item"><input type="checkbox" data-combi-bron="${n}"><span>${esc(label(i))}</span></label>`).join('')||'<p class="hint">Voeg eerst objecten of werkposten toe aan deze kamer.</p>';
+  }
+  function settings(){return JSON.stringify({id:$('#combi-keuze').value,mode:$('#combi-vlakmodus').value,vlak:$('#object-vlak').value,posities:$('#combi-posities').checked});}
+  function checkOpening(room,index){
+    const o=room.openingen[index],f=BouwVorm.wallFrame(room,o.muur),g=BouwPlan.openingGeometrie(room,index);
+    if(!f||!g||!(o.breedte>0)||!(o.hoogte>0)||g.breedte+1e-5<o.breedte||g.hoogte+1e-5<o.hoogte)throw Error('Een deur of raam past niet op de gekozen wand.');
+    const along=g.start??((g.a[0]-f.a.x)*f.u[0]+(g.a[1]-f.a.y)*f.u[1]),under=g.onder??g.a[2];
+    if(o.positie!=null&&Math.abs(o.positie-along)>1e-4||Math.abs((o.borstwering||0)-under)>1e-4)throw Error('Een opening valt buiten de wand. Schakel posities overnemen uit of kies een andere wand.');
+    if(!f.inset&&g.a[2]+o.hoogte>Math.min(BouwVorm.height(room,g.a[0],g.a[1]),BouwVorm.height(room,g.b[0],g.b[1]))+1e-5)throw Error('Een opening komt boven het plafond.');
+  }
+  function build(combo){
+    const project=copy(state.project),room=project.ruimtes.find(r=>r.id===actieveRuimte()?.id);if(!room)throw Error('Kies eerst een kamer.');
+    const walls=new Set(BouwVorm.edges(room).map(e=>e.id)),valid=new Set([...walls,'vloer','plafond']);
+    const target=$('#object-vlak').value,map=$('#combi-vlakmodus').value==='wand',positions=$('#combi-posities').checked;
+    const newRules=[],newStairs=[],summary=[];
+    const ids=new Set([...project.regels.map(w=>w.id),...project.ruimtes.flatMap(r=>(r.trappen||[]).map(t=>t.id))]);
+    const fresh=()=>{let id;do{id=uid();}while(ids.has(id));ids.add(id);return id;};
+    room.openingen ||= [];room.trappen ||= [];
+    for(const item of combo.items){
+      const d=copy(item.data);
+      if(item.type==='regel'){
+        const p=state.prijsboek.pakketten.find(p=>p.id===d.pakket_id);if(!p)throw Error('Een werkpakket uit deze combinatie is niet meer beschikbaar.');
+        const old=d.oppervlak,isWall=!['vloer','plafond'].includes(old),surface=map&&isWall?target:old;
+        if(!valid.has(surface)||isWall&&!walls.has(surface))throw Error('Kies een geldige wand voor de wandobjecten van deze combinatie.');
+        const w={id:fresh(),ruimte_id:room.id,pakket_id:p.id,oppervlak:surface,opties:d.opties||{},hoeveelheid:p.eenheid==='m2'?null:d.hoeveelheid,notitie:'',visualisatie:positions&&old===surface?d.visualisatie||{}:{}};
+        if(p.eenheid!=='m2'&&(!(Number(w.hoeveelheid)>0)||!Number.isFinite(Number(w.hoeveelheid))))throw Error('Een werkpost heeft geen geldige hoeveelheid. Pas de bronobjecten aan en bewaar de combinatie opnieuw.');
+        project.regels.push(w);newRules.push({w,p});summary.push({type:'regel',data:w});
+      }else if(item.type==='opening'){
+        const wall=map?target:d.muur;if(!walls.has(wall))throw Error('Kies een geldige wand voor deuren en ramen.');
+        const o={naam:d.naam,muur:wall,breedte:d.breedte,hoogte:d.hoogte,aantal:d.aantal,borstwering:d.borstwering,positie:positions?d.positie:null};
+        room.openingen.push(o);summary.push({type:'opening',data:o});
+      }else{
+        const t={...d,id:fresh()};
+        if(!positions){const c=BouwVorm.interior(room),side=t.richting===90||t.richting===270;t.x=Math.max(0,c.x-(side?t.lengte:t.breedte)/2);t.y=Math.max(0,c.y-(side?t.breedte:t.lengte)/2);}
+        room.trappen.push(t);newStairs.push(t);summary.push({type:'trap',data:t});
+      }
+    }
+    if(room.trappen.length>100)throw Error('Gebruik maximaal 100 trappen per kamer.');
+    const calculation=BouwEngine.berekenOfferte(project),normalized=calculation.project.ruimtes.find(r=>r.id===room.id);
+    // Check every opening: adding an automatically centered one may also move existing auto openings.
+    normalized.openingen.forEach((o,i)=>checkOpening(normalized,i));
+    newStairs.forEach(t=>BouwTrappen.check(t,normalized));
+    for(const {w,p} of newRules){
+      const norm=calculation.project.regels.find(r=>r.id===w.id),g=BouwPlan.werkGeometrie({...norm,pakket:p,nummer:calculation.project.regels.filter(r=>r.ruimte_id===room.id).findIndex(r=>r.id===w.id)+1},normalized);
+      const ps=p.eenheid==='m'?[g.a,g.b]:[g.a];
+      if(ps.some(a=>!BouwVorm.inside(normalized,{x:a[0],y:a[1]})||a[2]>BouwVorm.height(normalized,a[0],a[1])+1e-5)||ps.length===2&&!BouwVorm.segmentInside(normalized,{x:ps[0][0],y:ps[0][1]},{x:ps[1][0],y:ps[1][1]}))throw Error('Een objectpositie of tracé past niet in deze kamer. Probeer zonder posities overnemen, of kies een ander vlak.');
+    }
+    const delta=calculation.totalen.totaal-BouwEngine.berekenOfferte(state.project).totalen.totaal;
+    return {project,delta,items:summary};
+  }
+  $('#combi-maker').addEventListener('toggle',()=>{if($('#combi-maker').open){try{refreshSource();}catch(e){say(e.message);}}});
+  $('#combinaties').addEventListener('toggle',()=>{if($('#combinaties').open){invalidate();read();choices();say(storageError||'Kies een bewaarde combinatie of bewaar een nieuwe set uit deze kamer.');}});
+  $('#combi-alles').addEventListener('click',()=>$('#combi-bron').querySelectorAll('input').forEach(e=>e.checked=true));
+  $('#combi-bewaar-form').addEventListener('submit',e=>{
+    e.preventDefault();try{
+      const room=actieveRuimte(),name=$('#combi-naam').value.trim();if(!source||source.project!==state.project||source.room!==room?.id||source.snapshot!==roomSnapshot(room)){refreshSource();throw Error('De kamer of objecten zijn gewijzigd. Kies de objecten opnieuw.');}
+      if(!name||name.length>80)throw Error('Geef een naam van 1 tot 80 tekens.');
+      const selected=[...$('#combi-bron').querySelectorAll('input:checked')].map(e=>source.items[Number(e.dataset.combiBron)]);
+      if(!selected.length||selected.length>100)throw Error('Kies 1 tot 100 objecten voor de combinatie.');
+      const c={version:1,id:uid(),naam:name,items:copy(selected)};read();if(library.length>=30)throw Error('Maximaal 30 combinaties. Wis eerst een oude combinatie.');
+      write([...library,c]);choices(c.id);invalidate();say(`“${name}” bewaard met ${selected.length} objecten, op deze browser.`);
+    }catch(error){say(error.message);}
+  });
+  $('#combi-voorbeeld').addEventListener('click',()=>{
+    invalidate();try{
+      read();if(storageError)throw Error(storageError);const c=library.find(c=>c.id===$('#combi-keuze').value);if(!c)throw Error('Kies eerst een bewaarde combinatie.');
+      const result=build(c);prepared={...result,reference:state.project,snapshot:JSON.stringify(state.project),room:actieveRuimte().id,settings:settings(),recipe:JSON.stringify(c)};
+      $('#combi-preview-items').innerHTML=result.items.map(i=>`<li>${esc(label(i))}</li>`).join('');
+      $('#combi-preview-prijs').textContent=`Voor ${actieveRuimte().naam}: ${result.items.length} nieuwe objecten. Verandering totaal incl. btw: ${eur(result.delta)}. Huidige tarieven; m² opnieuw gemeten, inclusief effect van openingen.`;
+      $('#combi-preview').hidden=false;say('Dit is een voorbeeld. Er is nog niets toegevoegd.');
+    }catch(error){say(error.message);}
+  });
+  $('#combi-toevoegen').addEventListener('click',()=>{
+    try{const p=prepared;if(!p)throw Error('Bekijk eerst het voorbeeld.');read();const c=library.find(c=>c.id===$('#combi-keuze').value);
+      if(storageError||state.project!==p.reference||JSON.stringify(state.project)!==p.snapshot||actieveRuimte()?.id!==p.room||settings()!==p.settings||JSON.stringify(c)!==p.recipe){invalidate();throw Error('Het project of de combinatie is veranderd. Bekijk het voorbeeld opnieuw.');}
+      invalidate();wijzig(()=>state.project=p.project);refreshSource();say(`${p.items.length} objecten toegevoegd. Je kunt dit met één keer Ongedaan maken herstellen.`);
+    }catch(error){say(error.message);}
+  });
+  $('#combi-verwijder').addEventListener('click',()=>{
+    try{read();const c=library.find(c=>c.id===$('#combi-keuze').value);if(!c)return;if(!confirm(`Bewaarde combinatie “${c.naam}” wissen? Objecten in offertes blijven behouden.`))return;
+      write(library.filter(x=>x.id!==c.id));invalidate();choices();say('Bewaarde combinatie gewist; bestaande projecten zijn niet gewijzigd.');
+    }catch(error){say(error.message);}
+  });
+  ['#combi-keuze','#combi-vlakmodus','#combi-posities','#object-vlak'].forEach(id=>$(id).addEventListener('change',invalidate));
+  menu.addEventListener('close',()=>{if(!menu.open){invalidate();source=null;}});
+  new MutationObserver(()=>{if(menu.open){invalidate();read();choices();if($('#combi-maker').open){try{refreshSource();}catch(e){say(e.message);}}if(storageError)say(storageError);}}).observe(menu,{attributes:true,attributeFilter:['open']});
 })();
 
 </script>

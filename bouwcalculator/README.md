@@ -1151,3 +1151,70 @@ Controle: `tools/orbit_review.mjs` (online/offline, muis/touch/toetsenbord,
 vrije hoek, annuleren, wielzoom, verschuiven, passend, 2D-overgang en geen
 project-/prijs-/undo-/API-mutatie). De pure camerageometrie en drag-projecties
 worden ook met niet-rechte kijkhoeken getest.
+
+### Herbruikbare objectcombinaties
+
+Open **Object** naast de tekening → **Combinaties**. Onder **Nieuwe combinatie
+bewaren uit deze kamer** kies je bestaande werkposten, deuren/ramen en trappen,
+geef je de set een naam en bewaar je die. Daarna kun je de set ook in een ander
+project of een andere kamer kiezen en via **Voorbeeld bekijken** toevoegen.
+
+- Werkopties en aantallen/lopende meters worden overgenomen. m²-werk wordt
+  opnieuw uit de doelkamer gemeten; de actuele tarieven, korting en btw gelden.
+  Het voorbeeld toont de verandering van het volledige offertotaal, inclusief
+  het effect van nieuwe openingen op bestaande werkposten.
+- Behoud oorspronkelijke vlakken, of plaats wandobjecten/openingen op de in
+  het objectmenu gekozen wand. Vloer/plafond blijven behouden. Posities zijn
+  optioneel; werkposities blijven alleen bij hetzelfde vlak behouden.
+- Deuren, ramen, werkposities/tracés en trappen moeten in de doelkamer passen.
+  Een fout voegt niets toe. Controleer de plaatsing op de tekening: dit is geen
+  automatische indelingsplanner of controle op onderlinge botsingen.
+- Toevoegen maakt nieuwe object-ID's, verandert geen bronobjecten en vormt één
+  undo-stap. Een gewijzigd project, gewijzigde kamer, instelling of opgeslagen
+  combinatie vereist een nieuw voorbeeld.
+- Maximaal 30 combinaties, elk met maximaal 100 objecten. De bibliotheek staat
+  uitsluitend in de browser (`bouwcalculator.combinaties.v1`), ook offline.
+  Project-/klantvelden, werknotities en tarieven worden niet opgeslagen.
+  Namen van gekozen objecten en de zelfgekozen combinatienaam worden wel bewaard.
+  Geen synchronisatie of opname in projectbestanden; een ander apparaat of een
+  andere browser heeft zijn eigen bibliotheek. Bewaar online en offline zo nodig
+  elk apart: hun browseropslag kan verschillen.
+- Wissen vraagt bevestiging en wist alleen de bewaarde set, niet de objecten in
+  offertes. Beschadigde of geblokkeerde opslag wordt niet stilzwijgend vervangen;
+  bij een opslagfout blijft de bestaande bibliotheek behouden.
+
+Controle: `tools/combinations_review.mjs`, zowel met `APP_URL=http://localhost:8096/`
+als zonder `APP_URL` voor de standalone. Test selectie van gemengde objecten,
+privacyvelden, opslag/herladen, voorbeeld zonder mutaties of rekenverzoeken,
+nieuwe ID's, opties/aantallen/m², posities, wandmapping, één undo/redo, verlopen
+voorbeelden, onbekende werkpakketten, te kleine kamers, corrupte/volle opslag,
+annuleren/wissen en 320/390/768/1440px zonder horizontale overflow.
+
+### Volgende stap bij objecten
+
+Het objectmenu toont na toevoegen passende **Volgende stap**-knoppen, los van
+zoekterm/categoriefilter. Bijvoorbeeld sleuf → kabel → stopcontact/schakelaar of
+lichtpunt → sleuf dichtzetten. Er zijn ook routes voor water/afvoer, aansluitingen,
+isolatie/druktest en Gyproc → voegafwerking → schilderen. Dit zijn optionele
+catalogussuggesties, geen uitvoeringsvoorschrift, dimensionering, AREI-controle of
+controle op geschiktheid van de sleuf. Niet-beschikbare producten worden niet
+verzonnen: een aparte buispost en algemene eindafwerking van metselwerk ontbreken
+bijvoorbeeld in het huidige prijsboek.
+
+- Elke klik voegt uitsluitend het gekozen object toe, op hetzelfde vlak, met een
+  eigen undo-stap. Er worden geen volledige ketens automatisch gefactureerd.
+- De knop toont zijn hoeveelheid: meterposten stellen de laatst gebruikte
+  meterlengte op dat vlak voor; stukposten starten op één. Achteraf aanpassen via
+  eigenschappen. De gewone catalogus blijft het eigen aantal-/lengteveld gebruiken.
+  Het tracé wordt niet gekopieerd; controleer de plaatsing op de tekening.
+- Eerder aanwezige posten blijven mogelijk (meerdere aansluitpunten zijn normaal)
+  maar krijgen de melding ‘al op dit vlak’. Er is geen claim dat het werk klaar is.
+- Bij opnieuw openen krijgt een geselecteerde werkpost voorrang, anders de laatste
+  post op het gekozen vlak. Een ander vlak krijgt zijn eigen context. Overslaan
+  wijzigt geen offerte. Een verwijderde/gewijzigde bron wordt niet stilzwijgend gebruikt.
+- Aan het einde van een route blijft de volledige catalogus beschikbaar. m²-knoppen
+  vermelden expliciet dat het hele gekozen vlak opnieuw gemeten wordt.
+
+Controle: `tools/next_steps_review.mjs` online en standalone: sleuf/kabel/punt/dichten,
+zoekfilter, geen automatische extra posten, 5 m behouden na één stuk, vlakcontext,
+undo/hervatten, verlopen bron, overslaan en 320–1440px zonder horizontale overflow.
