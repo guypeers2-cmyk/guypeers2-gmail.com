@@ -1,0 +1,26 @@
+# ==========================================================
+# Cloudflare Workers — Bouwprijscalculator
+#
+# Deployen:   npx wrangler deploy
+# Preview:    npx wrangler dev
+#
+# De statische bestanden (index.html, app.js, styles.css) worden
+# door de Worker geserveerd; /api/* rekent met de JS-rekenkern
+# (worker/src/engine.js), een 1-op-1 port van bouw/bereken.py.
+# ==========================================================
+
+name = "patient-sun-c959"
+main = "bouwcalculator/worker/src/worker.js"
+compatibility_date = "2026-10-18"
+workers_dev = true
+
+[assets]
+directory = "./bouwcalculator/web"
+binding = "ASSETS"
+not_found_handling = "none"
+
+# De Worker rekent alleen voor /api/*; de rest komt uit de assets.
+run_worker_first = ["/api/*"]
+
+[observability]
+enabled = true

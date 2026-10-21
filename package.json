@@ -1,0 +1,16 @@
+{
+  "name": "bouwprijscalculator",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Bouwprijscalculator — prijzen berekenen voor bouwwerk (Gyproc, isolatie, afwerking)",
+  "scripts": {
+    "dev": "npx wrangler dev",
+    "deploy": "npx wrangler deploy",
+    "start": "python3 bouwcalculator/server.py",
+    "test": "python3 -m unittest discover -s bouwcalculator/tests -v",
+    "prijsboek": "python3 bouwcalculator/tools/maak_prijsboek.py"
+  },
+  "devDependencies": {
+    "wrangler": "^4.151.1"
+  }
+}

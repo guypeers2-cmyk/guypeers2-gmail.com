@@ -39,6 +39,26 @@ python3 -m unittest discover -s tests -v
 
 ---
 
+## 🏗️ Bouwprijscalculator (losse app in `bouwcalculator/`)
+
+Een tweede, **zelfstandige** app in deze repo: prijzen berekenen voor bouwwerk
+op basis van de maten van een ruimte — gestart met Gyproc (gipsplaten op
+profielen, plafonds, direct montage, voegafwerking, schilderen).
+
+```bash
+python3 bouwcalculator/server.py      # → http://localhost:8090
+python3 -m unittest discover -s bouwcalculator/tests -v
+npx wrangler deploy                  # → https://patient-sun-c959.guypeers2.workers.dev
+```
+
+Maten (lengte × breedte × hoogte) + deuren/ramen → oppervlakken → materiaalname
+(take-off) + gewerkte uren → offerte met marge, korting en BTW → printbaar
+A4-offertedocument. De app tekent de ruimte bovendien uit als plattegrond (2D)
+of 3D, en je klikt gewoon op een wand om werk toe te voegen.
+Zie [`bouwcalculator/README.md`](bouwcalculator/README.md).
+
+---
+
 ## Architectuur
 
 ```
@@ -126,6 +146,12 @@ serve.py            # stdlib webserver (statisch + JSON-API + /api/statistieken)
 cli.py              # interactieve terminal + --demo
 tests/              # 37 tests: zwijg-protocol, routing, Ja/Nee, leerlog
 data/               # runtime: kwaliteitslog (niet in git)
+
+bouwcalculator/     # zelfstandige app: prijsberekening bouwwerk (Gyproc e.a.)
+├── server.py       # eigen stdlib webserver (poort 8090)
+├── bouw/           # rekenkern: model, tarieven, berekenen, offerte, opslag
+├── web/            # calculator-UI + printopmaak voor de offerte
+└── tests/          # 18 tests: oppervlakken, take-off, uren, BTW, opslag
 ```
 
 ---
@@ -161,6 +187,7 @@ persona's zijn inwisselbaar.**
 - [x] Webconsole + CLI + 37 tests (alle groen)
 - [x] Kwaliteits- & Feedback-Agent: privacyveilige leerlog + statistiekdashboard + `/api/statistieken` (v1.1)
 - [x] Sessiepersistentie: gesprek overleeft een pagina-verversing (localStorage + sessie-id)
+- [x] Bouwprijscalculator (losse app in `bouwcalculator/`): maten → materiaalname + uren → offerte, 18 tests
 - [ ] LLM-laag voor persona's (plug-in-punt klaar)
 - [ ] Automatische optimalisatie van signaalgewichten op basis van de leerlog
 
