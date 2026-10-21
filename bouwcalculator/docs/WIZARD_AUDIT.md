@@ -179,3 +179,16 @@ Zie [MOBILE_UX_RESEARCH.md](MOBILE_UX_RESEARCH.md) voor bronnen, concrete ontwer
 - Op de wand kan de elektricien meteen naar 3D voor de klant; slepen draait dan de ruimte. Terug naar 2D herstelt selecteren. Dit verandert geen werken of prijs.
 - De wand toont een live ruimtesamenvatting met aansluitpunten, gemeten sleuf-/kabelmeters, projectraming inclusief btw en het aantal open punten. Sleuf+dichten worden niet dubbel opgeteld in de meterstand; onbekende kabels blijven werknotities, niet een impliciete bevestiging of verzonnen kabelprijs.
 - Nieuwe regressie `tools/electrician_visit_review.mjs`: 320/390/896px, 2D/3D zonder modelmutatie, klikbare tekeningmaten annuleren/toepassen/undo, conceptpunt behouden, ja/nee-flow, kabelpoort/terug, tikbare metrische velden, snelle meterkeuzes, onafhankelijke sleuf-/kabelhoeveelheden, direct volgend punt en onbekend werk zichtbaar in notities én samenvatting. Getest offline en via de Python-server. Dit is browserautomatisering, geen fysieke toestel- of elektricien-gebruikstest.
+
+## Compacte, grafische wizard — minder tussenstappen
+
+Nieuwste opdracht vervangt de vroegere strikte één-vraag-per-scherm-volgorde waar samenhangende keuzes sneller samen kunnen. Naam blijft apart; positie blijft vóór aansluitpunttype.
+
+- Kamer: vijf pagina’s naar twee (naam, daarna alle drie de maten met tekening). Geen aparte planbevestiging daarna.
+- Raam/deur: vier pagina’s naar één met maatpresets, maten, positie en het bestaande voorbeeld.
+- Elektriciteit: enkel/dubbel en inbouw/opbouw samen, met expliciete selectie en één vervolgactie. Sleuflengte, getekende route en dichtzetten samen; exacte route inklapbaar. Kabeltype en gemeten meters samen. Keuzes veranderen geen prijsregel vóór de eindbevestiging; ontbrekende beslissingen blokkeren voortgang. Terug behoudt bevestigde invoer; een typekeuze wist geen getypte meters.
+- Gyproc-pakketten direct zichtbaar; geen eerst-ja-dan-kiezen-scherm. Plaats/hoeveelheid/prijs samen op één objectpagina. Geen extra wandcontrole; zonder Gyproc wordt ook geen voegafwerking gevraagd. Alle wanden en plafond blijven doorlopen worden.
+- Project-, 3D- en offertecontrole gecombineerd tot één eindscherm. De bestaande prijs- en stale-snapshotcontroles blijven actief.
+- Kortere koppen, kleinere pictogrammen, minder herhaalde uitleg en voortgangsdecoratie. Klikbare maten en touchbediening behouden; exacte puntpositie zit in een uitklapvak. Belangrijke onzekerheden, technische beperkingen en indicatieve prijzen blijven zichtbaar.
+- Actuele flowregressie: `tools/compact_wizard_review.mjs`, offline en Python-server, 320/390/896px. Echte aanraking voor puntplaatsing; schermreducties; expliciete ontbrekende keuzes; invoerbehoud bij typekeuze/terug; geen vroege mutaties; stale-prijsbevestiging; juiste stuk-/sleuf-/dicht-/kabelhoeveelheden; enkelvoudige Gyproc/raam/eindpagina; volledige wand-/plafondloop; geen horizontale overflow of browserfouten. 119 eenheidstests en permanente-headerreview slagen.
+- Historische flowreviews volgen de vervangen paginavolgorde. De oude dragreview stoptte na de maatvragen op een bovenaanzicht/plancontrole; die pagina bestaat niet meer: de nieuwe flow gaat direct naar het huidige wandaanzicht. De compacte flowreview is de actuele wizardacceptatie; er is geen wijziging aan sleepcode of rekenkern.
