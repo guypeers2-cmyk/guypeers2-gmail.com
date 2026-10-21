@@ -61,3 +61,23 @@ Browserreviews gebruiken standaard de standaloneversie. Stel `APP_URL` in voor
 controle via de server. De extra paginering in bestaande reviewdrivers vervangt
 geen onafhankelijke test; de expliciete één-vraag-controles staan in de volledige
 wizardreview.
+
+## Vervolgcontrole: mobiele bedieningsknoppen
+
+- De vaste onderste balk bedient nu ook de actuele deelvraag bij sanitair,
+  Gyproc/afwerking en de eindcontrole. Vorige gaat één vraag terug; op de eerste
+  objectvraag wordt dat Annuleren. Op de laatste vraag wordt Volgende de echte
+  bevestigingsactie. Desktop behoudt de knoppen bij het formulier.
+- Op mobiel is de dubbele deelvraag-navigatie verborgen. Het generieke
+  toevoegformulier heeft geen tweede zichtbare bevestigingsknop naast de duimbalk.
+- Telknoppen: 1–4 op één rij, min/plus als brede knoppen eronder. Alle wizard- en
+  openingsknoppen hebben minimaal 48 × 48 CSS-pixels. Invoertekst is 16 px.
+- Extra scrollruimte en safe-area-padding houden inhoud boven de onderste balk.
+  Telefoons in liggende stand krijgen dezelfde bediening via de coarse-pointer-
+  en schermhoogteconditie; alleen de schermbreedte is niet meer bepalend.
+- De offertepagina heeft een aparte knop voor een extra ruimte, omdat de mobiele
+  primaire eindactie nu Offerte bewaren is.
+- `tools/mobile_controls_review.mjs` test met browser-touch-emulatie op
+  320×568, 360×640, 390×844, 600×420 en 896×414: echte hit-tests, minimumdoelen,
+  zichtbare balk, teruggaan, annuleren, bevestigen, behouden waarden en undo.
+  Dit is geen fysieke iOS-/Android-apparaattest.
