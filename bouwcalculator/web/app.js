@@ -1245,6 +1245,7 @@ document.addEventListener("click", (e) => {
   /* Klik op een wand (of een opening daarin) in de plattegrond = werk toevoegen op dat vlak */
   const wand = e.target.closest(".plan-wand, .plan-open");
   if (wand) {
+    if(document.body.classList.contains('wizard-mode'))return;
     document.dispatchEvent(new CustomEvent('bouw-object-menu',{detail:{vlak:wand.dataset.vlak}}));
     return;
   }
@@ -1341,6 +1342,7 @@ document.addEventListener("keydown", (e) => {
   }
   const wand = e.target.closest && e.target.closest(".plan-wand, .plan-open");
   if (!wand) return;
+  if(document.body.classList.contains('wizard-mode'))return;
   e.preventDefault();
   document.dispatchEvent(new CustomEvent('bouw-object-menu',{detail:{vlak:wand.dataset.vlak}}));
 });

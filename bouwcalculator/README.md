@@ -1278,7 +1278,7 @@ als er nog een onderdeel niet bewaard is.
   geschikte vlakken zijn beschikbaar: wandbekleding op muren, plafondbekleding
   op het plafond. Niet alle muren worden automatisch tegelijk gefactureerd.
 - De algemene invoegrail is verborgen in de begeleide kamerweergave zodat gebruikers
-  niet per ongeluk een andere toevoegroute openen. De tekening is een rustig overzicht;
+  niet per ongeluk een andere toevoegroute openen. De tekening blijft rustig, maar objecten zijn rechtstreeks sleepbaar;
   Meer mogelijkheden biedt de oorspronkelijke bediening. De laatste stap geeft
   een korte checklist voor klantgegevens, prijscontrole, bewaren en afdrukken.
 
@@ -1318,8 +1318,8 @@ pointerinvoer, Alt, leesbalk, projectisolatie/annuleren en 320/390/768px.
 De begeleide weergave toont alleen het huidige beslispunt. De voortgang is een
 leesbare stapindicator, geen reeks links naar toekomstige schermen. Tijdens de
 vragen zijn algemene tabbladen, bestandacties, kamerwissels en vrije bediening
-verborgen. De tekening is een niet-bewerkbaar overzicht; het plan verandert via
-zijn eigen maat-/tekenstap. De volledige bediening is beschikbaar na de controle
+verborgen. De tekening laat bestaande objecten rechtstreeks verslepen; de kamervorm verandert
+alleen via de eigen maat-/tekenstap. De volledige bediening is beschikbaar na de controle
 van de offerte, of rechtstreeks via `?weergave=vrij`.
 
 Elektriciteit heeft een eigen deelwizard (`web/elektriciteit-wizard.js`):
@@ -1401,3 +1401,69 @@ wandstappen zonder offertewijzigingen en reset bij een nieuw project.
 De oude `wizard_review.mjs`/`guided_electricity_review.mjs`-ingangen verwijzen naar
 de nieuwe wandregressie; `novice_review.mjs` controleert de actuele komma-invoer,
 hele aantallen, bevestiging en corrigeren van een toevoeging.
+
+
+### Bestaande objecten direct verslepen, ook tijdens de wizard
+
+De wizard blokkeert de tekening niet meer met `inert` of `pointer-events:none`.
+Zichtbare werkobjecten, volledige werkvlakmarkeringen, leidingen, ramen/deuren en
+trappen blijven direct te verplaatsen met muis/touch of toetsenbord. Losse
+Gyproc-platen blijven onderdeel van het volledige werkschema, geen individuele
+sleepobjecten. De bestaande geometrie-, begrenzings- en undo/redo-regels gelden.
+
+Tijdens begeleiding krijgt object-slepen automatisch voorrang als een eerdere
+vrije ontwerpsessie nog Hand/Draaien/Meten geselecteerd had. Verborgen
+camerasneltoetsen H/M/R veranderen de wizard niet ongemerkt van gereedschap.
+Vrij ontwerpen behoudt wel de expliciete camera-/meetmodi. Een lege wand aanklikken
+opent tijdens de wizard geen catalogus: de huidige vraag blijft de toevoegroute.
+De positiehulp is weer zichtbaar; extra panelen blijven verborgen.
+
+Verplaatsen verandert geen hoeveelheden of tarieven. Bij ramen/deuren blijven de
+bestaande begrenzingen gelden. Een nog niet bevestigd wizardvoorbeeld ziet een
+inmiddels gewijzigde objectpositie als gewijzigd project en vraagt herbevestiging.
+
+Controle: `tools/wizard_drag_review.mjs` voor alle werkpakketten met toetsenbord,
+venster/trap met echte pointerbewegingen, herstel uit Hand, Escape, mobiele touch
+en ongewijzigde totalen. `all_objects_review.mjs` blijft de vrije huis-/kamerbediening
+controleren via `APP_URL=http://localhost:8096/?weergave=vrij`.
+
+### Elektriciteit actueel: eerst sleuven, aansluitingen per sleuf
+
+De elektriciteitsdeelwizard vraagt nu in deze volgorde:
+1. Hoeveel **nieuwe sleuven op de huidige wand**? Bestaande sleuven worden vermeld;
+   ze worden niet automatisch opnieuw toegevoegd. Geen elektriciteit slaat de
+   wand over; nul nieuwe sleuven laat aansluitingen op bestaande leidingen toe.
+2. Per sleuf: gemeten lengte en schematisch begin/einde/hoogte op de huidige wand.
+3. Welke aansluitingen horen op **deze** sleuf? Stopcontact, dubbel stopcontact,
+   schakelaar of wandlichtpunt. Daarna aantal en plaatsing per afzonderlijk punt.
+4. Sleuf ook dichtzetten? Dit neemt alleen de lengte en het tracé van deze sleuf over.
+5. Overzicht en prijsverschil voor de hele combinatie → expliciet bevestigen.
+6. Optioneel: **Bewaar deze sleuf met aansluitingen** onder een eigen naam.
+   Daarna pas de volgende sleuf, of sanitair als alle sleuven overlopen zijn.
+
+De gekozen aansluitingen blijven lokaal ontwerp tot de volledige combinatie wordt
+bevestigd. Elke bevestigde sleuf is één undo-stap met nieuwe object-ID's. Een
+verlopen prijsvoorbeeld vereist herbevestiging. De regels krijgen de sleufnaam
+als werknotitie: dit is een offertegroepering, geen technisch circuit-/netwerkmodel.
+Bestaande objecten blijven tijdens het beantwoorden van vragen sleepbaar.
+
+De bewaarde sleuf gebruikt de bestaande combinatiebibliotheek, niet een aparte
+opslag: maximaal 30 sets, maximaal 100 onderdelen per set. Project-/klantvelden,
+werknotities en tarieven worden niet meegenomen. Lengtes, aansluitingen en
+plaatsingsgegevens worden wel bewaard. Bij een volgende sleuf verschijnt
+‘Een eerder bewaarde sleuf gebruiken’: lengte en aansluitingskeuzes worden als
+voorstel geladen, maar tracé en alle aansluitpunten worden opnieuw geplaatst en
+met de actuele tarieven geprijsd. Dichtzetten wordt opnieuw expliciet bevestigd.
+De bestaande Object → Combinaties-route blijft beschikbaar in vrij ontwerpen.
+
+Opslaan verandert de offerte niet. Een volle/geblokkeerde of corrupte bibliotheek
+wordt niet overschreven. Verwijderde bronregels voorkomen het bewaren van een
+onvolledige set. Onbekende aantallen of uitgestelde resterende sleuven voegen
+niets impliciet toe. Technische volledigheid, kabelkeuze/-lengtes en beveiligingen
+blijven expliciet door de vakman te controleren.
+
+Controle: `tools/trench_wizard_review.mjs` online/standalone voor twee onafhankelijke
+sleuven, individuele aansluitpunten, variërende lengtes, wel/niet dichtzetten,
+geen mutatie vóór bevestigen, prijsherbevestiging, gedeelde bibliotheek,
+opslaan/hergebruik met nieuwe plaatsing, volle/corrupte opslag, uitstellen en
+mobiel. De wand- en novice-regressies volgen eveneens de nieuwe sleufvolgorde.

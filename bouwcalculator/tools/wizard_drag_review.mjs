@@ -1,0 +1,25 @@
+/* Contextual next-step regression. Uses an isolated browser profile, never real quotes.
+ * BROWSER_MODULE_ROOT=/tmp/bouw-browser APP_URL=http://localhost:8096/
+ * node bouwcalculator/tools/wizard_drag_review.mjs
+ */
+import {createRequire} from 'node:module';
+import {mkdir} from 'node:fs/promises';
+import path from 'node:path';
+import assert from 'node:assert/strict';
+const require = createRequire(process.env.BROWSER_MODULE_ROOT
+  ? path.join(path.resolve(process.env.BROWSER_MODULE_ROOT),'package.json') : import.meta.url);
+const puppeteer = require('puppeteer-core');
+const cm = process.env.CHROME_PATH ? null : require('@sparticuz/chromium');
+const chromium = cm?.default || cm;
+const out = process.env.REVIEW_OUTPUT || '/tmp/bouw-wizard-drag-review';
+await mkdir(out,{recursive:true});
+const browser=await puppeteer.launch({executablePath:process.env.CHROME_PATH || await chromium.executablePath(),args:chromium?.args || ["--no-sandbox"],defaultViewport:{width:1680,height:1100}});
+const page=await browser.newPage();page.setDefaultTimeout(15000);const errors=[];page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
+try{
+await page.goto(process.env.APP_URL||'file:///home/user/guypeers2-gmail.com/bouwcalculator/bouwcalculator.html',{waitUntil:'networkidle2'});await page.waitForFunction(()=>state.rekenStatus==='ready');await page.emulateMediaFeatures([{name:'prefers-reduced-motion',value:'reduce'}]);
+await page.evaluate(()=>{const p=nieuwProject(),r=p.ruimtes[0];Object.assign(r,{lengte:6,breedte:5,hoogte:3,openingen:[{naam:'Raam',muur:'noord',breedte:1,hoogte:1,positie:3,borstwering:1}],trappen:[{id:'trap',naam:'Trap',x:4,y:1,breedte:.9,lengte:2.4,hoogte:3,richting:0,treden:14}]});p.regels=state.prijsboek.pakketten.map((k,i)=>({id:'w'+i,ruimte_id:r.id,pakket_id:k.id,oppervlak:k.id==='gyproc_plafond'?'plafond':k.eenheid==='m2'?'noord':'vloer',hoeveelheid:2,opties:{}}));laadProject(p);});await page.waitForFunction(()=>state.rekenStatus==='ready');assert.equal(await page.$eval('#tekening',e=>e.inert),false);assert.equal(await page.$eval('#tekening',e=>getComputedStyle(e).pointerEvents),'auto');const total=await page.evaluate(()=>JSON.stringify(state.offerte.totalen));
+for(const id of await page.evaluate(()=>state.project.regels.map(w=>w.id))){await page.$eval(`#plan [data-plan-regel="${id}"]`,e=>e.focus());await page.keyboard.press('ArrowRight');assert(await page.evaluate(id=>typeof state.project.regels.find(w=>w.id===id).visualisatie?.x==='number',id));await page.waitForFunction(()=>state.rekenStatus==='ready');}assert.equal(await page.evaluate(()=>JSON.stringify(state.offerte.totalen)),total);
+async function drag(selector,cancel=false,touch=false){await page.$eval('#plan',e=>e.scrollIntoView({block:'center',behavior:'instant'}));const pt=await page.$eval(selector,el=>{const b=el.getBoundingClientRect();for(const u of [.5,.2,.8,.1,.9])for(const v of [.5,.2,.8,.1,.9]){const x=b.x+b.width*u,y=b.y+b.height*v;if(el.contains(document.elementFromPoint(x,y)))return {x,y};}throw Error('No reachable drag target');});const before=await page.evaluate(()=>JSON.stringify(state.project));if(touch){await page.touchscreen.touchStart(pt.x,pt.y);await page.touchscreen.touchMove(pt.x+25,pt.y);}else{await page.mouse.move(pt.x,pt.y);await page.mouse.down();await page.mouse.move(pt.x+25,pt.y,{steps:6});}if(selector.includes('data-trap-id'))assert.equal(await page.evaluate(()=>JSON.stringify(state.project)),before);if(cancel)await page.keyboard.press('Escape');if(touch)await page.touchscreen.touchEnd();else await page.mouse.up();if(cancel)assert.equal(await page.evaluate(()=>JSON.stringify(state.project)),before);else {await page.waitForFunction(()=>state.rekenStatus==='ready');assert.notEqual(await page.evaluate(()=>JSON.stringify(state.project)),before);}}
+await page.evaluate(()=>document.querySelector('[data-plan-gereedschap="hand"]').click());await drag('#plan [data-trap-id="trap"]');assert.equal(await page.evaluate(()=>planGereedschap),'select');await drag('#plan [data-opening-index="0"]');await drag('#plan [data-trap-id="trap"]',true);assert.equal(await page.evaluate(()=>JSON.stringify(state.offerte.totalen)),total);assert.equal(await page.$eval('#object-menu',e=>e.open),false);
+await page.setViewport({width:390,height:900,isMobile:true,hasTouch:true});await drag('#plan [data-trap-id="trap"]',false,true);assert.equal(await page.evaluate(()=>JSON.stringify(state.offerte.totalen)),total);assert.deepEqual(errors,[]);console.log('PASS wizard direct movement: all work packages by keyboard, pointer window/trap, stale hand tool recovery, Escape cancellation, mobile touch and unchanged totals');
+}finally{await browser.close();}

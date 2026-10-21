@@ -19,11 +19,12 @@ function overview(){const r=actieveRuimte(),ps=BouwVorm.points(r),edges=BouwVorm
 function forward(){if(step===0){if(!planChecked){if(!size())return;planChecked=true;draw();return;}go(1);return;}if(step===5){if(!ceilingPhase&&!wallReview){wallReview=true;draw();return;}if(!ceilingPhase){wallReview=false;if(wallIndex+1<ruimteWanden().length){wallIndex++;go(1);}else{ceilingPhase=true;go(4);}}else go(6);return;}go(step+1);}
 
 function locked(r){return r.contour?.length||r.dak||r.huis_positie||Object.keys(r.wand_helling||{}).length||state.project.regels.some(w=>w.ruimte_id===r.id)||(r.openingen||[]).length||(r.trappen||[]).length;}
-function mode(on){enabled=on;$('#tekening').inert=on;if(!on&&electric){electric.destroy();electric=null;}document.body.classList.toggle('wizard-mode',on);document.body.classList.toggle('wizard-final',on&&step===6);$('#wizard-mode').textContent=on?'Zelf alles bedienen':'Terug naar stap voor stap';if(on){BouwHuis?.setLevel('ruimte');draw();}else{$('#wizard-content').innerHTML='<p class="hint">Je bedient nu zelf alle mogelijkheden. Kies ‘Terug naar stap voor stap’ om weer begeleid te worden.</p>';$('#wizard-progress').innerHTML='';$('#wizard-title').textContent='Vrij ontwerpen';} }
+function mode(on){enabled=on;$('#tekening').inert=false;if(!on&&electric){electric.destroy();electric=null;}document.body.classList.toggle('wizard-mode',on);document.body.classList.toggle('wizard-final',on&&step===6);$('#wizard-mode').textContent=on?'Zelf alles bedienen':'Terug naar stap voor stap';if(on){BouwHuis?.setLevel('ruimte');draw();}else{$('#wizard-content').innerHTML='<p class="hint">Je bedient nu zelf alle mogelijkheden. Kies ‘Terug naar stap voor stap’ om weer begeleid te worden.</p>';$('#wizard-progress').innerHTML='';$('#wizard-title').textContent='Vrij ontwerpen';} }
 function draw(){
  if(!enabled||!state.project||!state.prijsboek)return;
  if(electric){electric.destroy();electric=null;}
- $('#tekening').inert=true;
+ $('#tekening').inert=false;
+ if(planGereedschap!=='select')document.querySelector('[data-plan-gereedschap="select"]')?.click();
  selection=null;card.classList.remove('wizard-configuring');const r=actieveRuimte();roomId=r?.id;document.body.classList.toggle('wizard-final',step===6);
  $('#wizard-progress').innerHTML=steps.map((s,i)=>`<button type="button" data-wizard-step="${i}" ${i===step?'aria-current="step"':''}>${i+1}<span>${esc(s)}</span></button>`).join('');
  $('#wizard-progress').innerHTML=`<span>Stap ${step+1} van 7 · ${esc(steps[step])}</span>`;
@@ -97,6 +98,15 @@ card.addEventListener('click',e=>{
 function sync(){if(!state.project)return;const id=actieveRuimte()?.id;if(id!==roomId){selection=null;roomId=id;step=0;expanded=false;wallIndex=0;ceilingPhase=false;planChecked=false;wallReview=false;if(enabled)draw();}if(enabled&&BouwHuis.getLevel()==='huis')mode(false);if(enabled)renderAdded();if(selection)previewItem();refreshTotal();}
  document.addEventListener('bouw-rekenstatus',sync);
  new MutationObserver(sync).observe($('#ruimtechips'),{childList:true});
+// Object dragging is always directly available in guidance, even if a previous
+// advanced session left a camera/measurement tool selected.
+document.addEventListener('pointerdown',e=>{
+ if(!enabled||e.button!==0||!e.target.closest?.('#plan [data-plan-drag],#plan [data-trap-id]'))return;
+ if(planGereedschap!=='select')document.querySelector('[data-plan-gereedschap="select"]')?.click();
+},true);
+document.addEventListener('keydown',e=>{
+ if(enabled&&e.target.closest?.('#plan')&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&['h','m','r'].includes(e.key.toLowerCase())){e.preventDefault();e.stopImmediatePropagation();}
+},true);
 // Other editors retain their native dialogs; update the question when they close.
 document.querySelectorAll('#opening-menu,#ruimte-vorm,#trap-menu').forEach(d=>d.addEventListener('close',()=>{if(enabled){if(d.id==='ruimte-vorm'){planChecked=false;wallIndex=0;ceilingPhase=false;wallReview=false;step=0;}draw();}}));
 mode(new URLSearchParams(location.search).get('weergave')!=='vrij');

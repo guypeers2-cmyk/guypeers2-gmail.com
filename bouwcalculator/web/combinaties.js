@@ -126,6 +126,18 @@
       write(library.filter(x=>x.id!==c.id));invalidate();choices();say('Bewaarde combinatie gewist; bestaande projecten zijn niet gewijzigd.');
     }catch(error){say(error.message);}
   });
+  // Trench guidance shares the same validated local library, not a second store.
+  window.BouwCombinaties={
+    sleuven(){read();if(storageError)return [];const allowed=new Set(['elek_sleuf','elek_sleuf_dichten','elek_stopcontact','elek_stopcontact_dubbel','elek_schakelaar','elek_lichtpunt']);return copy(library.filter(c=>c.items.every(i=>i.type==='regel'&&allowed.has(i.data.pakket_id))&&c.items.filter(i=>i.data.pakket_id==='elek_sleuf').length===1));},
+    bewaarRegels(name,ids,roomId){
+      const naam=String(name).trim();if(!naam||naam.length>80)throw Error('Geef de combinatie een naam van 1 tot 80 tekens.');
+      if(!Array.isArray(ids)||!ids.length||ids.length>100||new Set(ids).size!==ids.length)throw Error('Deze sleuf bevat geen geldige set onderdelen.');
+      const normal=BouwEngine.berekenOfferte(state.project).project;
+      const rules=ids.map(id=>normal.regels.find(w=>w.id===id&&w.ruimte_id===roomId));if(rules.some(w=>!w))throw Error('Een onderdeel van deze sleuf is veranderd of verwijderd. Bewaar de set opnieuw via het objectmenu.');
+      const c={version:1,id:uid(),naam,items:rules.map(w=>{const {id,ruimte_id,notitie,...data}=w;return {type:'regel',data};})};
+      read();if(library.length>=30)throw Error('De bibliotheek bevat al 30 combinaties. Wis eerst een oude combinatie.');write([...library,c]);choices(c.id);return c.id;
+    }
+  };
   ['#combi-keuze','#combi-vlakmodus','#combi-posities','#object-vlak'].forEach(id=>$(id).addEventListener('change',invalidate));
   menu.addEventListener('close',()=>{if(!menu.open){invalidate();source=null;}});
   new MutationObserver(()=>{if(menu.open){invalidate();read();choices();if($('#combi-maker').open){try{refreshSource();}catch(e){say(e.message);}}if(storageError)say(storageError);}}).observe(menu,{attributes:true,attributeFilter:['open']});

@@ -2015,8 +2015,10 @@ body:not(.wizard-mode) .wizard-bottom{display:none}
 /* Guided mode: only the current decision; no parallel editing or future-step links. */
 .wizard-mode:not(.wizard-final) .hoofdnavigatie,.wizard-mode:not(.wizard-final) .topbar-acties,.wizard-mode:not(.wizard-final) .wizard-extra,.wizard-mode .studio-context,.wizard-mode #ruimtechips{display:none!important}
 .wizard-mode #tekening .plankop,.wizard-mode #tekening .plan-gereedschappen,.wizard-mode #tekening .iso-bediening,.wizard-mode #tekening #vlak-bediening,.wizard-mode #tekening .studio-vouw,.wizard-mode #tekening #plan-selectie,.wizard-mode #tekening #plan-inspector,.wizard-mode #tekening #meet-paneel{display:none!important}
-.wizard-mode #tekening{pointer-events:none}.wizard-mode #wizard-progress{overflow:visible;color:var(--tekst-2);font-size:.85rem}
+.wizard-mode #tekening{pointer-events:auto}.wizard-mode #wizard-progress{overflow:visible;color:var(--tekst-2);font-size:.85rem}
 .wizard-pending{padding:12px;border-left:3px solid var(--accent);background:var(--accent-zacht);font-size:.9rem}
 #stroom-number{font-size:1.25rem}#stroom-error{color:var(--rood)}
-.wizard-mode #plan-sleepstatus,.wizard-mode #plan-plaat-info{display:none!important}
+.wizard-mode #plan-plaat-info{display:none!important}
 .wizard-wall-map{width:140px;height:100px;display:block;margin:8px auto;background:var(--oppervlak);border-radius:8px}.wizard-wall-map polygon{fill:var(--oppervlak-2);stroke:none}.wizard-wall-map line{stroke:var(--tekst-2);stroke-width:2}.wizard-wall-map line.current{stroke:var(--accent);stroke-width:6}.wizard-wall-map text{fill:var(--tekst);font-size:12px;font-weight:700;paint-order:stroke;stroke:var(--oppervlak);stroke-width:3px}
+
+.wizard-mode #plan-sleepstatus{display:block!important;font-size:.85rem}.wizard-mode #plan [data-plan-drag],.wizard-mode #plan [data-trap-id]{cursor:grab}
