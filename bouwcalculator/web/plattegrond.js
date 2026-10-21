@@ -700,3 +700,36 @@
   };}
   window.BouwPlan = { plaatMaat,platenOverlay,draaiTrap,trapGeometrie,trapOverlay,traceLengte,plattegrond:metTrappen(plattegrond,'plan'),isometrie:metTrappen(isometrie,'iso'), laag, werkGeometrie, tint, projectie, planProjectie, openingGeometrie, aanzichtProjectie,aanzicht:metTrappen(aanzicht,'front') };
 })();
+
+/* Shared confirmed context for small previews. Uses the same geometry as the editor. */
+(function(){
+ 'use strict';
+ const safe=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ function svg(room,P,{wall=null,exclude=null}={}){
+  if(!room||!window.BouwVorm||!window.BouwPlan)return '';
+  const project=a=>{const q=P(...a);if(!q.every(Number.isFinite))throw Error('Invalid projection');return q;},points=ps=>ps.map(a=>project(a).join(',')).join(' ');
+  let areas='',openings='',objects='';
+  const rules=state.project.regels.filter(w=>w.ruimte_id===room.id);
+  rules.forEach((raw,index)=>{
+   if(raw.id===exclude||wall&&raw.oppervlak!==wall)return;
+   const pakket=state.prijsboek?.pakketten.find(p=>p.id===raw.pakket_id);if(!pakket)return;
+   const r={...raw,pakket,nummer:index+1},name=`${pakket.naam}${raw.hoeveelheid!=null?' · '+raw.hoeveelheid+' '+pakket.eenheid:''}`,attrs=`class="confirmed-object" data-confirmed-id="${safe(raw.id)}" aria-label="Bevestigd: ${safe(name)}"`;
+   try{
+    if(pakket.eenheid==='m2'){
+     const f=BouwVorm.wallFrame(room,r.oppervlak),ps=f?f.quad:BouwVorm.points(room).map(p=>[p.x,p.y,r.oppervlak==='plafond'?BouwVorm.height(room,p.x,p.y):0]);
+     areas+=`<g ${attrs}><title>Bevestigd: ${safe(name)}</title><polygon class="confirmed-area" points="${points(ps)}"/></g>`;return;
+    }
+    const g=BouwPlan.werkGeometrie(r,room),a=project(g.a),b=project(g.b);
+    const symbol=pakket.eenheid==='m'?`<line class="confirmed-route" x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}"/>`:/^san_/.test(r.pakket_id)?`<rect class="confirmed-symbol" x="${a[0]-5}" y="${a[1]-5}" width="10" height="10" rx="2"/>`:`<circle class="confirmed-symbol" cx="${a[0]}" cy="${a[1]}" r="5"/>`;
+    objects+=`<g ${attrs}><title>Bevestigd: ${safe(name)}${raw.visualisatie?'':' · schematische voorbeeldplaats'}</title>${symbol}<text class="confirmed-number" x="${a[0]+7}" y="${a[1]-6}">${index+1}${raw.hoeveelheid>1?' ×'+safe(raw.hoeveelheid):''}</text></g>`;
+   }catch{/* Malformed legacy objects never break a preview. */}
+  });
+  (room.openingen||[]).forEach((o,index)=>{
+   if(wall&&o.muur!==wall)return;
+   try{const g=BouwPlan.openingGeometrie(room,index);if(!g)return;openings+=`<g class="confirmed-object" data-confirmed-opening="${index}" aria-label="Bevestigd: ${safe(o.naam)}"><title>Bevestigd: ${safe(o.naam)} · ${safe(o.breedte)} × ${safe(o.hoogte)} m</title><polygon class="confirmed-opening" points="${points([g.a,g.b,g.c,g.d])}"/></g>`;}catch{}
+  });
+  let stairs='';if(!wall)for(const t of room.trappen||[]){try{const g=BouwPlan.trapGeometrie(t);stairs+=`<g class="confirmed-object" data-confirmed-stair="${safe(t.id)}" aria-label="Bevestigd: ${safe(t.naam||'Trap')}"><title>Bevestigd: ${safe(t.naam||'Trap')}</title><polygon class="confirmed-opening" points="${points(g.voet)}"/></g>`;}catch{}}
+  return `<g class="confirmed-context">${areas}${stairs}${openings}${objects}</g>`;
+ }
+ window.BouwContext={svg};
+})();

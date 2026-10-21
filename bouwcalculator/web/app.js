@@ -799,7 +799,7 @@ function renderPlan() {
   $('[data-plan-gereedschap="draai"]').hidden=planWeergave!=='isometrie';
   $$('[data-plan-gereedschap]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.planGereedschap===planGereedschap)));
   const regels = planRegels(ruimte);
-  houder.innerHTML = tekenaar(ruimte, vlakken, werk, {...planCamera, regels, lagen: planLagen, vlak: planVlak});
+  houder.innerHTML = tekenaar(ruimte, vlakken, werk, {...planCamera, regels, lagen: document.body.classList.contains('wizard-mode')?{...planLagen,afwerking:true,elektriciteit:true,sanitair:true}:planLagen, vlak: planVlak});
   const plaatmaten=planLagen.platen&&planLagen.afwerking?[...new Set(regels.filter(r=>r.aantal>0&&(planWeergave!=='aanzicht'||r.oppervlak===planVlak)).map(r=>BouwPlan.plaatMaat(r)).filter(Boolean).map(m=>`120 × ${Math.round(m.lengte*100)} cm`))]:[];
   $('#plan-plaat-info').hidden=!plaatmaten.length;
   $('#plan-plaat-info').textContent=`Gyproc-plaatnaden · ${plaatmaten.join(' / ')} · schematisch, geen zaagplan. Verbergen via Tekenopties.`;

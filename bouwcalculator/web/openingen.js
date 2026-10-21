@@ -35,7 +35,7 @@
     const h0=BouwVorm.height(room,edge.a.x,edge.a.y),h1=BouwVorm.height(room,edge.b.x,edge.b.y),scale=Math.min(300/edge.lengte,86/Math.max(h0,h1)),x=(360-edge.lengte*scale)/2;
     const n=v=>Number(v.toFixed(3));
     const opening=value?`<rect class="opening-preview-gat" x="${n(x+value.start*scale)}" y="${n(106-(value.bottom+value.height)*scale)}" width="${n(value.width*scale)}" height="${n(value.height*scale)}"/>`:'';
-    $('#opening-voorbeeld').innerHTML=`<svg viewBox="0 0 360 116" focusable="false"><polygon class="opening-preview-wand" points="${n(x)},106 ${n(x+edge.lengte*scale)},106 ${n(x+edge.lengte*scale)},${n(106-h1*scale)} ${n(x)},${n(106-h0*scale)}"/>${opening}</svg>`;
+    $('#opening-voorbeeld').innerHTML=`<svg viewBox="0 0 360 116" focusable="false"><polygon class="opening-preview-wand" points="${n(x)},106 ${n(x+edge.lengte*scale)},106 ${n(x+edge.lengte*scale)},${n(106-h1*scale)} ${n(x)},${n(106-h0*scale)}"/>${BouwContext.svg(room,(px,py,pz)=>[x+((px-edge.a.x)*edge.u[0]+(py-edge.a.y)*edge.u[1])*scale,106-pz*scale],{wall:edge.id})}${opening}</svg>`;
   }
   function open(soort,vlak){
     const room=actieveRuimte();if(!room)return;
@@ -52,6 +52,7 @@
   }
   document.addEventListener('click',e=>{const b=e.target.closest('[data-opening-snel]');if(b)open(b.dataset.openingSnel);});
   $('#opening-sluit').addEventListener('click',()=>dialog.close());
+  document.addEventListener('bouw-rekenstatus',()=>{if(dialog.open)info();});
   $('#opening-form').addEventListener('input',info);
   $('#opening-wand').addEventListener('change',info);
   $('#opening-presets').addEventListener('click',e=>{

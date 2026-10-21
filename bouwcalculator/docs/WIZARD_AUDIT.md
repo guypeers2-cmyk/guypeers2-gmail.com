@@ -127,3 +127,30 @@ intussen geopend ander project.
 `tools/project_header_review.mjs` controleert zichtbaarheid/raakvlakken,
 annuleren, klikken op pictogrammen, lokale archiefselectiviteit, nieuw beginnen
 en een gesimuleerde serverfout. Die fouttest verwijdert geen echte serverdata.
+
+## Bevestigde objecten in alle projectvoorbeelden
+
+Kleine wizardvoorbeelden gebruiken nu een gedeelde contextlaag, met dezelfde
+werk-, openings- en trapgeometrie als de grote tekeneditor. Deze laag komt terug
+in de maatillustratie, het kleine ruimteoverzicht, de vormeditor, de
+openingsdialoog, de elektriciteitsvragen en de algemene werk-/plafondvoorbeelden.
+Een wandaanzicht toont de bevestigde objecten op die wand. Bovenaanzichten tonen
+de hele actuele kamer, inclusief wandobjecten, plafondpunten en trappen. Objecten
+van andere kamers worden niet op die kamer getekend.
+
+Bevestigde context is groen; een nieuw plaatsingsvoorstel blijft blauw en staat
+niet in de bevestigde laag tot expliciet toevoegen. Op de opgeslagen-puntpagina
+verdwijnt het dubbele blauwe voorstelsymbool. Werkvlakken zijn gemarkeerd, tracés
+getekend, openingen omlijnd en aantallen groter dan één vermeld. Een regel zonder
+eigen plaatsing gebruikt dezelfde schematische voorbeeldplaats als de tekeneditor;
+er worden geen nieuwe uitvoeringsposities verzonnen of in het project opgeslagen.
+De contextlaag onderschept geen tikken voor een nieuwe plaatsing.
+
+Verplaatsen en undo verversen de voorbeelden zonder ingevulde velden te vervangen.
+Tijdens de wizard blijven werkobjecten in de grote tekening zichtbaar, ook als
+relevante objectlagen eerder in vrij ontwerpen waren uitgezet; de oorspronkelijke
+laagvoorkeuren worden niet overschreven. De naamvraag blijft zonder tekening.
+
+`tools/confirmed_context_review.mjs` controleert alle genoemde voorbeeldtypen,
+wand-/kamerscope, openingen/werkvlakken/tracés/trappen, geen voortijdige toevoeging,
+geen dubbel voorstelsymbool na opslaan, live wijziging/undo en behouden invoer.

@@ -68,6 +68,7 @@
       svg+=`<g data-hoek="${i}" tabindex="0" role="button" aria-label="Hoek ${i+1}${hoek}; pijltjes verplaatsen, Enter voor coördinaten"><circle class="vorm-hoek-hit" cx="${a[0]}" cy="${a[1]}" r="${touchR}"/><circle class="vorm-hoek" cx="${a[0]}" cy="${a[1]}" r="7"/><text class="vorm-hoek-label" text-anchor="${a[0]>400?'end':'start'}" x="${a[0]+(a[0]>400?-12:12)}" y="${a[1]+(a[1]>400?-14:23)}">${i+1}${hoek}</text></g>`;
     });
     if(snapInfo?.anchor){const a=P(snapInfo.anchor),b=P(snapInfo);svg+=`<line class="vorm-snaplijn" x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}"/>`;}
+    if(!huisTarget&&r)svg+=BouwContext.svg(r,(x,y,z)=>P({x,y}));
     canvas.innerHTML=svg;
     if(punten[actiefPunt])readout(punten[actiefPunt],actiefPunt,snapInfo?.text);else if(!punten.length)$('#vorm-coord-status').textContent='Tik op de tekening voor de eerste hoek. X is naar rechts, Y naar beneden.';
 
