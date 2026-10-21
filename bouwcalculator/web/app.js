@@ -794,7 +794,7 @@ function renderPlan() {
   $('.vlak-keuze').innerHTML=keuzes.map(v=>`<button type="button" data-aanzicht-vlak="${esc(v.sleutel)}" data-fokus="vlak_${esc(v.sleutel)}" aria-pressed="false"><span>${esc(v.naam)}</span><small></small></button>`).join('');
   const vlakken = vlakkenVoor(ruimte);
   const tekenaar = planWeergave === "aanzicht" ? window.BouwPlan.aanzicht : planWeergave === "isometrie" ? window.BouwPlan.isometrie : window.BouwPlan.plattegrond;
-  if(planWeergave!=='isometrie'&&planGereedschap==='draai'){planGereedschap='select';$('#plan-sleepstatus').textContent='Selecteren: sleep objecten of klik om te selecteren.';}
+  if(planWeergave!=='isometrie'&&planGereedschap==='draai'){planGereedschap='select';$('#plan-sleepstatus').textContent='Tik om aan te passen. Sleep om te verplaatsen.';}
   houder.classList.toggle('draai-actief',planGereedschap==='draai');
   $('[data-plan-gereedschap="draai"]').hidden=planWeergave!=='isometrie';
   $$('[data-plan-gereedschap]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.planGereedschap===planGereedschap)));
@@ -1799,7 +1799,8 @@ function renderPlanInspector(regel,opening) {
     inhoud+=veld('hoogte','Hoogte (m)',opening.hoogte,H,.01);
     inhoud+=veld('aantal','Aantal openingen',opening.aantal ?? 1,null,1,1);
   }
-  panel.innerHTML=`<form id="plan-inspector-form"><header><strong>Eigenschappen bij de tekening</strong><span>Wijzig velden en bevestig met Toepassen.</span></header><div class="plan-inspector-velden">${inhoud}</div><p class="hint">${opening?'Openingmaten en aantallen wijzigen ook de netto-oppervlakte en offerte.':regel.pakket_id && state.prijsboek.pakketten.find(p=>p.id===regel.pakket_id)?.eenheid==='m2'?'Deze positie verplaatst alleen het m²-label; het gemeten vlak blijft gelijk.':'Posities wijzigen geen prijs. Aantal of gemeten lengte wijzigen de offerte wel.'}</p><p id="plan-inspector-fout" role="alert"></p><footer><button class="knop primair" type="submit">Toepassen</button><button class="knop" type="button" id="plan-volledige-regel">Alle instellingen</button></footer></form>`;
+  panel.innerHTML=`<form id="plan-inspector-form"><header><strong>Aanpassen</strong><span>Pas aan en kies Opslaan.</span></header><div class="plan-inspector-velden">${inhoud}</div><p class="hint">${opening?'Openingmaten en aantallen wijzigen ook de netto-oppervlakte en offerte.':regel.pakket_id && state.prijsboek.pakketten.find(p=>p.id===regel.pakket_id)?.eenheid==='m2'?'Deze positie verplaatst alleen het m²-label; het gemeten vlak blijft gelijk.':'Posities wijzigen geen prijs. Aantal of gemeten lengte wijzigen de offerte wel.'}</p><p id="plan-inspector-fout" role="alert"></p><footer><button class="knop primair" type="submit">Opslaan</button><button class="knop" type="button" id="plan-volledige-regel">Alle instellingen</button></footer></form>`;
+  if(document.body.classList.contains('wizard-mode')){const form=panel.querySelector('form'),more=document.createElement('details');more.innerHTML='<summary>Plaats aanpassen</summary>';const fields=form.querySelector('.plan-inspector-velden');fields.querySelectorAll('label').forEach(label=>{if(label.querySelector('[name=vlak],[name=x],[name=y],[name=z],[name=x2],[name=y2],[name=z2]'))more.append(label);});if(more.querySelector('label'))fields.append(more);form.addEventListener('invalid',e=>{const details=e.target.closest('details');if(details)details.open=true;},true);}
   panel.querySelectorAll('input[type=number]:not([name=aantal])').forEach(input=>window.BouwUI?.metricButtons(input));
 }
 document.addEventListener('submit',e=>{
@@ -1830,7 +1831,7 @@ document.addEventListener('submit',e=>{
       if(data.has('aantal'))regel.hoeveelheid=waarde('aantal');
     });
   }
-  $('#plan-sleepstatus').textContent='Eigenschappen opgeslagen. Je kunt verder tekenen.';
+  $('#plan-sleepstatus').textContent='Opgeslagen. Je kunt verder tekenen.';
 });
 
 /* Repeated placement and alignment operate on full work rules, never just SVG. */

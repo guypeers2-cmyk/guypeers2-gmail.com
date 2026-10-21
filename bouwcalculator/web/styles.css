@@ -2138,3 +2138,11 @@ body.wizard-mode #tekening #plan-inspector:not([hidden]){display:block!important
 #wizard-size .guided-page:not([hidden]){display:grid;gap:6px}#wizard-size label{margin:0}#wizard-size label .point-presets{margin:4px 0}
 #wizard .guided-preview svg{max-height:160px}
 #opening-form .guided-page:not([hidden]){display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}#opening-form .guided-page>#opening-presets,#opening-form .guided-page>#opening-wand-info{grid-column:1/-1}#opening-form .guided-page input{min-width:0;width:100%}
+/* Plain-language controls for people who do not use design software. */
+.novice-undo{width:100%;min-height:48px;margin:6px 0;font-size:.85rem}
+.wizard-mode #plan-selectie-positie{display:none}
+.wizard-mode #plan-inspector details{grid-column:1/-1}
+.wizard-mode #plan-inspector details>summary{min-height:48px;padding:12px 0;cursor:pointer}
+.wizard-mode #plan-inspector details label{display:block;margin:8px 0}
+#graphic-properties #plan-inspector header strong{display:none}
+#wizard .site-progress details{font-size:.8rem}#wizard .site-progress details>summary{min-height:44px}

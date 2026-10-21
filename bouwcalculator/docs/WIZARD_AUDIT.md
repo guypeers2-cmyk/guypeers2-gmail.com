@@ -192,3 +192,34 @@ Nieuwste opdracht vervangt de vroegere strikte één-vraag-per-scherm-volgorde w
 - Kortere koppen, kleinere pictogrammen, minder herhaalde uitleg en voortgangsdecoratie. Klikbare maten en touchbediening behouden; exacte puntpositie zit in een uitklapvak. Belangrijke onzekerheden, technische beperkingen en indicatieve prijzen blijven zichtbaar.
 - Actuele flowregressie: `tools/compact_wizard_review.mjs`, offline en Python-server, 320/390/896px. Echte aanraking voor puntplaatsing; schermreducties; expliciete ontbrekende keuzes; invoerbehoud bij typekeuze/terug; geen vroege mutaties; stale-prijsbevestiging; juiste stuk-/sleuf-/dicht-/kabelhoeveelheden; enkelvoudige Gyproc/raam/eindpagina; volledige wand-/plafondloop; geen horizontale overflow of browserfouten. 119 eenheidstests en permanente-headerreview slagen.
 - Historische flowreviews volgen de vervangen paginavolgorde. De oude dragreview stoptte na de maatvragen op een bovenaanzicht/plancontrole; die pagina bestaat niet meer: de nieuwe flow gaat direct naar het huidige wandaanzicht. De compacte flowreview is de actuele wizardacceptatie; er is geen wijziging aan sleepcode of rekenkern.
+
+## Eenvoud voor gebruikers zonder IT-ervaring
+
+- De tekening biedt direct **Raam toevoegen**, **Deur toevoegen** en
+  **Elektriciteit toevoegen**. Het extra objectsubmenu is verwijderd; wandafwerking
+  blijft de duidelijke volgende actie. De positie wordt nog steeds eerst grafisch bepaald.
+- Gewone woorden: **Aanpassen**, **Opslaan**, **Ja, in de muur**,
+  **Nee, op de muur**, **Weet ik nog niet** en hoogten in herkenbare centimeters.
+  Onbekende technische gegevens blijven expliciet onbekend, niet automatisch een
+  technisch advies of stilzwijgend een kost van nul. De kabelvraag vraagt naar het
+  afgesproken type en verwijst naar bevestiging door de vakman.
+- Een lege tekening toont een korte uitnodiging in plaats van nulmetingen. Na werk
+  verschijnt de prijs voor het hele project inclusief btw; sleuf- en kabelmeters
+  staan onder **Wat zit in de prijs?**. Openstaande beslissingen blijven zichtbaar.
+- Bij aanpassen blijven type/aantal en relevante objectmaten zichtbaar. Exacte
+  coördinaten en vlakkeuze staan onder **Plaats aanpassen**; een ongeldige invoer
+  opent dit deel automatisch. Aanpassen wordt pas bij **Opslaan** toegepast.
+- **Laatste wijziging terugdraaien** is op de grafische wandpagina beschikbaar zodra
+  er geschiedenis is, zonder toetsencombinatie te hoeven kennen. Herstel omvat ook
+  een compleet toegevoegd aansluitpunt met bijbehorende regels.
+
+Verificatie: `plain_language_review.mjs` offline én via de Python-server op
+320/390/896 px: directe knop, positie-eerst, begrijpelijke keuzes, expliciet onbekend
+kabelwerk, zichtbare prijswaarschuwing, inklapbare plaatsgegevens, geen mutatie vóór
+Opslaan en herstellen van zowel plaatswijziging als volledig aansluitpunt. Geen
+horizontale overflow of browserfouten in deze scenario's. `compact_wizard_review.mjs`
+op dezelfde drie breedten offline/online PASS; permanente projectheaderreview PASS;
+81 bouwofferte- en 38 overige Python-tests PASS. Beide standalonebestanden opnieuw
+gegenereerd. Dit zijn technische browsertests, geen gebruikersonderzoek met beginners
+of fysieke iOS/Android-test. De eerder beschreven beperking van de historische
+dragreview blijft van toepassing.
