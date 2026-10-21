@@ -1484,3 +1484,13 @@ vereist dat ruimtes op het huisplan zijn geplaatst; losse kamers worden niet
 automatisch ingedeeld. 3D bekijken verandert geen maten, werkposten of prijzen.
 `tools/click_guidance_review.mjs` test klikken, tellen, muisslepen, aanraken,
 toetsenbord, mobiele breedtes en de retourroute 3D → offerte.
+
+### Hele wizard: één vraag per scherm
+
+De actuele begeleiding en audit staan in [docs/WIZARD_AUDIT.md](docs/WIZARD_AUDIT.md).
+Kamermaten, ramen/deuren, sanitair, Gyproc, afwerking en het eindscherm zijn nu
+opgedeeld in kleine vragen. Wand-/plafondvoorbeelden blijven zichtbaar; knoppen
+passen maten/aantallen aan. Nieuwe werkposten worden uitsluitend op de laatste
+bevestigingspagina toegevoegd. De vorm-, huis- en trapeditors behouden hun
+specialistische bediening. Controleer de volledige route met
+`tools/full_wizard_review.mjs`, naast de bestaande regressies.
