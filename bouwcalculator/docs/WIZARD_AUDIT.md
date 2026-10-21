@@ -91,3 +91,21 @@ maat wordt benoemd. De vormeditor wordt aangeboden bij het controleren van de
 ruimte. Vaste uitleg en velden buiten de actuele formulierpagina blijven verborgen.
 Ook algemene offertesaldi worden tijdens vragen niet getoond; prijsbevestigingen
 houden hun expliciete prijsinformatie. Teruggaan bewaart de invoer.
+
+## Herstel maat-invoer bij bestaande kamers
+
+De brede maatblokkade is beperkt tot geometriegestuurde kamers (eigen contour,
+dak/helling of huisplaatsing). Alleen de aanwezigheid van werkposten, openingen
+of trappen maakt een gewone rechthoek niet langer alleen-lezen. Gewijzigde
+maten blijven een ontwerp tot de eindbevestiging. Bij een ingerichte kamer is
+een extra bevestiging nodig: de offerte wordt herberekend en objecten worden
+niet automatisch verplaatst. Controleer daarna de bestaande plaatsingen.
+
+Bij geometriegestuurde maten staat de reden bij de actuele maatvraag, met een
+directe knop naar de vormeditor. Oude validatiefouten verdwijnen bij een volgende
+vraag; de zichtbare vraagkop krijgt de focus, niet een verborgen hoofdtitel.
+
+`tools/existing_room_input_review.mjs` controleert bestaande werkposten, echte
+maat-invoer, annuleren/bevestigen, behoud van regels, undo en de wijzigroute voor
+een eigen contour. De volledige wizard- en aansluitpuntreviews gebruiken echte
+klik-/toetsaanslagen in plaats van alleen programmatisch gezette invoerwaarden.
