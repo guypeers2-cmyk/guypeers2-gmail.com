@@ -128,6 +128,12 @@
   });
   // Trench guidance shares the same validated local library, not a second store.
   window.BouwCombinaties={
+    aansluitpunten(){
+      read();if(storageError)return [];
+      const points=new Set(['elek_stopcontact','elek_stopcontact_dubbel','elek_schakelaar','elek_lichtpunt','elek_stopcontact_opbouw','elek_stopcontact_dubbel_opbouw','elek_schakelaar_opbouw']);
+      const allowed=new Set([...points,'elek_sleuf','elek_sleuf_dichten','elek_kabel_3g15','elek_kabel_3g25']);
+      return copy(library.filter(c=>c.items.every(i=>i.type==='regel'&&allowed.has(i.data.pakket_id))&&c.items.filter(i=>points.has(i.data.pakket_id)).length===1&&c.items.filter(i=>points.has(i.data.pakket_id)).every(i=>Number(i.data.hoeveelheid)===1)&&['elek_sleuf','elek_sleuf_dichten'].every(id=>c.items.filter(i=>i.data.pakket_id===id).length<=1)&&c.items.filter(i=>i.data.pakket_id.startsWith('elek_kabel_')).length<=1));
+    },
     sleuven(){read();if(storageError)return [];const allowed=new Set(['elek_sleuf','elek_sleuf_dichten','elek_stopcontact','elek_stopcontact_dubbel','elek_schakelaar','elek_lichtpunt']);return copy(library.filter(c=>c.items.every(i=>i.type==='regel'&&allowed.has(i.data.pakket_id))&&c.items.filter(i=>i.data.pakket_id==='elek_sleuf').length===1));},
     bewaarRegels(name,ids,roomId){
       const naam=String(name).trim();if(!naam||naam.length>80)throw Error('Geef de combinatie een naam van 1 tot 80 tekens.');

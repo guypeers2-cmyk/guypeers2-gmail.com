@@ -1427,43 +1427,42 @@ venster/trap met echte pointerbewegingen, herstel uit Hand, Escape, mobiele touc
 en ongewijzigde totalen. `all_objects_review.mjs` blijft de vrije huis-/kamerbediening
 controleren via `APP_URL=http://localhost:8096/?weergave=vrij`.
 
-### Elektriciteit actueel: eerst sleuven, aansluitingen per sleuf
+### Elektriciteit actueel: aansluitpunten eerst, alle keuzes grafisch
 
-De elektriciteitsdeelwizard vraagt nu in deze volgorde:
-1. Hoeveel **nieuwe sleuven op de huidige wand**? Bestaande sleuven worden vermeld;
-   ze worden niet automatisch opnieuw toegevoegd. Geen elektriciteit slaat de
-   wand over; nul nieuwe sleuven laat aansluitingen op bestaande leidingen toe.
-2. Per sleuf: gemeten lengte en schematisch begin/einde/hoogte op de huidige wand.
-3. Welke aansluitingen horen op **deze** sleuf? Stopcontact, dubbel stopcontact,
-   schakelaar of wandlichtpunt. Daarna aantal en plaatsing per afzonderlijk punt.
-4. Sleuf ook dichtzetten? Dit neemt alleen de lengte en het tracé van deze sleuf over.
-5. Overzicht en prijsverschil voor de hele combinatie → expliciet bevestigen.
-6. Optioneel: **Bewaar deze sleuf met aansluitingen** onder een eigen naam.
-   Daarna pas de volgende sleuf, of sanitair als alle sleuven overlopen zijn.
+De wizard behandelt per wand het aantal nieuwe aansluitpunten (0–100), daarna
+**per punt**: type (stopcontact/schakelaar/lichtpunt), enkel/dubbel stopcontact,
+inbouw/opbouw, plaats op de wand, sleuf nodig (ja/nee/onbekend), gemeten
+sleuflengte en tracé, dichtzetten (ja/nee/onbekend), kabelkeuze en afzonderlijke
+kabellengte. Elke keuze heeft een pictogram of een schematisch wandaanzicht.
+De grote bestaande tekening blijft beschikbaar en bestaande objecten sleepbaar.
+Een dubbel stopcontact telt als één dubbel aansluitpunt.
 
-De gekozen aansluitingen blijven lokaal ontwerp tot de volledige combinatie wordt
-bevestigd. Elke bevestigde sleuf is één undo-stap met nieuwe object-ID's. Een
-verlopen prijsvoorbeeld vereist herbevestiging. De regels krijgen de sleufnaam
-als werknotitie: dit is een offertegroepering, geen technisch circuit-/netwerkmodel.
-Bestaande objecten blijven tijdens het beantwoorden van vragen sleepbaar.
+Sleuven worden per punt apart gerekend, niet als gedeeld netwerk. Een expliciete
+waarschuwing vraagt gedeelde meters niet dubbel te tellen. Inbouw leidt niet
+automatisch tot frezen. De schematische rechte lijn kan korter zijn dan de
+werkelijk gemeten route met bochten, maar niet langer. Onbekende sleuf-, kabel-
+en dichtzetkeuzes worden als nog-te-bepalen werknotities op de offerte bewaard.
+Dit is geen elektrisch stroomkringontwerp of automatische materiaalkeuring.
 
-De bewaarde sleuf gebruikt de bestaande combinatiebibliotheek, niet een aparte
-opslag: maximaal 30 sets, maximaal 100 onderdelen per set. Project-/klantvelden,
-werknotities en tarieven worden niet meegenomen. Lengtes, aansluitingen en
-plaatsingsgegevens worden wel bewaard. Bij een volgende sleuf verschijnt
-‘Een eerder bewaarde sleuf gebruiken’: lengte en aansluitingskeuzes worden als
-voorstel geladen, maar tracé en alle aansluitpunten worden opnieuw geplaatst en
-met de actuele tarieven geprijsd. Dichtzetten wordt opnieuw expliciet bevestigd.
-De bestaande Object → Combinaties-route blijft beschikbaar in vrij ontwerpen.
+Een overzicht toont onderdelen, totale offerteprijs en prijsverschil. Pas na
+expliciete bevestiging wordt het volledige punt met alle gekozen werken in
+één undo-stap toegevoegd. Veranderde offertes vereisen prijsherbevestiging.
+Voor opbouw zijn drie aparte, aanpasbare recepten toegevoegd: enkel/dubbel
+stopcontact en schakelaar. Hun materiaal-/arbeidsprijzen zijn **indicatieve
+richttarieven, geen geverifieerde actuele marktprijzen**; de wizard vermeldt dit.
 
-Opslaan verandert de offerte niet. Een volle/geblokkeerde of corrupte bibliotheek
-wordt niet overschreven. Verwijderde bronregels voorkomen het bewaren van een
-onvolledige set. Onbekende aantallen of uitgestelde resterende sleuven voegen
-niets impliciet toe. Technische volledigheid, kabelkeuze/-lengtes en beveiligingen
-blijven expliciet door de vakman te controleren.
+Optioneel bewaren gebruikt dezelfde lokale combinatiebibliotheek (maximaal
+30 sets, 100 onderdelen per set). Klantvelden, tarieven en werknotities worden
+niet meegenomen. Bij een volgend punt kunnen sets met precies één aansluitpunt
+(aantal 1), optioneel sleuf, dichtzetten en kabel als voorstel dienen. Uitvoering,
+plaats, sleuf en kabel worden opnieuw bevestigd; de prijs gebruikt actuele
+instelbare tarieven. Oude sets blijven beschikbaar via Object → Combinaties.
+Opslaan verandert de offerte niet. Volle/geblokkeerde/corrupte opslag wordt niet
+overschreven. Verwijderde bronregels verhinderen onvolledig bewaren.
 
-Controle: `tools/trench_wizard_review.mjs` online/standalone voor twee onafhankelijke
-sleuven, individuele aansluitpunten, variërende lengtes, wel/niet dichtzetten,
-geen mutatie vóór bevestigen, prijsherbevestiging, gedeelde bibliotheek,
-opslaan/hergebruik met nieuwe plaatsing, volle/corrupte opslag, uitstellen en
-mobiel. De wand- en novice-regressies volgen eveneens de nieuwe sleufvolgorde.
+Controle: `tools/connection_wizard_review.mjs` online/standalone dekt uitvoering,
+plaatsing, afzonderlijke sleuven/kabelmeters, onbekende details, expliciete
+bevestiging, verlopen prijsvoorbeelden, opslag/hergebruik en foutieve opslag.
+`trench_wizard_review.mjs` verwijst voor compatibiliteit naar deze test; dit is
+geen extra onafhankelijke suite. Wand-, ruimtevorm-, novice- en sleepregressies
+blijven beschikbaar. Python/JavaScript-pariteit omvat alle nieuwe opbouwrecepten.

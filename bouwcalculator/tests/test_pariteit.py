@@ -80,7 +80,7 @@ PROJECTS = [
 
 
 # Elektriciteit: alle eenheden, nul/ontbrekend, overrides en gemengde prijsmodi.
-for _pakket in ("stopcontact", "stopcontact_dubbel", "schakelaar", "lichtpunt", "kabel_3g25", "kabel_3g15", "sleuf", "sleuf_dichten"):
+for _pakket in ("stopcontact", "stopcontact_dubbel", "stopcontact_opbouw", "stopcontact_dubbel_opbouw", "schakelaar_opbouw", "schakelaar", "lichtpunt", "kabel_3g25", "kabel_3g15", "sleuf", "sleuf_dichten"):
     for _aantal in (None, 0, -1, 1.2, 12.5):
         PROJECTS.append(project("Elektriciteit " + _pakket, regels=[
             regel(pakket="elek_" + _pakket, hoeveelheid=_aantal)], prijsmodus="m2"))

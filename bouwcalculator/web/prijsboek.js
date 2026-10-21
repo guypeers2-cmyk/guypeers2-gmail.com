@@ -469,6 +469,42 @@ export const TARIEVEN = {
     "eenheid": "uur/st",
     "prijs": 1,
     "soort": "taak"
+  },
+  "elek_stopcontact_opbouw": {
+    "naam": "Stopcontact enkel, opbouw · materiaal (richtprijs, controleren)",
+    "eenheid": "st",
+    "prijs": 16.5,
+    "soort": "materiaal"
+  },
+  "uur_elek_stopcontact_opbouw": {
+    "naam": "Stopcontact enkel, opbouw · arbeid (raming, controleren)",
+    "eenheid": "uur/st",
+    "prijs": 0.25,
+    "soort": "taak"
+  },
+  "elek_stopcontact_dubbel_opbouw": {
+    "naam": "Stopcontact dubbel, opbouw · materiaal (richtprijs, controleren)",
+    "eenheid": "st",
+    "prijs": 28.0,
+    "soort": "materiaal"
+  },
+  "uur_elek_stopcontact_dubbel_opbouw": {
+    "naam": "Stopcontact dubbel, opbouw · arbeid (raming, controleren)",
+    "eenheid": "uur/st",
+    "prijs": 0.4,
+    "soort": "taak"
+  },
+  "elek_schakelaar_opbouw": {
+    "naam": "Schakelaar enkelpolig, opbouw · materiaal (richtprijs, controleren)",
+    "eenheid": "st",
+    "prijs": 14.5,
+    "soort": "materiaal"
+  },
+  "uur_elek_schakelaar_opbouw": {
+    "naam": "Schakelaar enkelpolig, opbouw · arbeid (raming, controleren)",
+    "eenheid": "uur/st",
+    "prijs": 0.25,
+    "soort": "taak"
   }
 };
 
@@ -864,6 +900,42 @@ export const PAKKETTEN = [
     "recept": {
       "materiaal": null,
       "arbeid": "uur_san_druktest"
+    }
+  },
+  {
+    "id": "elek_stopcontact_opbouw",
+    "naam": "Stopcontact enkel, opbouw",
+    "categorie": "Elektriciteit",
+    "eenheid": "st",
+    "opties": [],
+    "beschrijving": "Inclusief standaard mechanisme, opbouwbehuizing en afdekking. Afzonderlijke indicatieve richtprijs; controleer materiaal en montagetijd bij de vakman. Zonder kabel, kabelgoot, sleuf of keuring.",
+    "recept": {
+      "materiaal": "elek_stopcontact_opbouw",
+      "arbeid": "uur_elek_stopcontact_opbouw"
+    }
+  },
+  {
+    "id": "elek_stopcontact_dubbel_opbouw",
+    "naam": "Stopcontact dubbel, opbouw",
+    "categorie": "Elektriciteit",
+    "eenheid": "st",
+    "opties": [],
+    "beschrijving": "Inclusief standaard mechanisme, opbouwbehuizing en afdekking. Afzonderlijke indicatieve richtprijs; controleer materiaal en montagetijd bij de vakman. Zonder kabel, kabelgoot, sleuf of keuring.",
+    "recept": {
+      "materiaal": "elek_stopcontact_dubbel_opbouw",
+      "arbeid": "uur_elek_stopcontact_dubbel_opbouw"
+    }
+  },
+  {
+    "id": "elek_schakelaar_opbouw",
+    "naam": "Schakelaar enkelpolig, opbouw",
+    "categorie": "Elektriciteit",
+    "eenheid": "st",
+    "opties": [],
+    "beschrijving": "Inclusief standaard mechanisme, opbouwbehuizing en afdekking. Afzonderlijke indicatieve richtprijs; controleer materiaal en montagetijd bij de vakman. Zonder kabel, kabelgoot, sleuf of keuring.",
+    "recept": {
+      "materiaal": "elek_schakelaar_opbouw",
+      "arbeid": "uur_elek_schakelaar_opbouw"
     }
   }
 ];

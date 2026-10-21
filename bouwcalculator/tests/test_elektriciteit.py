@@ -51,6 +51,6 @@ class ElektriciteitTest(unittest.TestCase):
         self.assertEqual(o["totalen"]["totaal"], 95.4)
 
     def test_alle_pakketten(self):
-        for key in ("stopcontact", "stopcontact_dubbel", "schakelaar", "lichtpunt", "kabel_3g25", "kabel_3g15", "sleuf", "sleuf_dichten"):
+        for key in ("stopcontact", "stopcontact_dubbel", "stopcontact_opbouw", "stopcontact_dubbel_opbouw", "schakelaar_opbouw", "schakelaar", "lichtpunt", "kabel_3g25", "kabel_3g15", "sleuf", "sleuf_dichten"):
             o = bereken_offerte(project("elek_" + key, 3))
             self.assertGreater(o["regels"][0]["totaal"], 0)

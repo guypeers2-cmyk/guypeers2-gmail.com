@@ -578,6 +578,26 @@ PAKKETTEN.extend([{'id': 'san_koudwater',
   'opties': [],
   'recept': {'materiaal': None, 'arbeid': 'uur_san_druktest'}}])
 
+# Indicatieve, afzonderlijk instelbare opbouwramingen; geen gemeten marktprijzen.
+# Inbouwtarieven worden hiervoor bewust niet hergebruikt.
+for _id, _naam, _materiaal, _uren in (
+    ("elek_stopcontact_opbouw", "Stopcontact enkel, opbouw", 16.50, .25),
+    ("elek_stopcontact_dubbel_opbouw", "Stopcontact dubbel, opbouw", 28.00, .40),
+    ("elek_schakelaar_opbouw", "Schakelaar enkelpolig, opbouw", 14.50, .25),
+):
+    TARIEVEN[_id] = {"naam": _naam + " · materiaal (richtprijs, controleren)",
+                     "eenheid": "st", "prijs": _materiaal, "soort": "materiaal"}
+    TARIEVEN["uur_" + _id] = {"naam": _naam + " · arbeid (raming, controleren)",
+                              "eenheid": "uur/st", "prijs": _uren, "soort": "taak"}
+    PAKKETTEN.append({"id": _id, "naam": _naam, "categorie": "Elektriciteit",
+                      "eenheid": "st", "opties": [],
+                      "beschrijving": "Inclusief standaard mechanisme, opbouwbehuizing en afdekking. "
+                          "Afzonderlijke indicatieve richtprijs; controleer materiaal en montagetijd bij de vakman. "
+                          "Zonder kabel, kabelgoot, sleuf of keuring.",
+                      "recept": {"materiaal": _id, "arbeid": "uur_" + _id}})
+del _id, _naam, _materiaal, _uren
+
+
 PAKKET_OP_ID = {p["id"]: p for p in PAKKETTEN}
 
 

@@ -2079,6 +2079,10 @@ body:not(.wizard-mode) .wizard-bottom{display:none}
 .wizard-wall-map{width:140px;height:100px;display:block;margin:8px auto;background:var(--oppervlak);border-radius:8px}.wizard-wall-map polygon{fill:var(--oppervlak-2);stroke:none}.wizard-wall-map line{stroke:var(--tekst-2);stroke-width:2}.wizard-wall-map line.current{stroke:var(--accent);stroke-width:6}.wizard-wall-map text{fill:var(--tekst);font-size:12px;font-weight:700;paint-order:stroke;stroke:var(--oppervlak);stroke-width:3px}
 
 .wizard-mode #plan-sleepstatus{display:block!important;font-size:.85rem}.wizard-mode #plan [data-plan-drag],.wizard-mode #plan [data-trap-id]{cursor:grab}
+/* Visual choices: recognisable hardware, side views and a live wall sketch. */
+.point-choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:12px 0}.point-choices .knop{display:flex;flex-direction:column;align-items:center;text-align:center;padding:12px;gap:6px}.point-choices small{font-size:.8rem;color:var(--tekst-2);font-weight:400}.point-icon{width:88px;height:70px;display:block;margin:4px auto;fill:none;stroke:var(--accent);stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}.point-icon .wall-fill{fill:var(--oppervlak-2);stroke:var(--tekst-2)}
+.point-figure{margin:12px 0;border:1px solid var(--rand);border-radius:10px;background:var(--oppervlak);padding:8px}.point-figure svg{display:block;width:100%;max-height:210px}.point-wall{fill:var(--oppervlak-2);stroke:var(--tekst-2);stroke-width:2}.point-dot{fill:var(--accent);stroke:var(--oppervlak);stroke-width:2}.point-trench{fill:none;stroke:var(--accent);stroke-width:5;stroke-dasharray:7 4}.point-figure text{font:12px system-ui;fill:var(--tekst);paint-order:stroke;stroke:var(--oppervlak);stroke-width:3px}.point-figure figcaption{font-size:.75rem;color:var(--tekst-2)}
+@media(max-width:360px){.point-choices{gap:6px}.point-choices .knop{padding:8px}.point-icon{width:72px;height:58px}}
 
 </style>
 </head>
@@ -2983,6 +2987,42 @@ const TARIEVEN = {
     "eenheid": "uur/st",
     "prijs": 1,
     "soort": "taak"
+  },
+  "elek_stopcontact_opbouw": {
+    "naam": "Stopcontact enkel, opbouw · materiaal (richtprijs, controleren)",
+    "eenheid": "st",
+    "prijs": 16.5,
+    "soort": "materiaal"
+  },
+  "uur_elek_stopcontact_opbouw": {
+    "naam": "Stopcontact enkel, opbouw · arbeid (raming, controleren)",
+    "eenheid": "uur/st",
+    "prijs": 0.25,
+    "soort": "taak"
+  },
+  "elek_stopcontact_dubbel_opbouw": {
+    "naam": "Stopcontact dubbel, opbouw · materiaal (richtprijs, controleren)",
+    "eenheid": "st",
+    "prijs": 28.0,
+    "soort": "materiaal"
+  },
+  "uur_elek_stopcontact_dubbel_opbouw": {
+    "naam": "Stopcontact dubbel, opbouw · arbeid (raming, controleren)",
+    "eenheid": "uur/st",
+    "prijs": 0.4,
+    "soort": "taak"
+  },
+  "elek_schakelaar_opbouw": {
+    "naam": "Schakelaar enkelpolig, opbouw · materiaal (richtprijs, controleren)",
+    "eenheid": "st",
+    "prijs": 14.5,
+    "soort": "materiaal"
+  },
+  "uur_elek_schakelaar_opbouw": {
+    "naam": "Schakelaar enkelpolig, opbouw · arbeid (raming, controleren)",
+    "eenheid": "uur/st",
+    "prijs": 0.25,
+    "soort": "taak"
   }
 };
 const PAKKETTEN = [
@@ -3377,6 +3417,42 @@ const PAKKETTEN = [
     "recept": {
       "materiaal": null,
       "arbeid": "uur_san_druktest"
+    }
+  },
+  {
+    "id": "elek_stopcontact_opbouw",
+    "naam": "Stopcontact enkel, opbouw",
+    "categorie": "Elektriciteit",
+    "eenheid": "st",
+    "opties": [],
+    "beschrijving": "Inclusief standaard mechanisme, opbouwbehuizing en afdekking. Afzonderlijke indicatieve richtprijs; controleer materiaal en montagetijd bij de vakman. Zonder kabel, kabelgoot, sleuf of keuring.",
+    "recept": {
+      "materiaal": "elek_stopcontact_opbouw",
+      "arbeid": "uur_elek_stopcontact_opbouw"
+    }
+  },
+  {
+    "id": "elek_stopcontact_dubbel_opbouw",
+    "naam": "Stopcontact dubbel, opbouw",
+    "categorie": "Elektriciteit",
+    "eenheid": "st",
+    "opties": [],
+    "beschrijving": "Inclusief standaard mechanisme, opbouwbehuizing en afdekking. Afzonderlijke indicatieve richtprijs; controleer materiaal en montagetijd bij de vakman. Zonder kabel, kabelgoot, sleuf of keuring.",
+    "recept": {
+      "materiaal": "elek_stopcontact_dubbel_opbouw",
+      "arbeid": "uur_elek_stopcontact_dubbel_opbouw"
+    }
+  },
+  {
+    "id": "elek_schakelaar_opbouw",
+    "naam": "Schakelaar enkelpolig, opbouw",
+    "categorie": "Elektriciteit",
+    "eenheid": "st",
+    "opties": [],
+    "beschrijving": "Inclusief standaard mechanisme, opbouwbehuizing en afdekking. Afzonderlijke indicatieve richtprijs; controleer materiaal en montagetijd bij de vakman. Zonder kabel, kabelgoot, sleuf of keuring.",
+    "recept": {
+      "materiaal": "elek_schakelaar_opbouw",
+      "arbeid": "uur_elek_schakelaar_opbouw"
     }
   }
 ];
@@ -8532,6 +8608,12 @@ function sluitTekenFocus() {
   });
   // Trench guidance shares the same validated local library, not a second store.
   window.BouwCombinaties={
+    aansluitpunten(){
+      read();if(storageError)return [];
+      const points=new Set(['elek_stopcontact','elek_stopcontact_dubbel','elek_schakelaar','elek_lichtpunt','elek_stopcontact_opbouw','elek_stopcontact_dubbel_opbouw','elek_schakelaar_opbouw']);
+      const allowed=new Set([...points,'elek_sleuf','elek_sleuf_dichten','elek_kabel_3g15','elek_kabel_3g25']);
+      return copy(library.filter(c=>c.items.every(i=>i.type==='regel'&&allowed.has(i.data.pakket_id))&&c.items.filter(i=>points.has(i.data.pakket_id)).length===1&&c.items.filter(i=>points.has(i.data.pakket_id)).every(i=>Number(i.data.hoeveelheid)===1)&&['elek_sleuf','elek_sleuf_dichten'].every(id=>c.items.filter(i=>i.data.pakket_id===id).length<=1)&&c.items.filter(i=>i.data.pakket_id.startsWith('elek_kabel_')).length<=1));
+    },
     sleuven(){read();if(storageError)return [];const allowed=new Set(['elek_sleuf','elek_sleuf_dichten','elek_stopcontact','elek_stopcontact_dubbel','elek_schakelaar','elek_lichtpunt']);return copy(library.filter(c=>c.items.every(i=>i.type==='regel'&&allowed.has(i.data.pakket_id))&&c.items.filter(i=>i.data.pakket_id==='elek_sleuf').length===1));},
     bewaarRegels(name,ids,roomId){
       const naam=String(name).trim();if(!naam||naam.length>80)throw Error('Geef de combinatie een naam van 1 tot 80 tekens.');
@@ -8549,87 +8631,112 @@ function sluitTekenFocus() {
 
 </script>
 <script>
-/* Trench-first guidance. Each trench and its connections are one explicit batch. */
+/* Connection-first guidance: every point has its own finish, position and trench. */
 (function(){
 'use strict';
 window.BouwStroomWizard={create(root,api){
- const roomId=actieveRuimte()?.id,wall=api.wall;
- const types=[['elek_stopcontact','Stopcontact'],['elek_stopcontact_dubbel','Dubbel stopcontact'],['elek_schakelaar','Schakelaar'],['elek_lichtpunt','Lichtpunt op deze wand']];
- let stage='number',total=0,routeIndex=0,route=null,selectedType=null,queue=[],queueIndex=0,prepared=null,committed=[],saved=false,disposed=false;
- const $=s=>root.querySelector(s),room=()=>actieveRuimte(),pkg=id=>state.prijsboek.pakketten.find(p=>p.id===id),copy=v=>JSON.parse(JSON.stringify(v));
- function number(s,integer=false){const text=String(s).trim();if(!(integer?/^[0-9]+$/:/^[0-9]+([.,][0-9]+)?$/).test(text))throw Error(integer?'Vul een heel aantal in.':'Vul een getal in, bijvoorbeeld 5,5.');const n=Number(text.replace(',','.'));if(!Number.isFinite(n))throw Error('Dit getal is te groot.');return n;}
- const controls=(text,disabled=false)=>api.controls(text,disabled);
- const label=()=>total?`Sleuf ${routeIndex+1} van ${total}`:'Bestaande leiding';
- function newRoute(){const count=state.project.regels.filter(w=>w.ruimte_id===roomId&&w.oppervlak===wall&&w.pakket_id==='elek_sleuf').length;route={name:total?`Sleuf ${count+1}`:'Aansluitingen op bestaande leiding',length:null,visual:null,points:[],close:false,proposal:null};queue=[];queueIndex=0;prepared=null;committed=[];saved=false;}
- const actions=items=>`<div class="wizard-choices">${items.map(([id,text])=>`<button type="button" class="knop" data-route="${id}">${text}</button>`).join('')}</div>`;
- function lines(){const result=[];if(total)result.push({pakket_id:'elek_sleuf',hoeveelheid:route.length,visualisatie:route.visual});result.push(...route.points.map(p=>({pakket_id:p.type,hoeveelheid:1,visualisatie:p.visual})));if(total&&route.close)result.push({pakket_id:'elek_sleuf_dichten',hoeveelheid:route.length,visualisatie:route.visual});return result;}
- function build(){if(room()?.id!==roomId||!BouwVorm.wallFrame(room(),wall))throw Error('De kamer of wand is gewijzigd. Begin opnieuw.');const project=copy(state.project),ids=new Set(project.regels.map(w=>w.id)),added=[];for(const data of lines()){let id;do{id=uid();}while(ids.has(id));ids.add(id);if(!pkg(data.pakket_id))throw Error('Een onderdeel ontbreekt in het prijsboek.');project.regels.push({...copy(data),id,ruimte_id:roomId,oppervlak:wall,opties:{},notitie:route.name});added.push(id);}if(!added.length)throw Error('Voeg een aansluiting toe of ga terug en sla deze wand over.');if(added.length>100)throw Error('Gebruik maximaal 100 onderdelen per sleuf.');return {project,added};}
+ const roomId=actieveRuimte()?.id,wall=api.wall,$=s=>root.querySelector(s),copy=v=>JSON.parse(JSON.stringify(v));
+ let stage='number',total=0,index=0,p=null,prepared=null,ids=[],saved=false,disposed=false;
+ const pkg=id=>state.prijsboek.pakketten.find(k=>k.id===id),controls=(s,disabled=false)=>api.controls(s,disabled);
+ const num=s=>{const t=String(s).trim();if(!/^[0-9]+([.,][0-9]+)?$/.test(t))throw Error('Vul een getal in, bijvoorbeeld 1,5.');const n=Number(t.replace(',','.'));if(!Number.isFinite(n))throw Error('Dit getal is te groot.');return n;};
+ const label=()=>`Aansluitpunt ${index+1} van ${total}`;
+ const packageId=()=>p.kind==='light'?'elek_lichtpunt':(p.kind==='switch'?'elek_schakelaar':p.double?'elek_stopcontact_dubbel':'elek_stopcontact')+(p.mount==='opbouw'?'_opbouw':'');
+ function fresh(){p={kind:null,double:false,mount:null,visual:null,trench:false,length:null,line:null,closing:false,cable:null,cableLength:null,pending:[],proposal:null};prepared=null;ids=[];saved=false;}
+ function icon(type){
+  let shape='';
+  if(type==='socket'||type==='single'||type==='double'){shape='<rect x="15" y="12" width="70" height="56" rx="8"/>'+[type==='double'?32:50,...(type==='double'?[68]:[])].map(x=>`<circle cx="${x}" cy="40" r="14"/><circle cx="${x-5}" cy="40" r="1.8"/><circle cx="${x+5}" cy="40" r="1.8"/>`).join('');}
+  else if(type==='switch')shape='<rect x="25" y="10" width="50" height="60" rx="6"/><path d="M35 22h30v36H35zM38 52l24-24"/>';
+  else if(type==='light')shape='<path d="M40 52c0-10-12-10-12-25a22 22 0 0 1 44 0c0 15-12 15-12 25zM40 60h20m-17 7h14M50 2v-8M15 25H5m80 0h10"/>';
+  else if(type==='inbouw')shape='<path class="wall-fill" d="M30 4h40v72H30z"/><path d="M30 4v72M70 4v72M30 23h20v34H30"/><path d="M5 40h19m-6-6 6 6-6 6"/>';
+  else if(type==='opbouw')shape='<path class="wall-fill" d="M45 4h25v72H45z"/><path d="M45 4v72M20 23h25v34H20zM5 40h10"/>';
+  else if(type==='trench')shape='<rect x="12" y="5" width="76" height="70" rx="4"/><path class="point-trench" d="M50 65V20h20"/><circle cx="70" cy="20" r="6"/>';
+  else if(type==='close')shape='<rect x="12" y="5" width="76" height="70" rx="4"/><path d="M45 65V20h25" stroke-width="10"/><path d="m30 45 9 9 24-27"/>';
+  else if(type==='cable')shape='<path d="M12 60h20V20h40v40h16M12 52h12V12h56v40h8"/><circle cx="12" cy="56" r="5"/><circle cx="88" cy="56" r="5"/>';
+  else shape='<circle cx="50" cy="39" r="27"/><path d="m30 59 40-40"/>';
+  return `<svg viewBox="0 0 100 80" class="point-icon" aria-hidden="true" focusable="false">${shape}</svg>`;
+ }
+ const choices=items=>`<div class="point-choices">${items.map(([id,title,art,explain])=>`<button type="button" class="knop" data-point="${id}">${icon(art)}<strong>${title}</strong>${explain?`<small>${explain}</small>`:''}</button>`).join('')}</div>`;
+ function drawing(){
+  const r=actieveRuimte(),f=BouwVorm.wallFrame(r,wall);if(!f)return '';
+  const scale=Math.min(265/f.lengte,130/f.height),x=25,y=160;
+  const pos=v=>[x+((v.x-f.a.x)*f.u[0]+(v.y-f.a.y)*f.u[1])*scale,y-v.z/f.v[2]*scale];
+  let marks='';if(p?.line){const a=pos({x:p.line.x,y:p.line.y,z:p.line.z}),b=pos({x:p.line.x2,y:p.line.y2,z:p.line.z2});marks+=`<line class="point-trench" x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}"/>`;}
+  if(p?.visual){const a=pos(p.visual);marks+=`<circle class="point-dot" cx="${a[0]}" cy="${a[1]}" r="8"/><text x="${Math.min(a[0]+12,250)}" y="${Math.max(22,a[1]-10)}">Dit punt</text>`;}
+  return `<figure class="point-figure"><svg viewBox="0 0 320 190" role="img" aria-label="Schematisch vooraanzicht van de huidige wand met aansluitpunt en eventuele sleuf"><rect class="point-wall" x="${x}" y="${y-f.height*scale}" width="${f.lengte*scale}" height="${f.height*scale}"/>${marks}<text x="25" y="180">Begin wand · ${NRL.format(f.lengte)} m breed</text></svg><figcaption>Voorstel voor dit punt · pas toegevoegd na prijsbevestiging. Wandmaten zijn schematisch bij schuine vlakken.</figcaption></figure>`;
+ }
+ function fields(spec){return `<form id="point-form">${spec.map(([id,title,value=''])=>`<label>${title}<input id="${id}" type="text" inputmode="decimal" value="${esc(value)}" required></label>`).join('')}</form>`;}
+ function rows(){
+  const result=[{pakket_id:packageId(),hoeveelheid:1,visualisatie:p.visual}];
+  if(p.trench){result.push({pakket_id:'elek_sleuf',hoeveelheid:p.length,visualisatie:p.line});if(p.closing)result.push({pakket_id:'elek_sleuf_dichten',hoeveelheid:p.length,visualisatie:p.line});}
+  if(p.cable)result.push({pakket_id:p.cable,hoeveelheid:p.cableLength,visualisatie:p.line||{...p.visual,x2:p.visual.x,y2:p.visual.y,z2:p.visual.z}});
+  return result;
+ }
+ function build(){if(actieveRuimte()?.id!==roomId||!BouwVorm.wallFrame(actieveRuimte(),wall))throw Error('De kamer of wand is veranderd.');const project=copy(state.project),existing=new Set(project.regels.map(w=>w.id)),added=[];
+  const note=`Aansluitpunt ${state.project.regels.filter(w=>w.ruimte_id===roomId&&w.oppervlak===wall&&/elek_(stopcontact|schakelaar|lichtpunt)/.test(w.pakket_id)).length+1}${p.pending.length?' · Nog te bepalen: '+p.pending.join('; '):''}`;
+  for(const data of rows()){if(!pkg(data.pakket_id))throw Error('Deze uitvoering ontbreekt in het prijsboek.');let id;do{id=uid();}while(existing.has(id));existing.add(id);added.push(id);project.regels.push({...copy(data),id,ruimte_id:roomId,oppervlak:wall,opties:{},notitie:note});}return {project,added};
+ }
  function render(){
-  if(disposed||room()?.id!==roomId)return;prepared=null;let title='',html='';
+  if(disposed||actieveRuimte()?.id!==roomId)return;prepared=null;let title='',html='';
   if(stage==='number'){
-   title='Hoeveel sleuven zijn nodig op deze wand?';const existing=state.project.regels.filter(w=>w.ruimte_id===roomId&&w.oppervlak===wall&&w.pakket_id==='elek_sleuf').length;html=(existing?`<p class="hint">Er staan al ${existing} sleuven voor deze wand in de offerte. Vul hieronder alleen het extra aantal in.</p>`:'')+'<p>We nemen straks elke sleuf apart door: de lengte en plaats, en daarna de aansluitingen op die sleuf.</p><form id="route-form"><label>Aantal nieuwe sleuven<input id="route-number" type="text" inputmode="numeric" pattern="[0-9]+" placeholder="Bijvoorbeeld 2" required></label></form><p class="hint">Vul 0 in voor aansluitingen op bestaande leidingen. Sleuven frezen is alleen geraamd voor geschikt metselwerk; laat de vakman bepalen of het mag.</p>'+actions([['skip','Geen extra elektriciteit op deze wand'],['uncertain','Aantal sleuven nog niet bekend']]);controls('Aantal bevestigen');
+   title='Hoeveel aansluitpunten wil je op deze wand toevoegen?';html=icon('socket')+'<p>We nemen elk punt apart door: wat het is, inbouw of opbouw, de plaats, een eventuele sleuf en kabel, en de prijs.</p>'+fields([['point-number','Aantal nieuwe aansluitpunten']])+choices([['skip','Geen extra nodig','none'],['defer','Nog niet bekend','none']]);controls('Aantal bevestigen');
+  }else if(stage==='type'){
+   title=`${label()}: wat heb je nodig?`;html=choices([['socket','Stopcontact','socket'],['switch','Schakelaar','switch'],['light','Lichtpunt','light','Aansluiting zonder lamp']]);
+   const sets=window.BouwCombinaties?.aansluitpunten()||[];if(sets.length)html+=`<details><summary>Eerder bewaard aansluitpunt gebruiken</summary><select id="point-recipe"><option value="">Kies een set…</option>${sets.map(c=>`<option value="${esc(c.id)}">${esc(c.naam)}</option>`).join('')}</select><button type="button" class="knop" data-point="reuse">Voorstel laden</button><p class="hint">We lopen ook de bewaarde keuzes opnieuw langs. Plaats en prijs worden opnieuw bevestigd.</p></details>`;controls('Kies hierboven een type',true);
+  }else if(stage==='variant'){
+   title=`${label()}: enkel of dubbel?`;html=choices([['single','Enkel stopcontact','single','Eén aansluiting'],['double','Dubbel stopcontact','double','Twee aansluitingen als één dubbel punt']]);controls('Kies enkel of dubbel',true);
+  }else if(stage==='mount'){
+   title=`${label()}: inbouw of opbouw?`;html=choices([['inbouw','Inbouw','inbouw','Doos en mechanisme in de wand'],['opbouw','Opbouw','opbouw','Behuizing zichtbaar op de wand']]);controls('Kies de uitvoering',true);
+  }else if(stage==='position'){
+   title=`${label()}: waar komt het?`;html=icon(p.kind==='socket'?(p.double?'double':'single'):p.kind)+`<p><strong>${esc(pkg(packageId())?.naam||'')}</strong>. Vul de plaats op de huidige wand in.</p>`+fields([['point-x','Afstand vanaf het begin van de wand (m)'],['point-z','Hoogte boven de vloer (m)']])+`<div id="point-drawing">${drawing()}</div>`;controls('Plaats bevestigen');
+  }else if(stage==='trench'){
+   title=`${label()}: is een sleuf nodig?`;html=drawing()+choices([['trench-yes','Ja, apart voor dit punt','trench'],['trench-no','Nee, geen nieuwe sleuf','none','Bijvoorbeeld bestaande bruikbare leidingen'],['trench-unknown','Nog laten bepalen','none']])+'<p class="wizard-pending">Per punt rekenen we sleuven apart. Hebben punten een gedeelde route? Tel die meters niet dubbel. Inbouw betekent niet automatisch dat frezen nodig of toegestaan is; overleg bij beton of dragende muren.</p>';controls('Kies of een sleuf nodig is',true);
   }else if(stage==='length'){
-   title=`${label()}: hoe lang is deze sleuf?`;
-   const recipes=window.BouwCombinaties?.sleuven()||[];
-   html=`<form id="route-form"><label>Gemeten lengte (meter)<input id="route-number" type="text" inputmode="decimal" pattern="[0-9]+([,.][0-9]+)?" value="${route.length??''}" placeholder="Bijvoorbeeld 3,5" required></label></form><p class="hint">Meet de hele route, inclusief bochten. Het aantal aansluitingen bepaalt deze lengte niet.</p>${recipes.length?`<details><summary>Een eerder bewaarde sleuf gebruiken</summary><label>Kies een bewaarde set<select id="route-recipe"><option value="">Kies een set…</option>${recipes.map(r=>`<option value="${esc(r.id)}">${esc(r.naam)}</option>`).join('')}</select></label><button type="button" class="knop" data-route="reuse">Deze keuzes als voorstel gebruiken</button><p class="hint">Je bevestigt de lengte en plaatst alle aansluitingen opnieuw op deze wand.</p></details>`:''}${route.proposal?`<p class="hint">Voorstel uit ‘${esc(route.proposal)}’ geladen. Controleer de lengte.</p>`:''}${actions([['defer','Deze en overige sleuven later bepalen']])}`;controls('Lengte bevestigen');
+   title=`${label()}: hoeveel meter sleuf?`;html=icon('trench')+fields([['point-length','Gemeten sleuflengte (m)',p.length??'']])+'<p class="hint">Neem bochten mee. Vul alleen de meters voor dit punt in, zonder gedeelde meters nogmaals te tellen.</p>';controls('Lengte bevestigen');
   }else if(stage==='trench-position'){
-   title=`${label()}: waar loopt de sleuf?`;html='<p>De lijn op de tekening is schematisch. De gemeten lengte blijft de prijs bepalen.</p><form id="route-form"><label>Begin: afstand vanaf het begin van de wand (m)<input id="route-start" inputmode="decimal" required></label><label>Einde: afstand vanaf het begin van de wand (m)<input id="route-end" inputmode="decimal" required></label><label>Hoogte boven de vloer (m)<input id="route-height" inputmode="decimal" required></label></form>';controls('Plaats bevestigen');
-  }else if(stage==='types'){
-   title=`${label()}: welke aansluitingen zijn nodig?`;html=`<p>Kies een aansluiting voor <strong>alleen deze ${total?'sleuf':'bestaande leiding'}</strong>. Daarna vragen we het aantal en de plaats per punt.</p>${actions(types.map(([id,name])=>[id,name]))}<ul>${types.map(([id,name])=>{const n=route.points.filter(p=>p.type===id).length;return n?`<li>${n} × ${name}</li>`:'';}).join('')||'<li>Nog geen aansluitingen gekozen.</li>'}</ul><p class="hint">Een dubbel stopcontact telt als één dubbel punt. Kabeltypes en kabellengtes worden niet automatisch gekozen of begroot.</p>`;controls('Aansluitingen klaar');
-  }else if(stage==='quantity'){
-   title=`${label()}: hoeveel ${types.find(t=>t[0]===selectedType)?.[1].toLowerCase()}?`;html='<form id="route-form"><label>Aantal op deze sleuf<input id="route-number" type="text" inputmode="numeric" pattern="[0-9]+" placeholder="Bijvoorbeeld 2" required></label></form>';controls('Aantal bevestigen');
-  }else if(stage==='point-position'){
-   title=`${label()}: plaats punt ${queueIndex+1} van ${queue.length}`;html=`<p><strong>${esc(pkg(queue[queueIndex].type).naam)}</strong>. Elk punt krijgt een eigen plaats op de huidige wand.</p><form id="route-form"><label>Afstand vanaf het begin van deze wand (m)<input id="route-start" inputmode="decimal" required></label><label>Hoogte boven de vloer (m)<input id="route-height" inputmode="decimal" required></label></form>`;controls('Dit punt plaatsen');
+   const f=BouwVorm.wallFrame(actieveRuimte(),wall),s=(p.visual.x-f.a.x)*f.u[0]+(p.visual.y-f.a.y)*f.u[1];title=`${label()}: waar loopt de sleuf?`;html=fields([['point-start','Begin: afstand langs de wand (m)',Number(s.toFixed(6))],['point-start-z','Begin: hoogte boven de vloer (m)',0],['point-end','Einde: afstand langs de wand (m)',Number(s.toFixed(6))],['point-end-z','Einde: hoogte boven de vloer (m)',Number(p.visual.z.toFixed(6))]])+`<div id="point-drawing">${drawing()}</div><p class="hint">De rechte lijn is een schets. De gemeten lengte mag bochten bevatten en bepaalt de prijs.</p>`;controls('Sleufplaatsing bevestigen');
   }else if(stage==='closing'){
-   title=`${label()}: ook dichtzetten?`;html=`<p>Deze sleuf is ${NRL.format(route.length)} meter. Dichtzetten is een aparte post, zonder eindplamuur of schilderwerk.</p>${route.proposal?`<p>Het bewaarde voorstel ${route.close?'bevat':'bevat geen'} dichtzetten. Maak hieronder je keuze voor deze kamer.</p>`:''}`+actions([['close-yes','Ja, deze sleuf ook dichtzetten'],['close-no','Nee, nu niet']]);controls('Maak hierboven je keuze',true);
+   title=`${label()}: de sleuf ook dichtzetten?`;html=drawing()+choices([['close-yes','Ja, dichtzetten','close',NRL.format(p.length)+' meter · zonder eindplamuur of schilderwerk'],['close-no','Nee, nu niet','none'],['close-unknown','Nog laten bepalen','none']]);controls('Kies de afwerking van de sleuf',true);
+  }else if(stage==='cable'){
+   title=`${label()}: moet er kabel begroot worden?`;html=icon('cable')+choices([['cable-none','Geen extra kabel begroten','none'],['cable-unknown','Kabelkeuze nog laten bepalen','cable'],['elek_kabel_3g15','XVB 3G1,5','cable','Alleen kiezen na bevestiging door de vakman'],['elek_kabel_3g25','XVB 3G2,5','cable','Alleen kiezen na bevestiging door de vakman']])+'<p class="hint">Deze keuzelijst bepaalt geen stroomkring of beveiliging. Kabelgoten, boorgaten en keuring zijn niet automatisch inbegrepen.</p>';controls('Kies hoe je kabel wilt begroten',true);
+  }else if(stage==='cable-length'){
+   title=`${label()}: hoeveel meter kabel?`;html=icon('cable')+`<p>${esc(pkg(p.cable).naam)}</p>`+fields([['point-length','Gemeten kabellengte (m)',p.cableLength??'']])+'<p class="hint">Meet de volledige kabelroute, inclusief reserve. We nemen de sleuflengte niet automatisch over.</p>';controls('Kabellengte bevestigen');
   }else if(stage==='preview'){
-   title=`${label()}: controleer de hele combinatie`;
-   try{const b=build(),after=BouwEngine.berekenOfferte(b.project).totalen.totaal,before=BouwEngine.berekenOfferte(state.project).totalen.totaal;prepared={...b,reference:state.project,snapshot:JSON.stringify(state.project)};
-    html=`<ul>${lines().map(w=>`<li>${esc(pkg(w.pakket_id).naam)} · ${NRL.format(w.hoeveelheid)} ${pkg(w.pakket_id).eenheid==='m'?'meter':'stuk'}</li>`).join('')}</ul><p>Je volledige offerte wordt <strong>${eur(after)} inclusief btw</strong> (${eur(after-before)} erbij).</p><p class="hint">Er verandert pas iets na bevestigen. Dit zijn gekoppelde offerteposten, geen technisch ontworpen stroomkring. Laat kabels, beveiliging en geschiktheid controleren.</p>`;controls('Deze combinatie toevoegen');
+   title=`${label()}: klopt alles?`;try{const b=build(),totalAfter=BouwEngine.berekenOfferte(b.project).totalen.totaal,base=BouwEngine.berekenOfferte(state.project).totalen.totaal;prepared={...b,reference:state.project,snapshot:JSON.stringify(state.project)};
+    html=drawing()+`<ul>${rows().map(w=>`<li>${esc(pkg(w.pakket_id).naam)} · ${NRL.format(w.hoeveelheid)} ${pkg(w.pakket_id).eenheid==='m'?'meter':'stuk'}</li>`).join('')}</ul><p>${esc(pkg(packageId()).beschrijving)}</p>${p.mount==='opbouw'?'<p class="wizard-pending">Opbouw heeft een eigen indicatief richttarief voor materiaal en montage. Controleer dit met de vakman; het is geen geverifieerde marktprijs.</p>':''}${p.pending.length?`<p class="wizard-pending"><strong>Nog niet begroot of bevestigd:</strong> ${esc(p.pending.join('; '))}. Dit komt ook als werknotitie op de offerte.</p>`:''}<p>Volledige offerte: <strong>${eur(totalAfter)} inclusief btw</strong> (${eur(totalAfter-base)} erbij).</p><p class="hint">Controleer materiaal, plaatsing en technische geschiktheid. Deze combinatie is geen ontworpen stroomkring. Sleuven, kabels en afwerking hierboven zijn alleen inbegrepen als je ze expliciet koos.</p>`;controls('Dit aansluitpunt met details toevoegen');
    }catch(e){html=`<p role="alert">${esc(e.message)}</p>`;controls('Controleer de keuzes',true);}
   }else if(stage==='saved'){
-   title=`${label()}: toegevoegd. Deze keuzes bewaren?`;html=`<p>Deze combinatie is toegevoegd aan de offerte. Je kunt haar onder een naam bewaren om later bij een andere sleuf opnieuw te gebruiken.</p>${total?`<form id="route-save"><label>Naam van deze combinatie<input id="route-name" maxlength="80" ${saved?'readonly':''} value="${esc(route.name+' met aansluitingen')}" required></label><button type="submit" class="knop" ${saved?'disabled':''}>${saved?'Bewaard':'Bewaar deze sleuf met aansluitingen'}</button></form><p class="hint">Alleen in deze browser. Lengte, aansluitingen, posities en dichtzetten worden bewaard; geen klantvelden of tarieven. Bij hergebruik bevestig je plaatsing en actuele prijs opnieuw.</p>`:'<p class="hint">Sets zonder nieuwe sleuf kun je later via Object → Combinaties bewaren.</p>'}`;controls(routeIndex+1<total?'Volgende sleuf':'Deze wand: verder naar sanitair');
-  }else if(stage==='unknown'){
-   title='Sleuven en aansluitingen nog te bepalen';html='<p>Voor de nog onbesliste onderdelen zijn geen kosten toegevoegd. Bestaande posten blijven behouden. Laat de resterende sleuven en aansluitingen eerst opnemen. Controleer dit vóór je de offerte definitief maakt.</p>';controls('Verder zonder extra elektriciteit');
+   title=`${label()}: toegevoegd. Keuzes bewaren?`;html=drawing()+`<form id="point-save"><label>Naam voor dit punt met zijn details<input id="point-name" maxlength="80" value="${esc(pkg(packageId()).naam+(p.trench?' met sleuf':''))}" required ${saved?'readonly':''}></label><button type="submit" class="knop" ${saved?'disabled':''}>${saved?'Bewaard':'Bewaar dit aansluitpunt met details'}</button></form><p class="hint">Alleen in deze browser. Uitvoering, hoeveelheden en plaatsingsgegevens worden bewaard, geen tarieven of klantvelden. Bij hergebruik loop je de keuzes opnieuw langs.</p>`;controls(index+1<total?'Volgend aansluitpunt':'Deze wand: verder naar sanitair');
+  }else if(stage==='pending'){
+   title='Aansluitpunten nog te bepalen';html=icon('none')+'<p>Voor de nog onbekende punten is niets toegevoegd. Bestaande werken blijven behouden. Laat de ontbrekende punten opnemen voordat je de offerte definitief maakt.</p>';controls('Verder zonder extra aansluitpunten');
   }
-  api.title(title);root.innerHTML=html+'<p id="route-error" role="alert"></p><p id="route-status" role="status" aria-live="polite"></p>';
+  api.title(title);root.innerHTML=(p?.proposal&&stage!=='number'?`<p class="hint">Voorstel uit ‘${esc(p.proposal)}’. Uitvoering: ${esc(p.mount||'lichtpunt')}${p.kind==='socket'?(p.double?' · dubbel':' · enkel'):''}. Bevestig de keuzes voor dit punt opnieuw.</p>`:'')+html+'<p id="point-error" role="alert"></p><p id="point-status" role="status" aria-live="polite"></p>';
  }
  function next(){try{
-  if(room()?.id!==roomId)throw Error('De actieve kamer is veranderd.');
-  const form=$('#route-form');if(form&&!form.reportValidity())return;
-  if(stage==='number'){total=number($('#route-number').value,true);if(total>30)throw Error('Plan maximaal 30 sleuven per keer.');routeIndex=0;newRoute();stage=total?'length':'types';}
-  else if(stage==='length'){const n=number($('#route-number').value);if(n<=0||n>1000000)throw Error('Vul een geldige lengte groter dan nul in.');route.length=n;stage='trench-position';}
-  else if(stage==='trench-position'){
-   const z=number($('#route-height').value),a=api.place(room(),wall,number($('#route-start').value),z),b=api.place(room(),wall,number($('#route-end').value),z);if(Math.hypot(a[0]-b[0],a[1]-b[1])<.001)throw Error('Kies verschillende begin- en eindpunten.');route.visual={x:a[0],y:a[1],z:a[2],x2:b[0],y2:b[1],z2:b[2]};stage=queue.length?'point-position':'types';
-  }else if(stage==='quantity'){const n=number($('#route-number').value,true);if(n<1||n>98||route.points.length+n>98)throw Error('Kies 1 tot 98 punten per sleuf in totaal.');queue=Array.from({length:n},()=>({type:selectedType,visual:null}));queueIndex=0;stage='point-position';}
-  else if(stage==='point-position'){const a=api.place(room(),wall,number($('#route-start').value),number($('#route-height').value));queue[queueIndex].visual={x:a[0],y:a[1],z:a[2]};queueIndex++;if(queueIndex===queue.length){route.points.push(...queue);queue=[];queueIndex=0;stage='types';}}
-  else if(stage==='types'){if(!total&&!route.points.length)throw Error('Kies een aansluiting of ga terug en sla elektriciteit over.');stage=total?'closing':'preview';}
-  else if(stage==='preview'){
-   if(!prepared)return;if(state.project!==prepared.reference||JSON.stringify(state.project)!==prepared.snapshot){render();$('#route-error').textContent='De offerte is veranderd. Controleer de nieuwe prijs en bevestig opnieuw.';return;}
-   const p=prepared;committed=p.added;stage='saved';prepared=null;wijzig(()=>state.project=p.project);
-  }else if(stage==='saved'){if(committed.length&&committed.every(id=>!state.project.regels.some(w=>w.id===id))){stage='preview';render();$('#route-error').textContent='Deze toevoeging is ongedaan gemaakt. Controleer het voorbeeld voordat je opnieuw toevoegt.';return;}if(routeIndex+1<total){routeIndex++;newRoute();stage='length';}else{api.done();return;}}
-  else if(stage==='unknown'){api.done();return;}
+  if(actieveRuimte()?.id!==roomId)throw Error('De actieve kamer is veranderd.');const form=$('#point-form');if(form&&!form.reportValidity())return;
+  if(stage==='number'){const n=num($('#point-number').value);if(!Number.isInteger(n)||n>100)throw Error('Vul een heel aantal van 0 tot 100 in.');if(!n){api.done();return;}total=n;index=0;fresh();stage='type';}
+  else if(stage==='position'){const a=api.place(actieveRuimte(),wall,num($('#point-x').value),num($('#point-z').value));p.visual={x:a[0],y:a[1],z:a[2]};stage='trench';}
+  else if(stage==='length'||stage==='cable-length'){const n=num($('#point-length').value);if(n<=0||n>1000000)throw Error('Vul een geldige lengte groter dan nul in.');if(stage==='length'){p.length=n;stage='trench-position';}else{p.cableLength=n;stage='preview';}}
+  else if(stage==='trench-position'){const a=api.place(actieveRuimte(),wall,num($('#point-start').value),num($('#point-start-z').value)),b=api.place(actieveRuimte(),wall,num($('#point-end').value),num($('#point-end-z').value)),distance=Math.hypot(...a.map((v,i)=>v-b[i]));if(distance<.001)throw Error('Begin en einde mogen niet samenvallen.');if(p.length+.01<distance)throw Error('De gemeten sleuflengte is korter dan deze rechte lijn. Controleer lengte en eindpunten.');p.line={x:a[0],y:a[1],z:a[2],x2:b[0],y2:b[1],z2:b[2]};stage='closing';}
+  else if(stage==='preview'){if(!prepared)return;if(prepared.reference!==state.project||prepared.snapshot!==JSON.stringify(state.project)){render();$('#point-error').textContent='De offerte is veranderd. Controleer de nieuwe prijs en bevestig opnieuw.';return;}const b=prepared;ids=b.added;stage='saved';wijzig(()=>state.project=b.project);}
+  else if(stage==='saved'){if(ids.every(id=>!state.project.regels.some(w=>w.id===id))){stage='preview';render();$('#point-error').textContent='Deze toevoeging is ongedaan gemaakt. Controleer het voorbeeld opnieuw.';return;}if(index+1<total){index++;fresh();stage='type';}else{api.done();return;}}
+  else if(stage==='pending'){api.done();return;}render();
+ }catch(e){$('#point-error').textContent=e.message;}}
+ function back(){if(stage==='number'){api.back();return;}if(stage==='saved'){$('#point-error').textContent='Dit punt staat al in de offerte. Je kunt het verslepen of met Ongedaan maken herstellen.';return;}const prev={type:'number',variant:'type',mount:p?.kind==='socket'?'variant':'type',position:p?.kind==='light'?'type':'mount',trench:'position',length:'trench','trench-position':'length',closing:'trench-position',cable:p?.trench?'closing':'trench','cable-length':'cable',preview:p?.cable?'cable-length':'cable',pending:'number'};stage=prev[stage]||'number';render();}
+ function pending(key,text){p.pending=p.pending.filter(t=>!t.startsWith(key));if(text)p.pending.push(key+': '+text);}
+ function click(e){const b=e.target.closest('[data-point]');if(!b)return;try{const action=b.dataset.point;
+  if(action==='skip'){api.done();return;}if(action==='defer'){stage='pending';render();return;}
+  if(['socket','switch','light'].includes(action)){p.kind=action;if(action==='light'){p.mount=null;p.double=false;}if(action==='switch')p.double=false;stage=action==='socket'?'variant':action==='light'?'position':'mount';}
+  else if(['single','double'].includes(action)){p.double=action==='double';stage='mount';}
+  else if(['inbouw','opbouw'].includes(action)){p.mount=action;stage='position';}
+  else if(action.startsWith('trench-')){p.trench=action==='trench-yes';if(!p.trench){p.length=null;p.line=null;p.closing=false;pending('Dichtzetten',null);}pending('Sleuf',action==='trench-unknown'?'noodzaak en lengte nog te bepalen':null);stage=p.trench?'length':'cable';}
+  else if(action.startsWith('close-')){p.closing=action==='close-yes';pending('Dichtzetten',action==='close-unknown'?'nog te bepalen':null);stage='cable';}
+  else if(action.startsWith('cable-')||action.startsWith('elek_kabel_')){p.cable=action.startsWith('elek_')?action:null;pending('Kabel',action==='cable-unknown'?'type en lengte nog te bepalen':null);stage=p.cable?'cable-length':'preview';}
+  else if(action==='reuse'){const c=BouwCombinaties.aansluitpunten().find(c=>c.id===$('#point-recipe').value);if(!c)throw Error('Kies eerst een set.');const connection=c.items.find(i=>/elek_(stopcontact|schakelaar|lichtpunt)/.test(i.data.pakket_id)),id=connection.data.pakket_id;fresh();p.kind=id.includes('stopcontact')?'socket':id.includes('schakelaar')?'switch':'light';p.double=id.includes('dubbel');p.mount=id.includes('opbouw')?'opbouw':p.kind==='light'?null:'inbouw';const trench=c.items.find(i=>i.data.pakket_id==='elek_sleuf'),cable=c.items.find(i=>i.data.pakket_id.startsWith('elek_kabel_'));p.trench=!!trench;p.length=trench?.data.hoeveelheid??null;p.closing=c.items.some(i=>i.data.pakket_id==='elek_sleuf_dichten');p.cable=cable?.data.pakket_id||null;p.cableLength=cable?.data.hoeveelheid??null;p.proposal=c.naam;stage=p.kind==='socket'?'variant':p.kind==='light'?'position':'mount';}
   render();
- }catch(e){$('#route-error').textContent=e.message;}}
- function back(){
-  if(stage==='number'){api.back();return;}
-  if(stage==='saved'){ $('#route-error').textContent='Deze combinatie staat al in de offerte. Bestaande objecten kun je direct verslepen; je hoeft ze niet opnieuw toe te voegen.';return;}
-  if(stage==='length'){if(routeIndex>0){$('#route-error').textContent='Eerdere sleuven zijn al toegevoegd. Werk deze sleuf af of ga later terug via de wandcontrole.';return;}stage='number';}
-  else if(stage==='trench-position')stage='length';else if(stage==='point-position'){queue=[];queueIndex=0;stage='types';}else if(stage==='quantity')stage='types';else if(stage==='types')stage=total?'trench-position':'number';else if(stage==='closing')stage='types';else if(stage==='preview')stage=total?'closing':'types';else stage='number';render();
- }
- function click(e){const b=e.target.closest('[data-route]');if(!b)return;try{const action=b.dataset.route;
-  if(action==='defer'){stage='unknown';render();return;}
-  if(action==='skip'){api.done();return;}if(action==='uncertain'){stage='unknown';render();return;}
-  if(types.some(([id])=>id===action)){selectedType=action;stage='quantity';render();return;}
-  if(action==='close-yes'||action==='close-no'){route.close=action==='close-yes';stage='preview';render();return;}
-  if(action==='reuse'){
-   const c=BouwCombinaties.sleuven().find(c=>c.id===$('#route-recipe').value);if(!c)throw Error('Kies eerst een bewaarde sleuf.');
-   const trench=c.items.find(i=>i.data.pakket_id==='elek_sleuf');route.proposal=c.naam;route.length=Number(trench.data.hoeveelheid);route.close=c.items.some(i=>i.data.pakket_id==='elek_sleuf_dichten');route.points=[];queue=[];
-   for(const i of c.items.filter(i=>types.some(([id])=>id===i.data.pakket_id))){const n=Number(i.data.hoeveelheid);if(!Number.isInteger(n)||n<1||queue.length+n>98)throw Error('Deze set bevat een ongeldig aantal aansluitingen.');queue.push(...Array.from({length:n},()=>({type:i.data.pakket_id,visual:null})));}queueIndex=0;render();
-  }
- }catch(error){$('#route-error').textContent=error.message;}}
- function submit(e){if(e.target.id==='route-form'){e.preventDefault();next();}else if(e.target.id==='route-save'){e.preventDefault();try{if(saved)return;BouwCombinaties.bewaarRegels($('#route-name').value,committed,roomId);saved=true;render();$('#route-status').textContent='Bewaard. Bij een volgende sleuf kun je deze set als voorstel kiezen.';}catch(error){$('#route-error').textContent=error.message;}}}
- root.addEventListener('click',click);root.addEventListener('submit',submit);render();return {next,back,destroy(){disposed=true;root.removeEventListener('click',click);root.removeEventListener('submit',submit);}};
+ }catch(error){$('#point-error').textContent=error.message;}}
+ function submit(e){if(e.target.id==='point-form'){e.preventDefault();next();}else if(e.target.id==='point-save'){e.preventDefault();try{if(saved)return;BouwCombinaties.bewaarRegels($('#point-name').value,ids,roomId);saved=true;render();$('#point-status').textContent='Bewaard. Bij een volgend aansluitpunt kun je deze set als voorstel kiezen.';}catch(error){$('#point-error').textContent=error.message;}}}
+ function live(){try{if(stage==='position'){const a=api.place(actieveRuimte(),wall,num($('#point-x').value),num($('#point-z').value));p.visual={x:a[0],y:a[1],z:a[2]};}else if(stage==='trench-position'){const a=api.place(actieveRuimte(),wall,num($('#point-start').value),num($('#point-start-z').value)),b=api.place(actieveRuimte(),wall,num($('#point-end').value),num($('#point-end-z').value));p.line={x:a[0],y:a[1],z:a[2],x2:b[0],y2:b[1],z2:b[2]};}if($('#point-drawing'))$('#point-drawing').innerHTML=drawing();}catch{ /* Incomplete input never changes the project or moves a valid marker. */ }}
+ root.addEventListener('click',click);root.addEventListener('submit',submit);root.addEventListener('input',live);render();return {next,back,destroy(){disposed=true;root.removeEventListener('click',click);root.removeEventListener('submit',submit);root.removeEventListener('input',live);}};
 }};
 })();
 
