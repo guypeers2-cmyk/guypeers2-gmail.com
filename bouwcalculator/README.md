@@ -1466,3 +1466,21 @@ bevestiging, verlopen prijsvoorbeelden, opslag/hergebruik en foutieve opslag.
 `trench_wizard_review.mjs` verwijst voor compatibiliteit naar deze test; dit is
 geen extra onafhankelijke suite. Wand-, ruimtevorm-, novice- en sleepregressies
 blijven beschikbaar. Python/JavaScript-pariteit omvat alle nieuwe opbouwrecepten.
+
+### Klikbare begeleiding en het 3D-eindbeeld
+
+Aantallen aansluitpunten hebben 1/2/3/4-keuzes en min/plus (0–100), met
+een handmatig veld voor grotere aantallen. Ook stuksaantallen in de overige
+wizardonderdelen hebben klikknoppen. Vanaf de typekeuze staat het voorgestelde
+aansluitpunt op de wandtekening. Dit blijft uitsluitend een lokaal ontwerp.
+Bij de plaatsingsstap: tik of sleep op de wand, kies Links/Midden/Rechts of een
+voorbeeldhoogte, of gebruik pijltjestoetsen per 10 cm. Exacte maten blijven
+handmatig aanpasbaar. Hoogtes zijn startvoorstellen, geen installatienormen;
+buiten de werkelijke wand of boven een schuin plafond plaatsen wordt geweigerd.
+
+Het eindscherm biedt offerte bewaren/PDF én knoppen voor 3D van de ruimte en
+het hele huis, met een zichtbare terugknop naar de offerte. Gezamenlijke 3D
+vereist dat ruimtes op het huisplan zijn geplaatst; losse kamers worden niet
+automatisch ingedeeld. 3D bekijken verandert geen maten, werkposten of prijzen.
+`tools/click_guidance_review.mjs` test klikken, tellen, muisslepen, aanraken,
+toetsenbord, mobiele breedtes en de retourroute 3D → offerte.
