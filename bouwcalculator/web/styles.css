@@ -2061,3 +2061,9 @@ body:not(.wizard-mode) .wizard-bottom{display:none}
 @media(max-width:600px), (pointer:coarse) and (max-height:500px){
  #wizard summary{min-height:44px;padding-block:10px;touch-action:manipulation}
 }
+/* Only information needed for the current question; naming has no drawing or pricing. */
+.wizard-mode #wizard:has(.guided-heading) #wizard-title{display:none}
+.wizard-mode.wizard-name-only #wizard-context,.wizard-mode.wizard-name-only #wizard-progress,.wizard-mode.wizard-name-only .wizard-top,.wizard-mode.wizard-name-only #wizard-total,.wizard-mode.wizard-name-only #tekening,.wizard-mode.wizard-name-only #wizard-back{display:none!important}
+.wizard-mode.wizard-name-only .wizard-bottom{grid-template-columns:minmax(0,1fr)}
+.wizard-mode.wizard-name-only #wizard-next{grid-column:1/-1}
+.wizard-mode:not(.wizard-final) #wizard-total,.wizard-mode.wizard-name-only .guided-counter{display:none!important}

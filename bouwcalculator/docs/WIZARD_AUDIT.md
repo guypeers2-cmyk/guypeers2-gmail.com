@@ -81,3 +81,13 @@ wizardreview.
   320×568, 360×640, 390×844, 600×420 en 896×414: echte hit-tests, minimumdoelen,
   zichtbare balk, teruggaan, annuleren, bevestigen, behouden waarden en undo.
   Dit is geen fysieke iOS-/Android-apparaattest.
+
+## Alleen informatie voor de huidige vraag
+
+De naamvraag toont nu uitsluitend de naamvraag, het naamveld en ‘Bevestigen en
+volgende’. Geen plattegrond, maatvoorbeeld, fasekaart, offertebedrag of vormkeuze.
+Vanaf de maatvragen verschijnt het bijbehorende voorbeeld; alleen de actuele
+maat wordt benoemd. De vormeditor wordt aangeboden bij het controleren van de
+ruimte. Vaste uitleg en velden buiten de actuele formulierpagina blijven verborgen.
+Ook algemene offertesaldi worden tijdens vragen niet getoond; prijsbevestigingen
+houden hun expliciete prijsinformatie. Teruggaan bewaart de invoer.
