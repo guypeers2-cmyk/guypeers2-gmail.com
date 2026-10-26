@@ -8,7 +8,13 @@
   "use strict";
 
   const $ = (sel) => document.querySelector(sel);
-  const SLEUTELS = { SCORE: "pacman-highscore", DOOLHOF: "pacman-doolhof", GELUID: "pacman-geluid" };
+  const SLEUTELS = {
+    SCORE: "pacman-highscore",
+    DOOLHOF: "pacman-doolhof",
+    GELUID: "pacman-geluid",
+    MOEILIJKHEID: "pacman-moeilijkheid",
+    NIVEAU: "pacman-niveau",
+  };
 
   const doek = $("#doek");
   const ctx = doek.getContext("2d");
@@ -110,13 +116,46 @@
     }
   }
 
+  const vraag = new URLSearchParams(location.search);
+  const ingebed = vraag.get("ingebed") === "1";
   const eigen = leesEigenDoolhof();
-  const doolhof = eigen ? eigen.rijen : Pacman.DOOLHOF;
+
+  // levels: het klassieke doolhof plus de gegenereerde varianten
+  const niveaus = eigen ? [eigen.rijen, ...PacmanLevels.alleRijen()] : PacmanLevels.NIVEAUS.map((n) => n.rijen);
+  const niveausMeta = eigen
+    ? [{ naam: eigen.naam || "Eigen doolhof", emoji: "✏️" }, ...PacmanLevels.NIVEAUS]
+    : PacmanLevels.NIVEAUS;
+
+  // welk level spelen we? (?niveau=klassiek of ?niveau=2, anders de vorige keuze)
+  function kiesStartNiveau() {
+    const gevraagd = vraag.get("niveau");
+    if (gevraagd) {
+      const opId = niveausMeta.findIndex((niveau) => niveau.id === gevraagd);
+      if (opId >= 0) return opId;
+      const nummer = Number(gevraagd) - 1;
+      if (Number.isInteger(nummer) && nummer >= 0 && nummer < niveaus.length) return nummer;
+    }
+    const bewaard = localStorage.getItem(SLEUTELS.NIVEAU);
+    const index = niveausMeta.findIndex((niveau) => niveau.id === bewaard);
+    return index >= 0 ? index : 0;
+  }
+
+  function kiesMoeilijkheid() {
+    const gevraagd = vraag.get("moeilijkheid");
+    const bewaard = localStorage.getItem(SLEUTELS.MOEILIJKHEID);
+    return PacmanLevels.moeilijkheidOpId(gevraagd || bewaard || PacmanLevels.STANDAARD_MOEILIJKHEID);
+  }
+
+  const startNiveau = kiesStartNiveau();
+  const moeilijkheid = kiesMoeilijkheid();
+
   let opgeslagenHighscore = Number(localStorage.getItem(SLEUTELS.SCORE) || 0) || 0;
   const highscore = opgeslagenHighscore;
 
   Pacman.PacmanSpel.hoogsteScore = highscore;
-  const spel = new Pacman.PacmanSpel({ doolhof, highscore });
+  const spel = new Pacman.PacmanSpel({
+    niveaus, niveausMeta, startNiveau, moeilijkheid, highscore,
+  });
 
   /* ---------------- toestand van de console ---------------- */
 
@@ -234,10 +273,38 @@
     overlay.hidden = false;
 
     if (soort === "klaar") {
-      overlayKlein.textContent = eigen ? "Eigen doolhof" : "De Gids Arcade";
-      overlayTitel.textContent = spel.niveau > 1 ? `Niveau ${spel.niveau}` : "Klaar?";
-      overlayTekst.textContent = "Eet alle punten, ontwijk de spoken.";
-      overlayKnoppen.innerHTML = '<button type="button" class="knop primair" data-actie="start">Start spel</button>';
+      overlayKlein.textContent = spel.niveau > 1
+        ? `${spel.status().niveauNaam} · niveau ${spel.niveau}`
+        : "De Gids Arcade";
+      overlayTitel.textContent = spel.niveau > 1 ? "Klaar voor de volgende?" : "Klaar?";
+      overlayTekst.textContent = `Eet alle ${spel.pelletsTotaal} punten, ontwijk de spoken.`;
+      overlayKnoppen.innerHTML = `
+        <button type="button" class="knop primair" data-actie="start">Start</button>
+        <button type="button" class="knop" data-actie="kies">Level kiezen</button>
+        <button type="button" class="knop" data-actie="moeilijkheid">${moeilijkheid.emoji} ${moeilijkheid.naam}</button>`;
+      return;
+    }
+
+    if (soort === "kies") {
+      overlayKlein.textContent = "Kies je doolhof";
+      overlayTitel.textContent = "Levels";
+      overlayTekst.textContent = "Elk level heeft zijn eigen doolhof. Na het laatste begin je weer bij het eerste.";
+      overlayKnoppen.innerHTML = niveausMeta.map((niveau, index) => `
+        <button type="button" class="knop${index === spel.niveauIndex ? " primair" : ""}"
+                data-actie="start-level" data-index="${index}">${niveau.emoji || "🌀"} ${niveau.naam}</button>
+      `).join("") + '<button type="button" class="knop" data-actie="start">Terug</button>';
+      return;
+    }
+
+    if (soort === "moeilijkheid") {
+      overlayKlein.textContent = "Kies je uitdaging";
+      overlayTitel.textContent = "Moeilijkheid";
+      overlayTekst.textContent = "Het tempo van de spoken en hoe lang ze bang blijven.";
+      overlayKnoppen.innerHTML = Object.values(PacmanLevels.MOEILIJKHEDEN).map((soort) => `
+        <button type="button" class="knop${soort.id === moeilijkheid.id ? " primair" : ""}"
+                data-actie="start-moeilijkheid" data-id="${soort.id}"
+                title="${soort.uitleg}">${soort.emoji} ${soort.naam}</button>
+      `).join("") + '<button type="button" class="knop" data-actie="start">Terug</button>';
       return;
     }
 
@@ -273,14 +340,50 @@
   overlay.addEventListener("click", (e) => {
     const knop = e.target.closest("[data-actie]");
     if (!knop) return;
-    if (knop.dataset.actie === "start") {
+    const actie = knop.dataset.actie;
+
+    if (actie === "start") {
       Geluid.start();
       spel.hervat();
       verbergOverlay();
-    } else if (knop.dataset.actie === "nieuw") {
+    } else if (actie === "nieuw") {
       nieuwSpel();
+    } else if (actie === "kies") {
+      laatsteOverlaySoort = "kies";
+      toonOverlay("kies");
+    } else if (actie === "moeilijkheid") {
+      laatsteOverlaySoort = "moeilijkheid";
+      toonOverlay("moeilijkheid");
+    } else if (actie === "start-level") {
+      startLevel(Number(knop.dataset.index));
+    } else if (actie === "start-moeilijkheid") {
+      kiesNieuweMoeilijkheid(knop.dataset.id);
     }
   });
+
+  /** Een ander doolhof: het spel begint opnieuw met dat level. */
+  function startLevel(index) {
+    if (!Number.isInteger(index) || index < 0 || index >= niveaus.length) return;
+    localStorage.setItem(SLEUTELS.NIVEAU, niveausMeta[index].id || String(index));
+    Geluid.start();
+    spel.startNiveau = index;
+    spel.nieuwSpel();
+    if (hud.niveauNaam) hud.niveauNaam.textContent = niveausMeta[index].naam || "";
+    verbergOverlay();
+    $("#knop-pauze").textContent = "Pauze";
+  }
+
+  /** Andere moeilijkheidsgraad: tempo verandert meteen, de rest blijft staan. */
+  function kiesNieuweMoeilijkheid(id) {
+    const gekozen = PacmanLevels.moeilijkheidOpId(id);
+    spel.moeilijkheid = gekozen;
+    localStorage.setItem(SLEUTELS.MOEILIJKHEID, gekozen.id);
+    if (hud.moeilijkheid) hud.moeilijkheid.textContent = gekozen.naam;
+    if (gekozen.levens && spel.levens > gekozen.levens) spel.levens = gekozen.levens;
+    scherm.vorigeStatus = "";
+    laatsteOverlaySoort = "klaar";
+    toonOverlay("klaar");
+  }
 
   /* ---------------- scorebord ---------------- */
 
@@ -288,9 +391,14 @@
     score: $("#hud-score"),
     highscore: $("#hud-highscore"),
     niveau: $("#hud-niveau"),
+    niveauNaam: $("#hud-niveau-naam"),
+    moeilijkheid: $("#hud-moeilijkheid"),
     levens: $("#hud-levens"),
     status: $("#statusregel"),
   };
+
+  if (hud.niveauNaam) hud.niveauNaam.textContent = niveausMeta[spel.niveauIndex].naam || "";
+  if (hud.moeilijkheid) hud.moeilijkheid.textContent = moeilijkheid.naam;
 
   function tekenLevens(aantal) {
     if (hud.levens.dataset.aantal === String(aantal)) return;
@@ -303,6 +411,9 @@
     hud.score.textContent = status.punten.toLocaleString("nl-BE");
     hud.highscore.textContent = status.highscore.toLocaleString("nl-BE");
     hud.niveau.textContent = status.niveau;
+    if (hud.niveauNaam && hud.niveauNaam.textContent !== status.niveauNaam) {
+      hud.niveauNaam.textContent = status.niveauNaam;
+    }
     tekenLevens(status.levens);
 
     const sleutel = [status.toestand, status.pellets, status.levens, status.bang, status.niveau].join("|");
@@ -317,7 +428,9 @@
     } else if (status.toestand === "gepauzeerd") {
       hud.status.textContent = "Pauze · druk op P om verder te spelen";
     } else {
-      hud.status.textContent = `${status.pellets} van ${status.pelletsTotaal} punten over · ${status.levens} levens · niveau ${status.niveau}`;
+      hud.status.textContent = `${status.pellets} van ${status.pelletsTotaal} punten over`
+        + ` · ${status.levens} ${status.levens === 1 ? "leven" : "levens"}`
+        + ` · ${status.moeilijkheid}`;
     }
   }
 
@@ -375,6 +488,13 @@
 
   requestAnimationFrame(lus);
 
+  // In de Gids-console zit het spel in een iframe: geen eigen kop, en het
+  // speelveld krijgt meteen de focus zodat de pijltjes werken.
+  if (ingebed) {
+    document.body.classList.add("ingebed");
+    setTimeout(() => doek.focus(), 60);
+  }
+
   // voor de testbaarheid en de console
-  window.PacmanApp = { spel, Geluid, scherm };
+  window.PacmanApp = { spel, Geluid, scherm, ingebed };
 }());

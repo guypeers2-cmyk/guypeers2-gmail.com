@@ -51,7 +51,7 @@ class GidsHandler(BaseHTTPRequestHandler):
         elif self.path == "/pacman":
             # relatieve paden (styles.css, app.js) vragen om een echte map
             self._omleiden("/pacman/")
-        elif self.path in ("/pacman/", "/pacman/index.html"):
+        elif self.path.split("?")[0] in ("/pacman/", "/pacman/index.html"):
             self._bestand(PACMANMAP / "index.html")
         elif self.path == "/api/agenten":
             self._json({
@@ -73,7 +73,8 @@ class GidsHandler(BaseHTTPRequestHandler):
         elif self.path == "/api/statistieken":
             self._json(KWALITEIT.statistieken())
         elif self.path.startswith("/"):
-            doel = (WEBMAP / self.path.lstrip("/")).resolve()
+            # query-strings (?ingebed=1, ?doolhof=eigen) horen niet bij het bestand
+            doel = (WEBMAP / self.path.split("?")[0].lstrip("/")).resolve()
             if WEBMAP in doel.parents and doel.is_file():
                 self._bestand(doel)
             else:

@@ -148,15 +148,39 @@ export function bouwDom({
   scripts,
   opslagVooraf = {},
   zoek = "",
+  fetchStub = null,
   gereedschap = ["muur", "punt", "energizer", "leeg", "deur"],
   richtingen = ["omhoog", "links", "omlaag", "rechts"],
   canvasMaat = {},
 } = {}) {
   const bron = fs.readFileSync(html, "utf8");
-  const ids = [...new Set([...bron.matchAll(/id="([^"]+)"/g)].map((m) => m[1]))];
   const oproepen = [];
   const elementen = new Map();
-  for (const id of ids) {
+
+  // elke tag met een id krijgt zijn echte attributen uit de HTML
+  for (const tag of bron.match(/<[a-zA-Z][^>]*>/g) || []) {
+    const id = (tag.match(/\sid="([^"]+)"/) || [])[1];
+    if (!id || elementen.has(id)) continue;
+    const maat = canvasMaat[id] || [];
+    const element = DOEK_IDS.has(id) ? new Canvas(id, ...maat, oproepen) : new Element(id);
+    for (const [, naam, waarde] of tag.matchAll(/([a-zA-Z-]+)="([^"]*)"/g)) {
+      if (naam === "id") continue;
+      element.setAttribute(naam, waarde);
+    }
+    // attributen zonder waarde (zoals hidden) hebben geen ="…"
+    if (/\shidden[\s>/]/.test(tag) || element.getAttribute("hidden") !== undefined) {
+      element.hidden = true;
+    }
+    if (element.dataset) {
+      for (const [, naam, waarde] of tag.matchAll(/data-([a-zA-Z-]+)="([^"]*)"/g)) {
+        element.dataset[naam] = waarde;
+      }
+    }
+    elementen.set(id, element);
+  }
+  // elementen die alleen via JS worden gemaakt (id in de tekst) alsnog aanmaken
+  for (const [, id] of bron.matchAll(/id="([^"]+)"/g)) {
+    if (elementen.has(id)) continue;
     const maat = canvasMaat[id] || [];
     elementen.set(id, DOEK_IDS.has(id) ? new Canvas(id, ...maat, oproepen) : new Element(id));
   }
@@ -173,6 +197,8 @@ export function bouwDom({
   const wachtenden = [];
 
   const document = {
+    body: new Element("body"),
+    documentElement: new Element("html"),
     getElementById: (id) => elementen.get(id) || null,
     querySelector(sel) {
       if (!sel.startsWith("#")) return null;
@@ -203,6 +229,8 @@ export function bouwDom({
     navigator: {},
     URLSearchParams,
     OffscreenCanvas,
+    fetch: fetchStub || (() => Promise.resolve({ ok: true, json: () => Promise.resolve({ agenten: [] }) })),
+    crypto: { randomUUID: () => "test-sessie" },
     console,
   };
   globaal.window = globaal;

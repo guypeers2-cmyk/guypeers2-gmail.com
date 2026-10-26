@@ -34,7 +34,7 @@ python3 cli.py
 # Alle 18 knelpuntscenario's achter elkaar
 python3 cli.py --demo
 
-# Testbatterij (58 Python-tests + 39 JS-tests)
+# Testbatterij (59 Python-tests + 56 JS-tests)
 python3 -m unittest discover -s tests -v
 
 # Alleen de arcade-tests (spelkern, console, editor, keuring)
@@ -128,11 +128,11 @@ gids/
 ├── kwaliteit.py    # Agent 16: privacyveilige leerlog + statistieken
 └── state.py        # Ja/Nee-goedkeuringsstatus (serialiseerbaar)
 web/                # console: index.html + styles.css + app.js
-web/pacman/         # de arcade: maze.js · validatie.js · engine.js · app.js
-                    #            + editor.html + editor.js + pacman.css
+web/pacman/         # de arcade: maze.js · validatie.js · generator.js · levels.js
+                    #            · engine.js · app.js + editor.html/editor.js + pacman.css
 serve.py            # stdlib webserver (statisch + JSON-API + /pacman/)
 cli.py              # interactieve terminal + --demo
-tests/              # 58 Python-tests + 39 JS-tests (node --test)
+tests/              # 59 Python-tests + 56 JS-tests (node --test)
 data/               # runtime: kwaliteitslog (niet in git)
 ```
 
@@ -152,6 +152,12 @@ op canvas en de WebAudio-API, en de spellogica is pure JavaScript zonder DOM.
 
 ![Het klassieke doolhof: 244 punten, vier energizers, het spokenhok in het midden](docs/pacman-doolhof.png)
 
+![Een gegenereerd doolhof (Doolhof IV): dezelfde vorm, andere gangen](docs/pacman-doolhof-2.png)
+
+De arcade zit ook **ín** de Gids-console: de knop `🕹️ Arcade` (of de chip
+`🕹️ Pac-Man`) klapt een paneel open met het spel in een eigen venster, zodat het
+spel nooit met de console of het toetsenbord van de Gids botst. Sluiten met `Esc`.
+
 ### De spelkern (bewust DOM-vrij)
 
 | Bestand | Rol |
@@ -161,10 +167,32 @@ op canvas en de WebAudio-API, en de spellogica is pure JavaScript zonder DOM.
 | `validatie.js` | keurt een doolhof: vorm, hokdeur, bereikbaarheid, spoken buiten |
 | `app.js` | alleen presentatie: toetsen, vegen, geluid, scorebord, overlays |
 | `editor.js` | tekenen met de muis, symmetrie, keuring, opslaan als JSON |
+| `generator.js` | maakt nieuwe doolhoven met een seed (gangen 1 breed, muren 2 dik) |
+| `levels.js` | vijf levels + vier moeilijkheidsgraden |
 
 Beweging gaat **tegel tot tegel** (`van → naar`, voortgang `t`), niet met vrije
 snelheidsvectoren. Daardoor blijven muren hard, worden bochten nooit afgesneden en
 is de simulatie frame-rate-onafhankelijk — en dus deterministisch testbaar.
+
+### Vijf doolhoven, vier standen
+
+Naast het klassieke doolhof maakt `generator.js` nieuwe levels: gangen van één
+tegel breed, muren van twee tegels dik, een hok in het midden en een tunnel. De
+generator eist dat er **geen doodlopende gangen** zijn (eerst vlechten, anders een
+kort kanaal graven), dat het hok dicht is en dat Pac-Man niet in een hokje van één
+tegel begint. Elke seed geeft hetzelfde doolhof — de tests nameten dat voor veertig
+seeds.
+
+| Stand | Spooktempo | Bang | Levens | Punten |
+|-------|-----------|------|--------|--------|
+| 🌱 Chill | 0,78× | 1,4× langer | 3 | 1× |
+| ⚖️ Normaal | 1× | 1× | 3 | 1× |
+| 🔥 Arcade | 1,2× | 0,7× | 3 | 1,5× |
+| 💀 Munt-op | 1,32× | 0,5× | 1 | 2× |
+
+Een bot die de punten volgt haalt op Normaal ±65 s en 1690 punten; op Chill 58 s,
+op Arcade 23 s en op Munt-op 5 s. Keuze en moeilijkheid worden onthouden
+(`localStorage`), en kunnen ook via de URL: `/pacman/?niveau=doolhof-3&moeilijkheid=arcade`.
 
 ### De vier spoken
 
@@ -201,10 +229,11 @@ vegen, canvas, `localStorage`. Zo is de presentatielaag geen blinde vlek:
 
 ```
 tests/pacman_engine.test.mjs     17 tests   muren, hok, energizers, levels, determinisme
+tests/pacman_levels.test.mjs     10 tests   generator (40 seeds), levelset, moeilijkheid
 tests/pacman_validatie.test.mjs   9 tests   keuring van een doolhof
-tests/pacman_console.test.mjs     6 tests   app.js: HUD, overlays, invoer, highscore
+tests/pacman_console.test.mjs    12 tests   app.js: HUD, overlays, keuzes, arcade-paneel
 tests/pacman_editor.test.mjs      7 tests   editor.js: schilderen, opslaan, JSON
-tests/test_pacman.py             20 tests   doolhof, bestanden, webserver, JS-suite
+tests/test_pacman.py             21 tests   doolhof, bestanden, webserver, levelset, JS-suite
 ```
 
 ---
@@ -240,7 +269,10 @@ persona's zijn inwisselbaar.**
 - [x] Webconsole + CLI + 37 tests (alle groen)
 - [x] Kwaliteits- & Feedback-Agent: privacyveilige leerlog + statistiekdashboard + `/api/statistieken` (v1.1)
 - [x] Sessiepersistentie: gesprek overleeft een pagina-verversing (localStorage + sessie-id)
-- [x] Pac-Man-arcade: volledige spelkern, vier spoken, levels, geluid, doolhof-editor
+- [x] Pac-Man-arcade: volledige spelkern, vier spoken, geluid, doolhof-editor
+- [x] Vijf doolhoven (één klassiek + vier gegenereerd) en vier moeilijkheidsgraden
+- [x] De arcade ingebed in de Gids-console (paneel + chip, lui geladen iframe)
+- [ ] Automatische moeilijkheidsgraad op basis van de leerlog van Agent 16
 - [x] Testharnas zonder browser: `app.js` en `editor.js` worden echt uitgevoerd in Node
 - [ ] LLM-laag voor persona's (plug-in-punt klaar)
 - [ ] Automatische optimalisatie van signaalgewichten op basis van de leerlog

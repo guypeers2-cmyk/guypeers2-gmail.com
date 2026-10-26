@@ -131,15 +131,15 @@ class TestDoolhof(unittest.TestCase):
 class TestConsoleBestanden(unittest.TestCase):
     def test_bestanden_bestaan(self):
         for naam in ("index.html", "pacman.css", "app.js", "maze.js", "validatie.js",
-                     "engine.js", "editor.html", "editor.js"):
+                     "generator.js", "levels.js", "engine.js", "editor.html", "editor.js"):
             self.assertTrue((PACMAN / naam).is_file(), f"{naam} ontbreekt")
 
     def test_laadvolgorde_van_scripts(self):
         html = (PACMAN / "index.html").read_text(encoding="utf-8")
         volgorde = [html.index(f'src="{naam}"') for naam in
-                    ("maze.js", "validatie.js", "engine.js", "app.js")]
+                    ("maze.js", "validatie.js", "generator.js", "levels.js", "engine.js", "app.js")]
         self.assertEqual(volgorde, sorted(volgorde),
-                         "maze.js → validatie.js → engine.js → app.js")
+                         "maze.js → validatie.js → generator.js → levels.js → engine.js → app.js")
         self.assertIn('href="pacman.css"', html)
         self.assertIn('id="doek"', html)
 
@@ -202,12 +202,23 @@ class TestWebserver(unittest.TestCase):
                           ("/pacman/engine.js", "javascript"),
                           ("/pacman/maze.js", "javascript"),
                           ("/pacman/validatie.js", "javascript"),
+                          ("/pacman/generator.js", "javascript"),
+                          ("/pacman/levels.js", "javascript"),
                           ("/pacman/pacman.css", "text/css"),
                           ("/pacman/editor.html", "text/html")):
             status, koppen, body = self.verzoek(pad)
             self.assertEqual(status, 200, f"{pad} gaf {status}")
             self.assertIn(mime, koppen["Content-Type"])
             self.assertGreater(len(body), 100)
+
+    def test_query_strings_breken_de_statiche_route_niet(self):
+        for pad in ("/pacman/?ingebed=1", "/pacman/?doolhof=eigen&niveau=2",
+                    "/pacman/app.js?v=2", "/pacman/editor.html?x=1"):
+            status, koppen, body = self.verzoek(pad)
+            self.assertEqual(status, 200, f"{pad} gaf {status}")
+            self.assertGreater(len(body), 100)
+            self.assertTrue(koppen["Content-Type"].startswith(("text/", "application/")),
+                            koppen["Content-Type"])
 
     def test_gids_api_blijft_werken(self):
         status, _, body = self.verzoek("/api/agenten")
@@ -226,6 +237,30 @@ class TestWebserver(unittest.TestCase):
     def test_padverkenning_buiten_de_webmap(self):
         status, _, _ = self.verzoek("/../serve.py")
         self.assertIn(status, (400, 404))
+
+
+class TestLevelsViaNode(unittest.TestCase):
+    """De levelset wordt in JS gegenereerd; hier controleren we hem ook."""
+
+    def test_levelset_is_geldig(self):
+        node = shutil.which("node")
+        if not node:
+            self.skipTest("Node is niet geïnstalleerd")
+        script = (
+            "const L=require('./web/pacman/levels.js');"
+            "const V=require('./web/pacman/validatie.js');"
+            "const uit=L.NIVEAUS.map(n=>{const u=V.valideer(n.rijen);"
+            "return {naam:n.naam, ok:u.ok, fouten:u.fouten, punten:u.telling?u.telling.punten:0};});"
+            "console.log(JSON.stringify(uit));"
+        )
+        uitkomst = subprocess.run([node, "-e", script], capture_output=True, text=True,
+                                  timeout=120, cwd=str(WORTEL))
+        self.assertEqual(uitkomst.returncode, 0, uitkomst.stderr[-2000:])
+        niveaus = json.loads(uitkomst.stdout)
+        self.assertGreaterEqual(len(niveaus), 5)
+        for niveau in niveaus:
+            self.assertTrue(niveau["ok"], f"{niveau['naam']}: {niveau['fouten']}")
+            self.assertGreater(niveau["punten"], 150, f"{niveau['naam']} heeft te weinig punten")
 
 
 class TestJavascriptInNode(unittest.TestCase):

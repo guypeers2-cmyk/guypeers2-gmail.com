@@ -11,7 +11,7 @@ import { bouwDom as bouw, lijstTekst } from "./dom-harnas.mjs";
 
 const HIER = path.dirname(fileURLToPath(import.meta.url));
 const WEB = path.join(HIER, "..", "web", "pacman");
-const SCRIPTS = ["maze.js", "validatie.js", "engine.js", "editor.js"]
+const SCRIPTS = ["maze.js", "validatie.js", "generator.js", "levels.js", "engine.js", "editor.js"]
   .map((naam) => path.join(WEB, naam));
 const CEL = 24;
 

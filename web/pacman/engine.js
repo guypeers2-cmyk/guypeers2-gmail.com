@@ -141,7 +141,21 @@
 
   class PacmanSpel {
     constructor(opties = {}) {
-      this.doolhof = opties.doolhof || DOOLHOF;
+      const niveaus = Array.isArray(opties.niveaus) && opties.niveaus.length
+        ? opties.niveaus
+        : [opties.doolhof || DOOLHOF];
+      this.niveaus = niveaus;
+      this.niveausMeta = Array.isArray(opties.niveausMeta) ? opties.niveausMeta : [];
+      this.startNiveau = Number(opties.startNiveau) || 0;   // welke level eerst
+      this.moeilijkheid = opties.moeilijkheid || {
+        id: "normaal",
+        naam: "Normaal",
+        spookTempo: 1,
+        pacTempo: 1,
+        bangFactor: 1,
+        puntFactor: 1,
+      };
+      this.doolhof = this.niveaus[this.startNiveau % this.niveaus.length];
       this.highscore = Number(opties.highscore) || 0;
       this.startHighscore = this.highscore;
       this.reset();
@@ -151,7 +165,7 @@
 
     reset() {
       this.punten = 0;
-      this.levens = START_LEVENS;
+      this.levens = this.moeilijkheid.levens || START_LEVENS;
       this.niveau = 0;
       this.toestand = "klaar";       // klaar | bezig | gepauzeerd | dood | niveau | over
       this.tijd = 0;
@@ -165,6 +179,11 @@
 
     _startLevel() {
       this.niveau += 1;
+      const index = (this.startNiveau + this.niveau - 1) % this.niveaus.length;
+      this.doolhof = this.niveaus[index];
+      this._tunnelRij = undefined;
+      this.niveauIndex = index;
+      this.niveauNaam = this.niveauNaamVan(index);
       this.pellets = [];
       for (let r = 0; r < RIJEN; r += 1) {
         for (let c = 0; c < KOLOMMEN; c += 1) {
@@ -181,6 +200,12 @@
       this._plaatsActoren();
     }
 
+    niveauNaamVan(index) {
+      const meta = this.niveausMeta[index];
+      if (meta && meta.naam) return meta.naam;
+      return index === 0 ? "Klassiek" : `Level ${index + 1}`;
+    }
+
     _plaatsActoren() {
       this.pac = maakPacMan();
       this.spoken = ["blinky", "pinky", "inky", "clyde"].map(maakSpook);
@@ -191,6 +216,16 @@
       this.pacTimer = 0;
       this.flitsen = [];
       this._pakTegel(this.pac.c, this.pac.r);
+
+      // in een gegenereerd doolhof staat er niet altijd een gang naar links:
+      // kies een richting die vrij is, anders blijft Pac-Man stilstaan
+      for (const richting of ["links", "omhoog", "omlaag", "rechts"]) {
+        if (this._vrijVoor(this.pac, richting)) {
+          this.pac.richting = richting;
+          this.pac.gevraagd = richting;
+          break;
+        }
+      }
     }
 
     nieuwSpel() {
@@ -337,7 +372,8 @@
 
     _updatePac(dt) {
       const pac = this.pac;
-      const tempo = TEMPO.pac * (1 + Math.min(this.niveau - 1, 5) * 0.035);
+      const tempo = TEMPO.pac * this.moeilijkheid.pacTempo
+        * (1 + Math.min(this.niveau - 1, 5) * 0.035);
 
       const bijAankomst = () => {
         this._pakTegel(pac.c, pac.r);
@@ -372,12 +408,14 @@
       const pellet = this.pellets[index];
       this.pellets.splice(index, 1);
       this.pelletsOp += 1;
-      this.punten += pellet.groot ? PUNTEN.energizer : PUNTEN.punt;
+      const puntFactor = this.moeilijkheid.puntFactor || 1;
+      this.punten += Math.round((pellet.groot ? PUNTEN.energizer : PUNTEN.punt) * puntFactor);
       this.geluid.push(pellet.groot ? "energizer" : "punt");
 
       if (pellet.groot) {
         this.spookReeks = 0;
-        const duur = BANG_DUUR[Math.min(this.niveau - 1, BANG_DUUR.length - 1)];
+        const duur = BANG_DUUR[Math.min(this.niveau - 1, BANG_DUUR.length - 1)]
+          * (this.moeilijkheid.bangFactor || 1);
         for (const spook of this.spoken) {
           if (spook.modus === "ogen" || spook.fase === "huis") continue;
           spook.modus = "bang";
@@ -475,11 +513,12 @@
 
     _tempoSpook(spook) {
       const niveauBonus = Math.min(this.niveau - 1, 6) * 0.12;
+      const factor = this.moeilijkheid.spookTempo;
       if (spook.modus === "ogen") return TEMPO.spookOgen;
-      if (spook.modus === "bang") return TEMPO.spookBang + niveauBonus * 0.3;
-      const inTunnel = spook.r === TUNNEL_RIJ && (spook.c < 6 || spook.c > 21);
+      if (spook.modus === "bang") return (TEMPO.spookBang + niveauBonus * 0.3) * factor;
+      const inTunnel = this._inTunnel(spook);
       if (inTunnel) return TEMPO.spookTunnel;
-      return TEMPO.spook + niveauBonus + (spook.naam === "blinky" ? 0.35 : 0);
+      return (TEMPO.spook + niveauBonus + (spook.naam === "blinky" ? 0.35 : 0)) * factor;
     }
 
     _kiesSpookStap(spook) {
@@ -511,6 +550,25 @@
       if (dc > KOLOMMEN / 2) dc -= KOLOMMEN;
       if (dc < -KOLOMMEN / 2) dc += KOLOMMEN;
       return Math.hypot(dc, dr);
+    }
+
+    /** De tunnelrij van het huidige doolhof (de rij waar links en rechts open is). */
+    tunnelRij() {
+      if (this._tunnelRij !== undefined) return this._tunnelRij;
+      let gevonden = TUNNEL_RIJ;
+      for (let r = 0; r < RIJEN; r += 1) {
+        if (this.doolhof[r][0] !== "#" && this.doolhof[r][KOLOMMEN - 1] !== "#") {
+          gevonden = r;
+          break;
+        }
+      }
+      this._tunnelRij = gevonden;
+      return gevonden;
+    }
+
+    _inTunnel(actor) {
+      return Math.round(actor.r) === this.tunnelRij()
+        && (actor.c < 6 || actor.c > KOLOMMEN - 7);
     }
 
     _doelVoor(spook) {
@@ -614,7 +672,7 @@
       }
       const p = this.positie(this.pac);
       if (Math.abs(p.c - this.fruit.c) < 0.5 && Math.abs(p.r - this.fruit.r) < 0.5) {
-        this.punten += PUNTEN.fruit;
+        this.punten += Math.round(PUNTEN.fruit * (this.moeilijkheid.puntFactor || 1));
         this._flits(this.fruit, PUNTEN.fruit, "#ff6b8b");
         this.fruit = null;
         this.geluid.push("fruit");
@@ -635,7 +693,7 @@
         if (spook.modus === "bang") {
           this.spookReeks += 1;
           const waarde = PUNTEN.spookStart * 2 ** (Math.min(this.spookReeks, 4) - 1);
-          this.punten += waarde;
+          this.punten += Math.round(waarde * (this.moeilijkheid.puntFactor || 1));
           this._flits(s, waarde, "#8ff7ff");
           spook.modus = "ogen";
           spook.pad = [];
@@ -692,6 +750,10 @@
         melding: this.melding,
         pellets: this.pellets.length,
         pelletsTotaal: this.pelletsTotaal,
+        niveauNaam: this.niveauNaam || "Klassiek",
+        niveauIndex: this.niveauIndex || 0,
+        moeilijkheid: this.moeilijkheid.naam || "Normaal",
+        moeilijkheidId: this.moeilijkheid.id || "normaal",
         bang: this._bang(),
         fruit: Boolean(this.fruit),
         flitsen: this.flitsen.length,

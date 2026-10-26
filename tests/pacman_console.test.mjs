@@ -12,7 +12,7 @@ import { bouwDom as bouw, stap } from "./dom-harnas.mjs";
 
 const HIER = path.dirname(fileURLToPath(import.meta.url));
 const WEB = path.join(HIER, "..", "web", "pacman");
-const SCRIPTS = ["maze.js", "validatie.js", "engine.js", "app.js"]
+const SCRIPTS = ["maze.js", "validatie.js", "generator.js", "levels.js", "engine.js", "app.js"]
   .map((naam) => path.join(WEB, naam));
 
 function bouwDom(opties = {}) {
@@ -185,4 +185,120 @@ test("op mobiel sturen de richtingknoppen en een tik", () => {
   doek.vuur("pointerdown", { clientX: 100, clientY: 100, pointerId: 2 });
   doek.vuur("pointerup", { clientX: 103, clientY: 101, pointerId: 2 });
   assert.equal(spel.toestand, "bezig");
+});
+
+test("het startscherm laat een level en een moeilijkheidsgraad kiezen", () => {
+  const dom = bouwDom();
+  const tijd = { nu: 0 };
+  stap(dom, 16, tijd);
+  const { spel } = dom.venster.PacmanApp;
+  const overlay = dom.elementen.get("overlay");
+  const knoppen = dom.elementen.get("overlay-knoppen");
+
+  // de knoppen staan er
+  assert.match(knoppen.innerHTML, /data-actie="kies"/);
+  assert.match(knoppen.innerHTML, /data-actie="moeilijkheid"/);
+
+  // level kiezen → leveloverzicht
+  overlay.vuur("click", { target: { closest: () => ({ dataset: { actie: "kies" } }) } });
+  assert.equal(dom.elementen.get("overlay-titel").textContent, "Levels");
+  assert.equal((knoppen.innerHTML.match(/data-actie="start-level"/g) || []).length,
+    dom.venster.PacmanLevels.NIVEAUS.length);
+
+  // level 3 starten
+  overlay.vuur("click", {
+    target: { closest: () => ({ dataset: { actie: "start-level", index: "3" } }) },
+  });
+  assert.equal(overlay.hidden, true);
+  assert.equal(spel.niveauIndex, 3);
+  assert.equal(spel.niveauNaam, "Doolhof III");
+  assert.equal(dom.elementen.get("hud-niveau-naam").textContent, "Doolhof III");
+  assert.equal(dom.opslag.get("pacman-niveau"), "doolhof-11");
+  assert.deepEqual(spel.doolhof, dom.venster.PacmanLevels.NIVEAUS[3].rijen);
+
+  // na de aftelling speelt het nieuwe level meteen
+  for (let i = 0; i < 200; i += 1) stap(dom, 16, tijd);
+  assert.equal(spel.toestand, "bezig");
+  assert.ok(spel.punten > 0, "Pac-Man eet niets in het gekozen level");
+  assert.equal(dom.elementen.get("hud-niveau-naam").textContent, "Doolhof III");
+});
+
+test("moeilijkheid wisselen werkt meteen en wordt onthouden", () => {
+  const dom = bouwDom();
+  const tijd = { nu: 0 };
+  stap(dom, 16, tijd);
+  const { spel } = dom.venster.PacmanApp;
+  const overlay = dom.elementen.get("overlay");
+  const knoppen = dom.elementen.get("overlay-knoppen");
+
+  overlay.vuur("click", { target: { closest: () => ({ dataset: { actie: "moeilijkheid" } }) } });
+  assert.equal(dom.elementen.get("overlay-titel").textContent, "Moeilijkheid");
+  assert.equal((knoppen.innerHTML.match(/data-actie="start-moeilijkheid"/g) || []).length, 4);
+
+  overlay.vuur("click", {
+    target: { closest: () => ({ dataset: { actie: "start-moeilijkheid", id: "munt" } }) },
+  });
+  assert.equal(spel.moeilijkheid.id, "munt");
+  assert.equal(dom.elementen.get("hud-moeilijkheid").textContent, "Munt-op");
+  assert.equal(dom.opslag.get("pacman-moeilijkheid"), "munt");
+  assert.ok(spel.levens <= 1, "munt-op hoort met één leven te spelen");
+  assert.equal(dom.elementen.get("overlay").hidden, false, "je komt terug op het startscherm");
+});
+
+test("?niveau= en ?moeilijkheid= starten meteen met de juiste keuze", () => {
+  const dom = bouwDom({ zoek: "?niveau=doolhof-3&moeilijkheid=arcade" });
+  const { spel } = dom.venster.PacmanApp;
+  assert.equal(spel.niveauNaam, "Doolhof II");
+  assert.equal(spel.moeilijkheid.id, "arcade");
+  assert.equal(dom.elementen.get("hud-moeilijkheid").textContent, "Arcade");
+});
+
+test("?ingebed=1 zet de console in de compacte modus", () => {
+  const dom = bouwDom({ zoek: "?ingebed=1" });
+  assert.equal(dom.venster.PacmanApp.ingebed, true);
+  assert.equal(dom.document.body.classList.contains("ingebed"), true);
+});
+
+test("de Gids-console omlijst de arcade en laadt hem pas als je hem opent", () => {
+  const dom = bouw({ html: path.join(HIER, "..", "web", "index.html"), scripts: [] });
+  const paneel = dom.elementen.get("arcade-paneel");
+  const frame = dom.elementen.get("arcade-frame");
+  const knop = dom.elementen.get("arcade-knop");
+  const sluit = dom.elementen.get("arcade-sluit");
+
+  assert.ok(paneel && frame && knop && sluit, "de arcade-elementen ontbreken in de console");
+  assert.equal(knop.getAttribute("aria-controls"), "arcade-paneel");
+  assert.equal(knop.getAttribute("aria-expanded"), "false");
+  assert.equal(frame.getAttribute("src"), "about:blank", "de iframe laadt al zonder dat je hem opent");
+});
+
+test("de arcade opent, laadt het spel en sluit weer", () => {
+  const dom = bouw({
+    html: path.join(HIER, "..", "web", "index.html"),
+    scripts: [path.join(HIER, "..", "web", "app.js")],
+    fetchStub: () => Promise.resolve({ ok: true, json: () => Promise.resolve({ agenten: [] }) }),
+  });
+  const paneel = dom.elementen.get("arcade-paneel");
+  const frame = dom.elementen.get("arcade-frame");
+  const knop = dom.elementen.get("arcade-knop");
+
+  assert.equal(paneel.hidden, true);
+
+  knop.vuur("click");
+  assert.equal(paneel.hidden, false, "het paneel gaat niet open");
+  assert.equal(knop.getAttribute("aria-expanded"), "true");
+  assert.equal(frame.getAttribute("src"), "/pacman/?ingebed=1", "het spel wordt niet geladen");
+
+  // nog eens klikken sluit weer
+  knop.vuur("click");
+  assert.equal(paneel.hidden, true);
+  assert.equal(knop.getAttribute("aria-expanded"), "false");
+
+  // en via de chip in de gespreksbalk
+  knop.vuur("click");
+  dom.elementen.get("arcade-sluit").vuur("click");
+  assert.equal(paneel.hidden, true);
+
+  // de iframe-bron blijft staan, zodat het spel niet telkens herstart
+  assert.equal(frame.getAttribute("src"), "/pacman/?ingebed=1");
 });

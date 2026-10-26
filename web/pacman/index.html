@@ -31,6 +31,11 @@
         <div class="hud-vak">
           <span class="hud-label">Niveau</span>
           <span class="hud-waarde" id="hud-niveau">1</span>
+          <span class="hud-sub" id="hud-niveau-naam">Klassiek</span>
+        </div>
+        <div class="hud-vak">
+          <span class="hud-label">Stand</span>
+          <span class="hud-waarde klein" id="hud-moeilijkheid">Normaal</span>
         </div>
         <div class="hud-vak">
           <span class="hud-label">Levens</span>
@@ -39,7 +44,7 @@
       </div>
 
       <div class="scherm">
-        <canvas id="doek" width="896" height="992"
+        <canvas id="doek" width="896" height="992" tabindex="0"
                 aria-label="Speelveld van Pac-Man: 28 bij 31 tegels"
                 role="img"></canvas>
         <div class="overlay" id="overlay" hidden>
@@ -94,6 +99,18 @@
         <li><span class="stip clyde"></span><strong>Clyde</strong> vlucht naar zijn eigen hoek</li>
       </ul>
 
+      <h2>Vijf doolhoven</h2>
+      <p>Het klassieke doolhof plus vier gegenereerde varianten. Kies er een via
+        <em>Level kiezen</em> op het startscherm; je laatste keuze wordt onthouden.</p>
+
+      <h2>Vier standen</h2>
+      <ul class="toetsen">
+        <li><strong>🌱 Chill</strong> — trage spoken, lang bang, geen haast</li>
+        <li><strong>⚖️ Normaal</strong> — zoals de arcade het bedoelde</li>
+        <li><strong>🔥 Arcade</strong> — snellere spoken, korter bang, 1,5× punten</li>
+        <li><strong>💀 Munt-op</strong> — één leven, 2× punten</li>
+      </ul>
+
       <h2>Zelf bouwen</h2>
       <p>Open de <a href="editor.html">doolhof-editor</a> om je eigen level te tekenen.
         De editor controleert of het hok dicht is en of elk punt bereikbaar is.</p>
@@ -105,6 +122,8 @@
 
   <script src="maze.js"></script>
   <script src="validatie.js"></script>
+  <script src="generator.js"></script>
+  <script src="levels.js"></script>
   <script src="engine.js"></script>
   <script src="app.js"></script>
 </body>

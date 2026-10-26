@@ -101,7 +101,7 @@ body {
 
 .hud {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: .5rem;
   padding: .35rem .25rem .8rem;
 }
@@ -119,6 +119,15 @@ body {
   color: var(--geel);
   font-variant-numeric: tabular-nums;
 }
+.hud-sub {
+  font-size: .6rem;
+  letter-spacing: .04em;
+  color: var(--dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.hud-waarde.klein { font-size: .82rem; padding-top: .28rem; }
 .hud-vak:nth-child(2) .hud-waarde { color: var(--cyaan); }
 .hud-vak:nth-child(3) .hud-waarde { color: var(--roze); }
 
@@ -396,3 +405,18 @@ code {
 @media (max-width: 900px) {
   .gereedschap .knop { flex: 1 1 auto; font-size: .76rem; padding: .45rem .55rem; }
 }
+
+/* ---------------- ingebed in de Gids-console ---------------- */
+
+#doek:focus-visible { outline: 2px solid var(--cyaan); outline-offset: -2px; }
+
+body.ingebed .topbalk,
+body.ingebed .uitleg,
+body.ingebed .arcade-voetnoot { display: none; }
+
+body.ingebed .wrap {
+  grid-template-columns: minmax(0, 560px);
+  padding: .5rem .6rem 1rem;
+}
+body.ingebed .kast { padding: .7rem; }
+body.ingebed .statusregel { padding: .4rem .2rem .1rem; }

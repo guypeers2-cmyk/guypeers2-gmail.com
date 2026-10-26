@@ -51,6 +51,7 @@ const CHIPS = [
   { label: "⚠️ Privacy", tekst: "Mijn BSN is 123456789, kunnen jullie die gebruiken?" },
   { label: "🤝 Escalatie", tekst: "Dit is belachelijk, ik geef het op, ik wil een menselijke medewerker spreken." },
   { label: "✅ Ja (goedkeuren)", tekst: "ja" },
+  { label: "🕹️ Pac-Man", actie: "arcade" },
   { label: "🗑 Nieuwe sessie", actie: "reset" },
 ];
 
@@ -308,6 +309,37 @@ async function zend(tekst) {
   }
 }
 
+/* ---------------- Arcade ---------------- */
+
+const ARCADE_PANEEL = $("#arcade-paneel");
+const ARCADE_FRAME = $("#arcade-frame");
+const ARCADE_KNOP = $("#arcade-knop");
+
+function zetArcade(open) {
+  if (!ARCADE_PANEEL || !ARCADE_FRAME || !ARCADE_KNOP) return;
+  ARCADE_PANEEL.hidden = !open;
+  ARCADE_KNOP.setAttribute("aria-expanded", String(open));
+  if (open) {
+    // pas laden als de Baas het echt opent; daarna blijft het spel staan
+    const bron = ARCADE_FRAME.getAttribute("src");
+    if (!bron || bron === "about:blank") {
+      ARCADE_FRAME.setAttribute("src", "/pacman/?ingebed=1");
+    }
+    ARCADE_FRAME.focus();
+  }
+}
+
+if (ARCADE_KNOP) {
+  ARCADE_KNOP.addEventListener("click", () => zetArcade(ARCADE_PANEEL.hidden));
+}
+if ($("#arcade-sluit")) {
+  $("#arcade-sluit").addEventListener("click", () => zetArcade(false));
+}
+document.addEventListener("keydown", (e) => {
+  // Esc sluit de arcade, ook als de focus in het spel staat
+  if (e.key === "Escape" && ARCADE_PANEEL && !ARCADE_PANEEL.hidden) zetArcade(false);
+});
+
 /* ---------------- Chips ---------------- */
 
 function laadChips() {
@@ -319,6 +351,7 @@ function laadChips() {
     knop.textContent = chip.label;
     knop.addEventListener("click", () => {
       if (chip.actie === "reset") { wisSessie(); return; }
+      if (chip.actie === "arcade") { zetArcade(true); return; }
       zend(chip.tekst);
     });
     houder.appendChild(knop);
