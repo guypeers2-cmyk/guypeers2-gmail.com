@@ -62,7 +62,26 @@ body.toegankelijk .agent-kaart { line-height: 1.75; }
 .merk h1 { font-size: 1.15rem; letter-spacing: .02em; }
 .merk p { font-size: .78rem; color: var(--tekst-dim); }
 
-.stats { display: flex; gap: 1.4rem; }
+.arcade-link {
+  order: 2;
+  margin-left: auto;
+  font-size: .8rem;
+  font-weight: 600;
+  color: #ffe600;
+  text-decoration: none;
+  border: 1px solid rgba(255, 230, 0, .45);
+  border-radius: 999px;
+  padding: .35rem .85rem;
+  transition: background .15s, border-color .15s;
+}
+.arcade-link:hover { background: rgba(255, 230, 0, .12); border-color: #ffe600; }
+
+.stats { display: flex; gap: 1.4rem; order: 3; }
+
+@media (max-width: 720px) {
+  .arcade-link { order: 3; margin-left: 0; }
+  .stats { order: 2; }
+}
 .stat { display: flex; flex-direction: column; align-items: center; }
 .stat .waarde { font-size: 1.25rem; font-weight: 700; color: var(--accent); }
 .stat .waarde.groen { color: var(--groen); }

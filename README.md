@@ -8,6 +8,7 @@ zwijg-protocol en het autonome Ja/Nee-leveringsprotocol — geïmplementeerd als
 deterministische, testbare en volledig transparante Python-kern met een webconsole eromheen.
 
 > **Geen dependencies.** De hele gids draait op de Python-standaardbibliotheek (3.9+).
+> Ook de arcade (`/pacman/`) heeft er geen: canvas, WebAudio en de Node-standaardtests.
 
 ---
 
@@ -33,9 +34,14 @@ python3 cli.py
 # Alle 18 knelpuntscenario's achter elkaar
 python3 cli.py --demo
 
-# Testbatterij (30 tests)
+# Testbatterij (58 Python-tests + 39 JS-tests)
 python3 -m unittest discover -s tests -v
+
+# Alleen de arcade-tests (spelkern, console, editor, keuring)
+node --test tests/pacman_*.test.mjs
 ```
+
+De arcade hangt onder dezelfde server: **http://localhost:8080/pacman/**
 
 ---
 
@@ -122,10 +128,81 @@ gids/
 ├── kwaliteit.py    # Agent 16: privacyveilige leerlog + statistieken
 └── state.py        # Ja/Nee-goedkeuringsstatus (serialiseerbaar)
 web/                # console: index.html + styles.css + app.js
-serve.py            # stdlib webserver (statisch + JSON-API + /api/statistieken)
+web/pacman/         # de arcade: maze.js · validatie.js · engine.js · app.js
+                    #            + editor.html + editor.js + pacman.css
+serve.py            # stdlib webserver (statisch + JSON-API + /pacman/)
 cli.py              # interactieve terminal + --demo
-tests/              # 37 tests: zwijg-protocol, routing, Ja/Nee, leerlog
+tests/              # 58 Python-tests + 39 JS-tests (node --test)
 data/               # runtime: kwaliteitslog (niet in git)
+```
+
+---
+
+## 🕹️ Pac-Man — de Gids Arcade
+
+Onder `web/pacman/` staat een volledige herbouw van de klassieke arcade:
+28 × 31 doolhof, vier spoken met eigen jachtgedrag, energizers, kers, levels,
+levens, highscore, geluid en een doolhof-editor. **Nul dependencies** — het draait
+op canvas en de WebAudio-API, en de spellogica is pure JavaScript zonder DOM.
+
+```
+/pacman/          de kast: spelen
+/pacman/editor.html   zelf een level tekenen
+```
+
+### De spelkern (bewust DOM-vrij)
+
+| Bestand | Rol |
+|---------|-----|
+| `maze.js` | de klassieke indeling als tekst: één teken per tegel (één bron van waarheid) |
+| `engine.js` | beweging, spoken-AI, energizers, levels, tekenen — geen DOM, geen `window` |
+| `validatie.js` | keurt een doolhof: vorm, hokdeur, bereikbaarheid, spoken buiten |
+| `app.js` | alleen presentatie: toetsen, vegen, geluid, scorebord, overlays |
+| `editor.js` | tekenen met de muis, symmetrie, keuring, opslaan als JSON |
+
+Beweging gaat **tegel tot tegel** (`van → naar`, voortgang `t`), niet met vrije
+snelheidsvectoren. Daardoor blijven muren hard, worden bochten nooit afgesneden en
+is de simulatie frame-rate-onafhankelijk — en dus deterministisch testbaar.
+
+### De vier spoken
+
+| Spook | Doel dat het nastreeft |
+|-------|------------------------|
+| 🔴 Blinky | Pac-Man zelf |
+| 🩷 Pinky | vier tegels vóór Pac-Man |
+| 🩵 Inky | de verdubbeling van Blinky's positie ten opzichte van twee tegels vóór Pac-Man |
+| 🟠 Clyde | Pac-Man, maar vlucht naar zijn eigen hoek zodra hij binnen acht tegels komt |
+
+Met een energizer vluchten ze (het verst verwijderde hoekpunt), en wie gegeten wordt
+keert als **ogen** terug naar het hok om er even later weer uit te komen.
+
+### Het doolhof-editor
+
+De editor tekent met de muis of een vinger, spiegelt optioneel links/rechts en keurt
+elke wijziging meteen. Opslaan zet het level in `localStorage` en opent
+`index.html?doolhof=eigen`; de console keurt dat level bij het laden opnieuw en valt
+bij fouten terug op het klassieke doolhof. Exporteren kan als JSON:
+
+```json
+{ "rijen": ["############################", "… 31 rijen van 28 tekens …"] }
+```
+
+De keuring weigert een level als de hokdeur ontbreekt, er een muur of punt in het hok
+staat, Pac-Man op een muur start, een punt onbereikbaar is of de spoken het hok niet
+uit kunnen. Waarschuwingen (weinig punten, geen energizers) blokkeren niet.
+
+### Testen zonder browser
+
+De JS-tests draaien met `node --test`: de spelkern headless, en `tests/dom-harnas.mjs`
+bootst genoeg DOM na om `app.js` en `editor.js` écht uit te voeren — toetsen, klikken,
+vegen, canvas, `localStorage`. Zo is de presentatielaag geen blinde vlek:
+
+```
+tests/pacman_engine.test.mjs     17 tests   muren, hok, energizers, levels, determinisme
+tests/pacman_validatie.test.mjs   9 tests   keuring van een doolhof
+tests/pacman_console.test.mjs     6 tests   app.js: HUD, overlays, invoer, highscore
+tests/pacman_editor.test.mjs      7 tests   editor.js: schilderen, opslaan, JSON
+tests/test_pacman.py             20 tests   doolhof, bestanden, webserver, JS-suite
 ```
 
 ---
@@ -161,6 +238,8 @@ persona's zijn inwisselbaar.**
 - [x] Webconsole + CLI + 37 tests (alle groen)
 - [x] Kwaliteits- & Feedback-Agent: privacyveilige leerlog + statistiekdashboard + `/api/statistieken` (v1.1)
 - [x] Sessiepersistentie: gesprek overleeft een pagina-verversing (localStorage + sessie-id)
+- [x] Pac-Man-arcade: volledige spelkern, vier spoken, levels, geluid, doolhof-editor
+- [x] Testharnas zonder browser: `app.js` en `editor.js` worden echt uitgevoerd in Node
 - [ ] LLM-laag voor persona's (plug-in-punt klaar)
 - [ ] Automatische optimalisatie van signaalgewichten op basis van de leerlog
 

@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#05060f">
+  <title>Doolhof-editor — PAC-MAN</title>
+  <link rel="stylesheet" href="pacman.css">
+</head>
+<body>
+  <header class="topbalk">
+    <a class="terug" href="index.html">← Spelen</a>
+    <h1>DOOLHOF<span>·</span>EDITOR</h1>
+    <nav class="topnav">
+      <a href="/">Console</a>
+      <a href="index.html">PAC-MAN</a>
+    </nav>
+  </header>
+
+  <main class="wrap">
+    <section class="kast">
+      <div class="hud">
+        <div class="hud-vak">
+          <span class="hud-label">Punten</span>
+          <span class="hud-waarde" id="aantal-punten">0</span>
+        </div>
+        <div class="hud-vak">
+          <span class="hud-label">Energizers</span>
+          <span class="hud-waarde" id="aantal-energizers">0</span>
+        </div>
+        <div class="hud-vak">
+          <span class="hud-label">Muren</span>
+          <span class="hud-waarde" id="aantal-muren">0</span>
+        </div>
+        <div class="hud-vak">
+          <span class="hud-label">Status</span>
+          <span class="hud-waarde" id="editor-status">geldig</span>
+        </div>
+      </div>
+
+      <div class="scherm">
+        <canvas id="editor-doek" width="672" height="744"
+                aria-label="Tekenveld van 28 bij 31 tegels"></canvas>
+      </div>
+
+      <div class="bediening gereedschap" role="toolbar" aria-label="Gereedschap">
+        <button type="button" class="knop actief" data-gereedschap="muur" aria-pressed="true"># Muur</button>
+        <button type="button" class="knop" data-gereedschap="punt" aria-pressed="false">· Punt</button>
+        <button type="button" class="knop" data-gereedschap="energizer" aria-pressed="false">○ Energizer</button>
+        <button type="button" class="knop" data-gereedschap="leeg" aria-pressed="false">␣ Leeg</button>
+        <button type="button" class="knop" data-gereedschap="deur" aria-pressed="false">═ Deur</button>
+      </div>
+
+      <div class="bediening">
+        <button type="button" class="knop" id="knop-symmetrie" aria-pressed="true">↔ Spiegel</button>
+        <button type="button" class="knop" id="knop-vullen">Vul met punten</button>
+        <button type="button" class="knop" id="knop-standaard">Standaard level</button>
+        <button type="button" class="knop" id="knop-wissen">Leegmaken</button>
+        <button type="button" class="knop primair" id="knop-opslaan">Opslaan &amp; spelen</button>
+      </div>
+
+      <p class="statusregel" id="editor-melding" aria-live="polite">
+        Teken met de muis of met je vinger. Het hok (rij 12–15) moet dicht blijven.
+      </p>
+    </section>
+
+    <aside class="uitleg">
+      <h2>Controle</h2>
+      <ul class="controle" id="controle-lijst">
+        <li>Nog geen controle uitgevoerd.</li>
+      </ul>
+
+      <h2>Spelregels voor een geldig doolhof</h2>
+      <ul class="toetsen">
+        <li>Precies 31 rijen van 28 tekens.</li>
+        <li>Pac-Man start op <code>rij 23, kolom 13</code> — daar mag geen muur staan.</li>
+        <li>De hokdeur staat op <code>rij 12, kolom 13</code> en is het enige gat naar het hok.</li>
+        <li>Elk punt moet bereikbaar zijn; punten ín het hok tellen niet.</li>
+        <li>De spoken moeten vanuit het hok naar buiten kunnen.</li>
+      </ul>
+
+      <h2>Opslaan</h2>
+      <p>‘Opslaan &amp; spelen’ bewaart je level in deze browser en opent meteen
+        <code>index.html?doolhof=eigen</code>. Met ‘Standaard level’ zet je het
+        klassieke doolhof terug.</p>
+
+      <details class="json-blok">
+        <summary>JSON importeren / exporteren</summary>
+        <textarea id="json-veld" spellcheck="false" placeholder='{"rijen": ["####…", "…"]}'></textarea>
+        <div class="bediening">
+          <button type="button" class="knop" id="knop-import">Importeren</button>
+          <button type="button" class="knop" id="knop-export">Exporteren</button>
+        </div>
+      </details>
+    </aside>
+  </main>
+
+  <script src="maze.js"></script>
+  <script src="validatie.js"></script>
+  <script src="engine.js"></script>
+  <script src="editor.js"></script>
+</body>
+</html>
