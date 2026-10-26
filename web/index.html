@@ -15,6 +15,9 @@
         <p>Autonoom multi-agent ecosysteem · 18 agenten · 1 spreekt, 17 zwijgen</p>
       </div>
     </div>
+    <button type="button" class="arcade-link" id="arcade-knop"
+            aria-controls="arcade-paneel" aria-expanded="false"
+            title="Pac-Man spelen zonder de console te verlaten">🕹️ Arcade</button>
     <div class="stats" id="stats">
       <div class="stat"><span class="waarde" id="stat-beslissingen">0</span><span class="label">router­beslissingen</span></div>
       <div class="stat"><span class="waarde groen">1</span><span class="label">nu actief</span></div>
@@ -22,6 +25,24 @@
       <div class="stat"><span class="waarde amber">3</span><span class="label">toezicht op achtergrond</span></div>
     </div>
   </header>
+
+  <!-- Arcade: Pac-Man in een eigen venster, zodat het spel nooit met de console botst -->
+  <section class="arcade-paneel" id="arcade-paneel" hidden aria-label="Pac-Man">
+    <header class="arcade-kop">
+      <h2>🕹️ De Gids Arcade</h2>
+      <div class="arcade-acties">
+        <a href="/pacman/" target="_blank" rel="noopener">Open op volledig scherm ↗</a>
+        <a href="/pacman/editor.html" target="_blank" rel="noopener">Doolhof-editor ↗</a>
+        <button type="button" class="arcade-sluit" id="arcade-sluit" aria-label="Arcade sluiten">✕</button>
+      </div>
+    </header>
+    <iframe id="arcade-frame" title="Pac-Man spelen" src="about:blank" loading="lazy"
+            referrerpolicy="same-origin"></iframe>
+    <p class="arcade-voetnoot">
+      Toetsen: pijltjes of WASD · <kbd>P</kbd> pauze · <kbd>Enter</kbd> nieuw spel.
+      Klik eerst in het speelveld zodat het toetsenbord daar naartoe gaat.
+    </p>
+  </section>
 
   <main class="layout">
 

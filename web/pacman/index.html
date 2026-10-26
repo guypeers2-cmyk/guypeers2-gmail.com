@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#05060f">
+  <title>PAC-MAN — De Gids Arcade</title>
+  <link rel="stylesheet" href="pacman.css">
+</head>
+<body>
+  <header class="topbalk">
+    <a class="terug" href="/">← De Gids</a>
+    <h1>PAC<span>·</span>MAN</h1>
+    <nav class="topnav">
+      <a href="editor.html">Doolhof-editor</a>
+      <a href="/">Console</a>
+    </nav>
+  </header>
+
+  <main class="wrap">
+    <section class="kast" aria-label="Speelkast">
+      <div class="hud">
+        <div class="hud-vak">
+          <span class="hud-label">Score</span>
+          <span class="hud-waarde" id="hud-score">0</span>
+        </div>
+        <div class="hud-vak">
+          <span class="hud-label">Highscore</span>
+          <span class="hud-waarde" id="hud-highscore">0</span>
+        </div>
+        <div class="hud-vak">
+          <span class="hud-label">Niveau</span>
+          <span class="hud-waarde" id="hud-niveau">1</span>
+          <span class="hud-sub" id="hud-niveau-naam">Klassiek</span>
+        </div>
+        <div class="hud-vak">
+          <span class="hud-label">Stand</span>
+          <span class="hud-waarde klein" id="hud-moeilijkheid">Normaal</span>
+        </div>
+        <div class="hud-vak">
+          <span class="hud-label">Levens</span>
+          <span class="hud-waarde levens" id="hud-levens" aria-label="3 levens"></span>
+        </div>
+      </div>
+
+      <div class="scherm">
+        <canvas id="doek" width="896" height="992" tabindex="0"
+                aria-label="Speelveld van Pac-Man: 28 bij 31 tegels"
+                role="img"></canvas>
+        <div class="overlay" id="overlay" hidden>
+          <p class="overlay-klein" id="overlay-klein">De Gids Arcade</p>
+          <h2 id="overlay-titel">Klaar?</h2>
+          <p class="overlay-tekst" id="overlay-tekst">Eet alle punten, ontwijk de spoken.</p>
+          <div class="overlay-knoppen" id="overlay-knoppen">
+            <button type="button" class="knop primair" data-actie="start">Start spel</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="bediening">
+        <button type="button" class="knop" id="knop-nieuw">Nieuw spel</button>
+        <button type="button" class="knop" id="knop-pauze">Pauze</button>
+        <button type="button" class="knop" id="knop-geluid" aria-pressed="true">🔊 Geluid</button>
+        <button type="button" class="knop" id="knop-rooster" aria-pressed="false"># Rooster</button>
+      </div>
+
+      <div class="dpad" aria-label="Richtingknoppen">
+        <button type="button" data-richting="omhoog" aria-label="Omhoog">▲</button>
+        <button type="button" data-richting="links" aria-label="Links">◀</button>
+        <button type="button" data-richting="omlaag" aria-label="Omlaag">▼</button>
+        <button type="button" data-richting="rechts" aria-label="Rechts">▶</button>
+      </div>
+
+      <p class="statusregel" id="statusregel" aria-live="polite">
+        244 punten te gaan · 4 energizers · 3 levens
+      </p>
+    </section>
+
+    <aside class="uitleg">
+      <h2>Zo speel je</h2>
+      <ul class="toetsen">
+        <li><kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd> of <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> — sturen</li>
+        <li><kbd>P</kbd> of <kbd>Spatie</kbd> — pauze</li>
+        <li><kbd>Enter</kbd> — nieuw spel</li>
+        <li><kbd>M</kbd> — geluid aan/uit</li>
+        <li>Op mobiel: veeg over het veld of gebruik de knoppen</li>
+      </ul>
+
+      <h2>De regels</h2>
+      <p>Eet alle <strong>244 punten</strong> leeg. De vier grote <strong>energizers</strong>
+        maken de spoken even eetbaar: 200, 400, 800 en 1600 punten op rij.</p>
+      <p>Na 70 punten verschijnt er een <strong>kers</strong> onder het spokenhok (100 punten).</p>
+
+      <h2>De vier spoken</h2>
+      <ul class="spoken">
+        <li><span class="stip blinky"></span><strong>Blinky</strong> jaagt recht op je af</li>
+        <li><span class="stip pinky"></span><strong>Pinky</strong> mikt vier tegels vóór je</li>
+        <li><span class="stip inky"></span><strong>Inky</strong> rekent met Blinky's positie</li>
+        <li><span class="stip clyde"></span><strong>Clyde</strong> vlucht naar zijn eigen hoek</li>
+      </ul>
+
+      <h2>Vijf doolhoven</h2>
+      <p>Het klassieke doolhof plus vier gegenereerde varianten. Kies er een via
+        <em>Level kiezen</em> op het startscherm; je laatste keuze wordt onthouden.</p>
+
+      <h2>Vier standen</h2>
+      <ul class="toetsen">
+        <li><strong>🌱 Chill</strong> — trage spoken, lang bang, geen haast</li>
+        <li><strong>⚖️ Normaal</strong> — zoals de arcade het bedoelde</li>
+        <li><strong>🔥 Arcade</strong> — snellere spoken, korter bang, 1,5× punten</li>
+        <li><strong>💀 Munt-op</strong> — één leven, 2× punten</li>
+      </ul>
+
+      <h2>Zelf bouwen</h2>
+      <p>Open de <a href="editor.html">doolhof-editor</a> om je eigen level te tekenen.
+        De editor controleert of het hok dicht is en of elk punt bereikbaar is.</p>
+
+      <p class="klein">Klassieke arcade, herbouwd zonder dependencies: dezelfde
+        spellogica draait in de browser en in de Node-tests.</p>
+    </aside>
+  </main>
+
+  <script src="maze.js"></script>
+  <script src="validatie.js"></script>
+  <script src="generator.js"></script>
+  <script src="levels.js"></script>
+  <script src="engine.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

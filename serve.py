@@ -7,6 +7,7 @@ Starten:   python3 serve.py          (poort 8080, bereikbaar op 0.0.0.0)
 
 Endpoints:
     GET  /                 → de console (web/index.html)
+    GET  /pacman/          → de arcade: Pac-Man met doolhof-editor
     GET  /api/agenten      → volledig agentenregister (18 agenten)
     GET  /api/statistieken → kwaliteitslog: beslissingen per agent (Agent 16)
     POST /api/bericht      → {"tekst": "...", "state": {...}, "sessie": "..."} → routering + antwoord
@@ -24,6 +25,7 @@ from gids import GespreksState, alle_agenten, verwerk
 from gids.kwaliteit import KwaliteitsAgent
 
 WEBMAP = Path(__file__).resolve().parent / "web"
+PACMANMAP = WEBMAP / "pacman"
 POORT = int(os.environ.get("PORT", "8080"))
 
 # Agent 16: de Kwaliteits- & Feedback-Agent draait mee op de achtergrond.
@@ -46,6 +48,11 @@ class GidsHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path in ("/", "/index.html"):
             self._bestand(WEBMAP / "index.html")
+        elif self.path == "/pacman":
+            # relatieve paden (styles.css, app.js) vragen om een echte map
+            self._omleiden("/pacman/")
+        elif self.path.split("?")[0] in ("/pacman/", "/pacman/index.html"):
+            self._bestand(PACMANMAP / "index.html")
         elif self.path == "/api/agenten":
             self._json({
                 "agenten": [
@@ -66,7 +73,8 @@ class GidsHandler(BaseHTTPRequestHandler):
         elif self.path == "/api/statistieken":
             self._json(KWALITEIT.statistieken())
         elif self.path.startswith("/"):
-            doel = (WEBMAP / self.path.lstrip("/")).resolve()
+            # query-strings (?ingebed=1, ?doolhof=eigen) horen niet bij het bestand
+            doel = (WEBMAP / self.path.split("?")[0].lstrip("/")).resolve()
             if WEBMAP in doel.parents and doel.is_file():
                 self._bestand(doel)
             else:
@@ -114,6 +122,12 @@ class GidsHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)
+
+    def _omleiden(self, doel):
+        self.send_response(301)
+        self.send_header("Location", doel)
+        self.send_header("Content-Length", "0")
+        self.end_headers()
 
     def _fout(self, code, melding):
         self._json({"fout": melding}, code)
