@@ -146,9 +146,11 @@ levens, highscore, geluid en een doolhof-editor. **Nul dependencies** — het dr
 op canvas en de WebAudio-API, en de spellogica is pure JavaScript zonder DOM.
 
 ```
-/pacman/          de kast: spelen
-/pacman/editor.html   zelf een level tekenen
+/pacman/                de kast: spelen
+/pacman/editor.html     zelf een level tekenen
 ```
+
+![Het klassieke doolhof: 244 punten, vier energizers, het spokenhok in het midden](docs/pacman-doolhof.png)
 
 ### De spelkern (bewust DOM-vrij)
 
