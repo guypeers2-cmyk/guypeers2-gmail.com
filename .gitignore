@@ -3,4 +3,8 @@ __pycache__/
 .DS_Store
 *.log
 .venv/
-data/
+
+# Grote importbestanden (KBO-dumps, eigen exports) horen niet in git.
+data/import-*.csv
+data/*.zip
+data/runtime/

@@ -1,136 +1,214 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""De Universele Gids — webconsole (pure Python-stdlib, geen dependencies).
+"""Bedrijvenkaart België — webserver (pure Python-stdlib, geen dependencies).
 
-Starten:   python3 serve.py          (poort 8080, bereikbaar op 0.0.0.0)
+Starten:   python3 serve.py            (poort 8080, bereikbaar op 0.0.0.0)
            PORT=9000 python3 serve.py
 
-Endpoints:
-    GET  /                 → de console (web/index.html)
-    GET  /api/agenten      → volledig agentenregister (18 agenten)
-    GET  /api/statistieken → kwaliteitslog: beslissingen per agent (Agent 16)
-    POST /api/bericht      → {"tekst": "...", "state": {...}, "sessie": "..."} → routering + antwoord
+Routes:
+    GET  /                      → de bedrijvenkaart (web/index.html)
+    GET  /kaart, /kaart/        → idem
+    GET  /console               → de oude agentenconsole (web/console.html)
+    GET  /api/bedrijven         → alle vestigingen + metadata (JSON)
+    GET  /api/sectoren          → sectoroverzicht met kleuren en aantallen
+    GET  /api/import/status     → status van de KBO-import
+    POST /api/import            → start de KBO/CSE-import op de achtergrond
+    GET  /*                     → statische bestanden uit web/
 
-De volledige routeringslogica draait server-side in de gids-package;
-de browser is puur presentatielaag.
+De kaart draait volledig in de browser; de server levert alleen bestanden en data.
 """
 
 import json
 import os
+import sys
+import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from urllib.parse import urlparse
 
-from gids import GespreksState, alle_agenten, verwerk
-from gids.kwaliteit import KwaliteitsAgent
-
-WEBMAP = Path(__file__).resolve().parent / "web"
+WORTEL = Path(__file__).resolve().parent
+WEBMAP = WORTEL / "web"
+DATAJSON = WEBMAP / "data" / "bedrijven.json"
 POORT = int(os.environ.get("PORT", "8080"))
-
-# Agent 16: de Kwaliteits- & Feedback-Agent draait mee op de achtergrond.
-KWALITEIT = KwaliteitsAgent()
 
 MIME = {
     ".html": "text/html; charset=utf-8",
     ".css": "text/css; charset=utf-8",
     ".js": "application/javascript; charset=utf-8",
+    ".json": "application/json; charset=utf-8",
+    ".csv": "text/csv; charset=utf-8",
+    ".geojson": "application/geo+json; charset=utf-8",
     ".svg": "image/svg+xml",
     ".png": "image/png",
+    ".jpg": "image/jpeg",
     ".ico": "image/x-icon",
+    ".woff2": "font/woff2",
+    ".txt": "text/plain; charset=utf-8",
+}
+
+# Eén import tegelijk; de status is leesbaar via /api/import/status.
+IMPORT_SLOT = threading.Lock()
+IMPORT_STATUS = {
+    "bezig": False,
+    "fase": "wachten",
+    "melding": "Nog geen import gestart.",
+    "voortgang": 0,
+    "resultaat": None,
 }
 
 
-class GidsHandler(BaseHTTPRequestHandler):
-    server_version = "UniverseleGids/1.0"
+class KaartHandler(BaseHTTPRequestHandler):
+    server_version = "Bedrijvenkaart/1.0"
+    protocol_version = "HTTP/1.1"
 
-    # ---------------- GET: statische console + register-API ----------------
+    # ---------------- GET ----------------
     def do_GET(self):
-        if self.path in ("/", "/index.html"):
-            self._bestand(WEBMAP / "index.html")
-        elif self.path == "/api/agenten":
-            self._json({
-                "agenten": [
-                    {
-                        "id": a["id"],
-                        "nummer": a["nummer"],
-                        "naam": a["name"],
-                        "rol": a["role"],
-                        "categorie": a.get("categorie", "overig"),
-                        "emoji": a.get("emoji", "🏛️"),
-                        "spreekt": a.get("spreekt", False),
-                        "monitoring": a.get("monitoring", ""),
-                        "trigger": a.get("trigger"),
-                    }
-                    for a in alle_agenten()
-                ]
-            })
-        elif self.path == "/api/statistieken":
-            self._json(KWALITEIT.statistieken())
-        elif self.path.startswith("/"):
-            doel = (WEBMAP / self.path.lstrip("/")).resolve()
-            if WEBMAP in doel.parents and doel.is_file():
-                self._bestand(doel)
-            else:
-                self._fout(404, "Onbekende route — de Systeem-Guard vangt dit op.")
-        else:
-            self._fout(400, "Ongeldig verzoek.")
+        pad = urlparse(self.path).path
 
-    # ---------------- POST: bericht door de Hoofdrouter ----------------
-    def do_POST(self):
-        if self.path != "/api/bericht":
-            self._fout(404, "Onbekende route — de Systeem-Guard vangt dit op.")
+        if pad in ("/", "/index.html", "/kaart", "/kaart/"):
+            self._bestand(WEBMAP / "index.html", cache=False)
             return
+        if pad in ("/console", "/console/"):
+            self._bestand(WEBMAP / "console.html", cache=False)
+            return
+        if pad == "/api/bedrijven":
+            self._data()
+            return
+        if pad == "/api/sectoren":
+            self._sectoren()
+            return
+        if pad == "/api/import/status":
+            self._json(dict(IMPORT_STATUS))
+            return
+
+        self._statisch(pad)
+
+    # ---------------- POST ----------------
+    def do_POST(self):
+        pad = urlparse(self.path).path
+        if pad == "/api/import":
+            self._start_import()
+            return
+        self._fout(404, "Onbekende route.")
+
+    # ---------------- API ----------------
+    def _data(self):
+        if not DATAJSON.exists():
+            self._fout(503, "Kaartdata ontbreekt. Voer 'python3 scripts/bouw_data.py' uit.")
+            return
+        body = DATAJSON.read_bytes()
+        self._verstuur(200, "application/json; charset=utf-8", body, cache=False)
+
+    def _sectoren(self):
+        if not DATAJSON.exists():
+            self._fout(503, "Kaartdata ontbreekt.")
+            return
+        data = json.loads(DATAJSON.read_text(encoding="utf-8"))
+        self._json({"sectoren": data.get("sectoren", []), "meta": data.get("meta", {})})
+
+    def _start_import(self):
+        if IMPORT_SLOT.locked():
+            self._fout(409, "Er loopt al een import.")
+            return
+
+        lengte = int(self.headers.get("Content-Length", 0) or 0)
         try:
-            lengte = int(self.headers.get("Content-Length", 0))
-            data = json.loads(self.rfile.read(lengte) or b"{}")
-            tekst = str(data.get("tekst", "")).strip()
-            if not tekst:
-                self._fout(400, "Leeg bericht — zeg me waar het over gaat.")
-                return
-            state = GespreksState.van_dict(data.get("state"))
-            resultaat = verwerk(tekst, state)
-            # Agent 16 logt elke afloop — privacyveilig (invoer wordt gemaskeerd).
-            KWALITEIT.noteer(tekst, resultaat, data.get("sessie") or "anoniem")
-            self._json({
-                "resultaat": resultaat.naar_dict(),
-                "state": state.naar_dict(),
-            })
-        except (ValueError, KeyError) as fout:
-            self._fout(400, f"Ongeldig verzoek: {fout}")
+            verzoek = json.loads(self.rfile.read(lengte) or b"{}") if lengte else {}
+        except ValueError:
+            self._fout(400, "Ongeldige JSON.")
+            return
+
+        def werk():
+            with IMPORT_SLOT:
+                IMPORT_STATUS.update({"bezig": True, "fase": "starten", "voortgang": 0,
+                                      "melding": "Import gestart…", "resultaat": None})
+                try:
+                    sys.path.insert(0, str(WORTEL / "scripts"))
+                    import kbo_import  # late import: alleen nodig bij gebruik
+
+                    def voortgang(fase, percentage, melding):
+                        IMPORT_STATUS.update({"fase": fase, "voortgang": percentage, "melding": melding})
+
+                    resultaat = kbo_import.importeer(
+                        doel_csv=WORTEL / "data" / "bedrijven.csv",
+                        doel_json=DATAJSON,
+                        limiet=int(verzoek.get("limiet") or 0),
+                        provincies=verzoek.get("provincies") or [],
+                        sectoren=verzoek.get("sectoren") or [],
+                        voortgang=voortgang,
+                    )
+                    IMPORT_STATUS["resultaat"] = resultaat
+                    IMPORT_STATUS["melding"] = (
+                        f"Klaar: {resultaat.get('vestigingen', 0):,} vestigingen "
+                        f"van {resultaat.get('bedrijven', 0):,} bedrijven."
+                    ).replace(",", ".")
+                except Exception as fout:  # noqa: BLE001 — status moet altijd eindigen
+                    IMPORT_STATUS["melding"] = f"Import mislukt: {fout}"
+                    IMPORT_STATUS["resultaat"] = {"fout": str(fout)}
+                finally:
+                    IMPORT_STATUS["bezig"] = False
+
+        threading.Thread(target=werk, daemon=True).start()
+        self._json({"gestart": True, "status": dict(IMPORT_STATUS)}, code=202)
+
+    # ---------------- statisch ----------------
+    def _statisch(self, pad):
+        ruw = pad.lstrip("/") or "index.html"
+        doel = (WEBMAP / ruw).resolve()
+        if WEBMAP not in doel.parents and doel != WEBMAP:
+            self._fout(403, "Geen toegang.")
+            return
+        if doel.is_dir():
+            doel = doel / "index.html"
+        if not doel.is_file():
+            self._fout(404, "Niet gevonden.")
+            return
+        # Alleen de meegeleverde bibliotheken mogen in de browsercache; eigen
+        # HTML/CSS/JS/data moet altijd vers zijn (na een import of aanpassing).
+        mag_cachen = ruw.startswith("vendor/")
+        self._bestand(doel, cache=mag_cachen)
+
+    def _bestand(self, pad: Path, cache=True):
+        try:
+            body = pad.read_bytes()
+        except OSError:
+            self._fout(404, "Niet gevonden.")
+            return
+        self._verstuur(200, MIME.get(pad.suffix, "application/octet-stream"), body, cache=cache)
 
     # ---------------- helpers ----------------
-    def _json(self, payload, code=200):
-        body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+    def _verstuur(self, code, inhoudstype, body: bytes, cache=True):
         self.send_response(code)
-        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Type", inhoudstype)
         self.send_header("Content-Length", str(len(body)))
-        self.send_header("Access-Control-Allow-Origin", "*")
+        if cache:
+            self.send_header("Cache-Control", "public, max-age=3600")
+        else:
+            self.send_header("Cache-Control", "no-store")
         self.end_headers()
         self.wfile.write(body)
 
-    def _bestand(self, pad: Path):
-        body = pad.read_bytes()
-        self.send_response(200)
-        self.send_header("Content-Type", MIME.get(pad.suffix, "application/octet-stream"))
-        self.send_header("Content-Length", str(len(body)))
-        self.end_headers()
-        self.wfile.write(body)
+    def _json(self, payload, code=200):
+        body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+        self._verstuur(code, "application/json; charset=utf-8", body, cache=False)
 
     def _fout(self, code, melding):
         self._json({"fout": melding}, code)
 
     def log_message(self, formaat, *args):
-        # Rustige loglijn: de Kwaliteitsagent wil geen ruis in de console.
-        print(f"[gids] {self.address_string()} {formaat % args}")
+        print(f"[kaart] {self.address_string()} {formaat % args}")
 
 
 def main():
-    server = ThreadingHTTPServer(("0.0.0.0", POORT), GidsHandler)
-    print(f"🏛️  De Universele Gids draait op http://0.0.0.0:{POORT}")
-    print("    18 agenten geladen · router actief · zwijg-protocol gehandhaafd")
+    if not DATAJSON.exists():
+        print("⚠  web/data/bedrijven.json ontbreekt — voer eerst uit: python3 scripts/bouw_data.py")
+    server = ThreadingHTTPServer(("0.0.0.0", POORT), KaartHandler)
+    print(f"🗺️  Bedrijvenkaart België draait op http://0.0.0.0:{POORT}")
+    print("    OpenStreetMap-tegels · KBO-import beschikbaar via /api/import")
     try:
         server.serve_forever()
     except KeyboardInterrupt:
-        print("\nSysteem gestopt.")
+        print("\nGestopt.")
 
 
 if __name__ == "__main__":

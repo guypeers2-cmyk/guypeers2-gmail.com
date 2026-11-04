@@ -311,3 +311,24 @@ body.toegankelijk .agent-kaart { line-height: 1.75; }
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-thumb { background: var(--rand); border-radius: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
+
+/* ---------------- Link naar de bedrijvenkaart ---------------- */
+.kaartlink {
+  margin-left: auto;
+  margin-right: 1.2rem;
+  color: var(--tekst);
+  text-decoration: none;
+  font-size: .82rem;
+  font-weight: 600;
+  border: 1px solid var(--rand);
+  border-radius: 9px;
+  padding: .42rem .7rem;
+  background: var(--paneel-2);
+  transition: border-color .15s, color .15s;
+  white-space: nowrap;
+}
+.kaartlink:hover { border-color: var(--accent); color: var(--accent); }
+body.toegankelijk .kaartlink { background: #fff; }
+@media (max-width: 900px) {
+  .kaartlink { margin-left: 0; margin-right: 0; order: 3; }
+}

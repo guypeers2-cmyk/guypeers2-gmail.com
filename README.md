@@ -1,169 +1,179 @@
-# 🏛️ De Universele Gids
+# 🗺️ Bedrijvenkaart België
 
-**Autonoom multi-agent ecosysteem — werkend prototype op `guypeers2-gmail.com`.**
+**Interactieve kaart van Belgische bedrijven op OpenStreetMap** — filter op sector,
+provincie, omvang en status; bekijk bedrijfsprofielen en zie waar de economie clustert.
 
-Dit repository bevat de volledige uitvoering van het master-systeemontwerp van de
-Opperwachter (de Baas): achttien gespecialiseerde agenten, één Hoofdrouter, een strikt
-zwijg-protocol en het autonome Ja/Nee-leveringsprotocol — geïmplementeerd als een
-deterministische, testbare en volledig transparante Python-kern met een webconsole eromheen.
+> **Geen dependencies.** De kaart draait op de Python-standaardbibliotheek + een
+> meegeleverde Leaflet-bundel. Geen build-stap, geen npm, geen API-sleutels.
 
-> **Geen dependencies.** De hele gids draait op de Python-standaardbibliotheek (3.9+).
+```bash
+python3 serve.py        # → http://localhost:8080
+```
 
 ---
 
-## De drie hoofdwetten (geïmplementeerd én bewezen)
+## Wat je krijgt
 
-| # | Wet | Implementatie | Bewijs |
-|---|-----|---------------|--------|
-| 1 | **Slechts één agent voert het woord** | `gids/router.py` kiest per invoer exact één specialist; alle 17 andere zwijgen | `tests/test_router.py::TestZwijgProtocol` |
-| 2 | **De Router beslist en trekt zich terug** | Agent 3 rangschikt en spreekt zelf nooit in de chat (net als agent 1 en 16) | `test_achtergrondagenten_zwijgen_altijd` |
-| 3 | **Elke levering sluit af met het Ja/Nee-protocol** | De afsluiting wordt centraal door de router toegevoegd — niemand kan hem vergeten | `test_elke_output_sluit_af_met_ja_nee` |
+| Onderdeel | Wat het doet |
+|---|---|
+| **Kaart** | OpenStreetMap-tegels (3 stijlen), markers per vestiging, clusters, heatmap |
+| **Markers** | Grootte = aantal werknemers, kleur = sector, hover = naam + stad |
+| **Filters** | Provincie, sector, werknemers (slider), status — alles direct gekoppeld aan de kaart |
+| **Zoeken** | Op naam, stad, postcode of BTW-nummer; suggesties + `/`-sneltoets |
+| **Detailpaneel** | Profiel met adres, BTW, omzet, oprichtingsjaar, alle vestigingen en een routelink |
+| **Statistieken** | Aantal bedrijven, vestigingen, werknemers en grootste sector — past zich aan je filters aan |
+| **Import** | Echte Belgische bedrijfsdata via KBO/BCE-open-data of je eigen CSV-export |
+| **Provinciegrenzen** | Echte grenzen (Natural Earth) voor de provincies en de provincie-lookup |
+
+Bij de start staan er **70 bedrijven met 242 vestigingen** in de kaart (demo-dataset).
 
 ---
 
 ## Snel starten
 
 ```bash
-# Webconsole (aanbevolen)
-python3 serve.py                 # → http://localhost:8080
+# 1. Server starten
+python3 serve.py                  # http://localhost:8080
 
-# Interactieve terminal-sessie
-python3 cli.py
+# 2. Eigen data inlezen (zie hieronder) — daarna de pagina herladen
+python3 scripts/kbo_import.py --bron ~/Downloads/kbo-open-data.zip --limiet 5000
 
-# Alle 18 knelpuntscenario's achter elkaar
-python3 cli.py --demo
+# 3. Tests
+python3 -m unittest discover -s tests -v      # 64 tests
+```
 
-# Testbatterij (30 tests)
-python3 -m unittest discover -s tests -v
+Poort aanpassen: `PORT=9000 python3 serve.py`.
+
+---
+
+## Eigen data inlezen
+
+De kaart leest `web/data/bedrijven.json`. Dat bestand maak je uit een CSV met een van
+deze twee opdrachten:
+
+### A. Eender welke CSV-export (CRM, handelsgids, studiedienst …)
+
+```bash
+python3 scripts/kbo_import.py --bron mijn-bedrijven.csv
+```
+
+Kolomnamen worden automatisch herkend — Nederlands, Frans of Engels:
+
+| veld | herkende kolomnamen |
+|---|---|
+| naam | `naam`, `name`, `bedrijfsnaam`, `company`, `firma`, `denomination` |
+| adres | `straat`, `street`, `adres`, `address` · `postcode`, `zip`, `postal_code` · `stad`, `gemeente`, `city` |
+| sector | `sector`, `branche`, `industry`, `categorie`, `nace`, `activiteit` |
+| cijfers | `werknemers`, `employees`, `personeel` · `omzet`, `revenue` · `opgericht`, `founded` |
+| overig | `btw`, `vat`, `ondernemingsnummer` · `provincie`, `province` · `website`, `telefoon`, `status` |
+| optioneel | `lat` + `lon` (als die ontbreken wordt er gegeocodeerd via de postcode) |
+
+Komma, puntkomma en tab werken allemaal; UTF-8 en Latin-1 ook.
+
+### B. KBO/BCE open data (officiële Belgische bedrijfsdata)
+
+Download de open data bij de FOD Economie
+(<https://kbopub.economie.fgov.be/kbo-open-data/>) en wijs de zip of de uitgepakte
+map aan:
+
+```bash
+python3 scripts/kbo_import.py --bron kbo-open-data.zip --limiet 5000
+```
+
+Het script herkent `enterprise.csv`, `establishment.csv`, `address.csv`,
+`denomination.csv` en `activity.csv`, koppelt de adressen aan de vestigingen,
+maakt van de NACE-code een sector en geocodeert via de postcode.
+
+**Handig om te weten**
+
+- `--limiet 5000` houdt de dataset hanteerbaar en **stratificeert**: de selectie blijft
+  gespreid over alle provincies en sectoren (0 = alles importeren).
+- `--provincies "Antwerpen,Limburg"` en `--sectoren "Zorg & biotech"` filteren tijdens de import.
+- Adressen worden gegeocodeerd met `data/postcodes.csv` (postcode → gemeente +
+  coördinaten). Alleen postcodes: de punten krijgen een kleine, deterministische
+  spreiding binnen de gemeente, zodat ze niet allemaal op één punt stapelen. Het veld
+  `precisie` (`adres` of `postcode`) zegt welke nauwkeurigheid een rij heeft.
+- **Er gaan geen gegevens naar externe diensten.**
+
+### C. Alleen de JSON herbouwen
+
+```bash
+python3 scripts/bouw_data.py                  # data/bedrijven.csv → web/data/bedrijven.json
+python3 scripts/bouw_data.py --csv eigen.csv  # ander bronbestand
 ```
 
 ---
 
-## Architectuur
+## Projectstructuur
 
 ```
-                        ┌──────────────────────────────┐
-   👑 De Baas ─────────▶│  WEBCONSOLE / CLI (presentatie) │
-                        └──────────────┬───────────────┘
-                                       │ POST /api/bericht
-                        ┌──────────────▼───────────────┐
-                        │   GIDS-PACKAGE (Python-kern)  │
-                        │                               │
-                        │  ❶ PRIVACY-SCAN (harde trigger)│──▶ Agent 13 grijpt direct in
-                        │  ❷ JA/NEE-STATE-ORCHESTRATIE  │──▶ 'ja' → Agent 12 · 'nee…' → revisie
-                        │  ❸ SIGNAALSCORING (15 agenten) │──▶ gewogen regex-signalen
-                        │  ❹ TYPO-DETECTIE               │──▶ Agent 9 herstelt tikfouten
-                        │  ❺ UITVAL (fallback)           │──▶ Agent 14 vangt alles op
-                        │  ❻ LEVERING: exact ÉÉN stem    │──▶ + Ja/Nee-afsluiting
-                        │                               │
-                        │  Toezicht op de achtergrond:   │
-                        │  🛡️ Agent 1 · 🧭 Agent 3 · 📈 Agent 16 │
-                        └──────────────────────────────┘
+web/
+├── index.html              # de kaartpagina
+├── kaart.js                # kaartlogica (vanilla JS + Leaflet)
+├── kaart.css               # lichte dashboardstijl
+├── console.html            # de oude agentenconsole (bereikbaar op /console)
+├── app.js, styles.css      # bij de console
+├── data/
+│   ├── bedrijven.json      # gegenereerde kaartdata
+│   └── provincies.geojson  # provinciegrenzen (vereenvoudigd)
+└── vendor/                 # Leaflet 1.9.4 + markercluster + heat (meegeleverd)
+scripts/
+├── gen_bedrijven.py        # demo-dataset genereren
+├── bouw_data.py            # CSV → JSON
+├── bouw_provincies.py      # provinciegrenzen vereenvoudigen
+├── kbo_import.py           # KBO/BCE of eigen CSV importeren + geocoderen
+└── geo.py                  # postcodes, provinciegrenzen, naamnormalisatie
+data/
+├── bedrijven.csv           # de dataset (demo of eigen import)
+├── postcodes.csv           # 2 756 postcodes met coördinaten
+└── BRONNEN.md              # herkomst en licenties
+serve.py                    # stdlib-webserver (statisch + JSON-API)
+tests/                      # 64 tests, waarvan 27 voor de kaart
 ```
 
-### Het routeringsprotocol (vaste volgorde, geen uitzonderingen)
+### Serverroutes
 
-1. **Privacy-scan** — gevoelige gegevens (BSN, IBAN, kaartnummers, wachtwoorden)
-   zijn een *harde trigger*: de Privacy-agent grijpt vóór alles in en maskeert.
-2. **Goedkeuringsstatus** — staat er een levering open? Dan activeert `ja` de
-   Proactieve Conversatie-Ontwerper (volgende stap) en start `nee, …` een revisie
-   bij dezelfde specialist. Een nieuwe domeinvraag routeert gewoon normaal.
-3. **Signaalscoring** — elke sprekende agent scoort op gewogen signaalpatronen
-   uit het register, aangevuld met contextheuristieken (korte luide uitroep →
-   Timmy; meerdere frustratiesignalen → HITL; …).
-4. **Typo-detectie** — bij laag domeinsignaal herstelt de Typo-Fixer korte
-   tikfouten via Levenshtein-afstand ("instelingen" → "instellingen").
-5. **Uitval** — geen enkel signaal? Dan vangt de Systeem-Guard op: de gebruiker
-   ziet nooit een kale foutmelding.
-6. **Levering** — de hoogst scorende specialist spreekt; alle anderen zwijgen
-   strikt; elke output eindigt met *"Is dit goed? (Ja / Nee of feedback)"*.
+| route | inhoud |
+|---|---|
+| `GET /` of `/kaart` | de kaartpagina |
+| `GET /console` | de oude agentenconsole |
+| `GET /api/bedrijven` | alle vestigingen + metadata |
+| `GET /api/sectoren` | sectoren met kleur en aantal |
+| `GET /api/import/status` | voortgang van een import |
+| `POST /api/import` | import starten (`{"limiet": 5000, "provincies": []}`) |
 
 ---
 
-## Het agentenregister
+## Data & licenties
 
-Bron: `gids/registry.py` — `AGENTS_REGISTRY` is het register van de Baas, 1-op-1
-overgenomen. `AGENT_UITBREIDING` voegt de uitvoeringslaag toe (signalen, gewichten,
-heuristieken, presentatie).
+| Bron | Gebruik | Licentie |
+|---|---|---|
+| [OpenStreetMap](https://www.openstreetmap.org/copyright) | kaarttegels | ODbL — attributie staat op de kaart |
+| [CARTO-basemaps](https://carto.com/attributions) | lichte/voyager-tegels | gratis tegel-CDN, attributie staat op de kaart |
+| [Natural Earth](https://www.naturalearthdata.com/) | provinciegrenzen | publiek domein |
+| [jief/zipcode-belgium](https://github.com/jief/zipcode-belgium) | postcodes + coördinaten (basis: bpost) | vrij te gebruiken |
+| [Leaflet](https://leafletjs.com/) + plugins | kaartbibliotheek | BSD-2 / MIT |
 
-| # | Agent | Categorie | Spreekt? | Domein |
-|---|-------|-----------|----------|--------|
-| 1 | Hoofdsupervisor & Eindinspecteur | Bestuur | nooit | kwaliteitswachter achter de schermen |
-| 2 | Opstartdeskundige & Marktonderzoeker | Business | ✅ | markt, app-trends, GTM |
-| 3 | Hoofdrouter & State-Orchestrator | Bestuur | nooit | kiest en trekt zich terug |
-| 4 | Dataspecialist | Business | ✅ | RAG, databases, feiten |
-| 5 | Agent Timmy | Frontlijn | ✅ | ongeduld, jeugd, korte uitroepen |
-| 6 | Agent Marit | Frontlijn | ✅ | tijdgebrek, shortcuts |
-| 7 | Agent Opa Foutje-Bedankt | Frontlijn | ✅ | geruststelling, faalangst |
-| 8 | De Jargon-Buster | Frontlijn | ✅ | technisch → mensentaal |
-| 9 | Typo-Fixer & Context-Hersteller | Frontlijn | ✅ | tikfouten herstellen |
-| 10 | Navigatie- & Pad-Expert | Frontlijn | ✅ | "waar vind ik…" |
-| 11 | Toegankelijkheids- & Contrast-Specialist | Frontlijn | ✅ | leesgemak (schakelt zelf de weergave om!) |
-| 12 | Proactieve Conversatie-Ontwerper | Frontlijn | ✅ | volgende logische stap na 'ja' |
-| 13 | Privacy- & Compliance-Agent | Veiligheid | ✅ | harde trigger, maskeert gegevens |
-| 14 | Systeem-Guard & Fallback | Veiligheid | ✅ | vangt storingen én alles onbekende op |
-| 15 | HITL-Escalatie | Veiligheid | ✅ | overdracht naar mens (met ticket) |
-| 16 | Kwaliteits- & Feedback-Agent | Veiligheid | nooit | continue optimalisatie |
-| 17 | Financieel Specialist | Business | ✅ | kosten, prijzen, marges |
-| 18 | Marketing Specialist | Business | ✅ | waardepropositie, conversie |
+De **demo-dataset** is verzonnen: bedrijfsnamen, BTW-nummers, werknemersaantallen en
+omzetten zijn gegenereerd met `scripts/gen_bedrijven.py`. De plaatsen, postcodes en
+coördinaten zijn echt. Zie `data/BRONNEN.md`.
 
 ---
 
-## Bestandsstructuur
+## Let op bij productie
 
-```
-gids/
-├── registry.py     # AGENTS_REGISTRY (de Baas) + uitvoeringslaag
-├── router.py       # De Hoofdrouter: het 6-stappenprotocol
-├── templates.py    # De 15 stemmen + revisie/bevestigingsmodi
-├── analyse.py      # onderwerp-extractie + jargonwoordenboek
-├── privacy.py      # harde trigger + maskering
-├── typo.py         # Levenshtein-herstel
-├── kwaliteit.py    # Agent 16: privacyveilige leerlog + statistieken
-└── state.py        # Ja/Nee-goedkeuringsstatus (serialiseerbaar)
-web/                # console: index.html + styles.css + app.js
-serve.py            # stdlib webserver (statisch + JSON-API + /api/statistieken)
-cli.py              # interactieve terminal + --demo
-tests/              # 37 tests: zwijg-protocol, routing, Ja/Nee, leerlog
-data/               # runtime: kwaliteitslog (niet in git)
-```
+- De standaard-OSM-tegels zijn bedoeld voor licht gebruik. Voor veel bezoekers:
+  eigen tegelbron of self-hosting ([OSM-tegelbeleid](https://operations.osmfoundation.org/policies/tiles/)).
+- `serve.py` is een eenvoudige stdlib-server: prima voor lokaal gebruik en demo's.
+  Voor productie zet je `web/` achter nginx/Caddy, of je host de statische bestanden
+  op een CDN.
+- De kaart werkt volledig client-side; alleen `/api/bedrijven` en de tegels gaan over
+  het netwerk.
 
 ---
 
-## De LLM-laag inpluggen
+## Wat is er met de oude console gebeurd?
 
-De stemmen in `gids/templates.py` zijn nu regelgebaseerde prototype-persona's: voorspelbaar,
-gratis en volledig offline testbaar. Voor productie vervang je elke stemfunctie door een
-LLM-aanroep **zonder de governance aan te raken**:
-
-```python
-# gids/templates.py — voorbeeld
-def opstart(ctx):
-    return llm_aanroep(
-        systeem=f"Jij bent {AGENTS_REGISTRY['agent_2_opstart']['name']}. {rolbeschrijving}. "
-                "Werk autonoom uit en eindig nooit met een open vraag.",
-        gebruiker=ctx["tekst"],
-    )
-```
-
-De router, het zwijg-protocol, de privacy-harde-trigger en het Ja/Nee-protocol blijven
-exact zoals ze zijn — dát is juist de kracht van deze scheiding: **governance is code,
-persona's zijn inwisselbaar.**
-
----
-
-## Status
-
-- [x] Agentenregister (18 agenten, register van de Baas als bron)
-- [x] Hoofdrouter met zwijg-protocol en transparant router-log
-- [x] Ja/Nee-goedkeuringsprotocol met revisie-cyclus
-- [x] Privacy-harde-trigger met maskering
-- [x] Webconsole + CLI + 37 tests (alle groen)
-- [x] Kwaliteits- & Feedback-Agent: privacyveilige leerlog + statistiekdashboard + `/api/statistieken` (v1.1)
-- [x] Sessiepersistentie: gesprek overleeft een pagina-verversing (localStorage + sessie-id)
-- [ ] LLM-laag voor persona's (plug-in-punt klaar)
-- [ ] Automatische optimalisatie van signaalgewichten op basis van de leerlog
-
----
-
-*De Universele Gids — v1.1.0 · "Eén agent spreekt, zeventien zwijgen, de Baas beslist."*
+De agentenconsole van *De Universele Gids* staat er nog: open `/console`
+(`web/console.html`). De kaart is de nieuwe startpagina, zoals gevraagd. De
+Python-kern in `gids/`, `cli.py` en de 37 originele tests werken ongewijzigd.

@@ -1,0 +1,5 @@
+{
+  "demo": true,
+  "bron": "demo-generator (scripts/gen_bedrijven.py)",
+  "opmerking": "Namen, BTW-nummers en cijfers zijn verzonnen; plaatsen en coördinaten zijn echt."
+}

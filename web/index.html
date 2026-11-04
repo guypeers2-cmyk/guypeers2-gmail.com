@@ -3,63 +3,189 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>De Universele Gids — Autonoom Multi-Agent Ecosysteem</title>
-  <link rel="stylesheet" href="styles.css">
+  <title>Bedrijvenkaart België — alle bedrijven op de kaart</title>
+  <meta name="description" content="Interactieve kaart van Belgische bedrijven: filter op sector, provincie, grootte en status, bekijk bedrijfsprofielen en zie waar de economie clusteren.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%97%BA%EF%B8%8F%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+  <link rel="stylesheet" href="vendor/leaflet.markercluster/MarkerCluster.css">
+  <link rel="stylesheet" href="vendor/leaflet.markercluster/MarkerCluster.Default.css">
+  <link rel="stylesheet" href="kaart.css">
 </head>
 <body>
-  <header class="topbar">
-    <div class="merk">
-      <span class="logo">🏛️</span>
-      <div>
-        <h1>De Universele Gids</h1>
-        <p>Autonoom multi-agent ecosysteem · 18 agenten · 1 spreekt, 17 zwijgen</p>
-      </div>
+
+<!-- ============ Zijbalk: filters + resultaten ============ -->
+<aside class="zijbalk" id="zijbalk" aria-label="Filters en bedrijfslijst">
+  <header class="merk">
+    <span class="logo" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-4h6v4M9 11h.01M15 11h.01M9 15h.01M15 15h.01"/>
+      </svg>
+    </span>
+    <div>
+      <h1>Bedrijvenkaart België</h1>
+      <p>70 bedrijven · 242 vestigingen op de kaart</p>
     </div>
-    <div class="stats" id="stats">
-      <div class="stat"><span class="waarde" id="stat-beslissingen">0</span><span class="label">router­beslissingen</span></div>
-      <div class="stat"><span class="waarde groen">1</span><span class="label">nu actief</span></div>
-      <div class="stat"><span class="waarde" id="stat-stil">17</span><span class="label">strikt stil</span></div>
-      <div class="stat"><span class="waarde amber">3</span><span class="label">toezicht op achtergrond</span></div>
-    </div>
+    <button class="sluit-zijbalk" id="sluitZijbalk" title="Filters sluiten" aria-label="Filters sluiten">✕</button>
   </header>
 
-  <main class="layout">
+  <div class="zijbalk-inhoud">
+    <!-- Zoeken -->
+    <div class="blok">
+      <label class="veld">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input type="search" id="zoek" placeholder="Zoek op naam, stad of BTW-nummer…" autocomplete="off">
+        <kbd>/</kbd>
+      </label>
+    </div>
 
-    <!-- Agentenregister -->
-    <aside class="paneel agentenpaneel">
-      <h2>Het Agentenregister <span class="teller" id="agenten-teller">18</span></h2>
-      <div id="agenten-lijst" class="agenten-lijst"></div>
-      <p class="voetnoot">Agent 1, 3 en 16 spreken nooit in de chat — zij bewaken op de achtergrond.</p>
-    </aside>
-
-    <!-- Gesprek -->
-    <section class="paneel gesprekspaneel">
-      <div class="gesprek" id="gesprek"></div>
-
-      <div class="goedkeuring" id="goedkeuringsbalk" hidden>
-        ⏳ <strong>De specialist wacht op je goedkeuring</strong> — antwoord
-        <em>Ja</em> om te bevestigen, <em>Nee</em> om te herzien, of stel gewoon een nieuwe vraag.
+    <!-- Provincies -->
+    <div class="blok">
+      <div class="blokkop">
+        <h2>Provincie</h2>
+        <button class="tekstknop" id="wisProvincies">wissen</button>
       </div>
+      <div class="provinces" id="provincies"></div>
+    </div>
 
-      <div class="chips" id="chips"></div>
-
-      <form class="invoer" id="invoerformulier" autocomplete="off">
-        <input id="invoer" type="text" placeholder="Typ tegen de gids… (bijv. 'HELP!! WAAR IS DAT??')" maxlength="500">
-        <button type="submit">Zend →</button>
-      </form>
-    </section>
-
-    <!-- Router-log -->
-    <aside class="paneel logpaneel">
-      <h2>Router-log <span class="teller toezicht">toezicht</span></h2>
-      <div id="kwaliteit" class="kwaliteitsblok"></div>
-      <div id="routerlog" class="routerlog">
-        <p class="leeg">De Hoofdrouter wacht op de eerste invoer. Elke beslissing wordt hier transparant gelogd.</p>
+    <!-- Sectoren -->
+    <div class="blok">
+      <div class="blokkop">
+        <h2>Sector</h2>
+        <button class="tekstknop" id="wisSectoren">alles aan</button>
       </div>
-    </aside>
+      <div class="legenda" id="sectoren"></div>
+    </div>
 
-  </main>
+    <!-- Grootte + status -->
+    <div class="blok">
+      <div class="blokkop"><h2>Omvang &amp; status</h2></div>
+      <label class="bereik">
+        <span>Werknemers per vestiging: <strong id="werknemersWaarde">alle</strong></span>
+        <input type="range" id="werknemers" min="0" max="500" step="10" value="0">
+      </label>
+      <div class="chips" id="statussen"></div>
+    </div>
 
-  <script src="app.js"></script>
+    <!-- Resultaten -->
+    <div class="blok resultatenblok">
+      <div class="blokkop">
+        <h2>Resultaten <span class="teller" id="resultatenTeller">0</span></h2>
+        <div class="weergave" role="group" aria-label="Weergave">
+          <button data-weergave="bedrijven" class="actief" title="Gegroepeerd per bedrijf" aria-label="Gegroepeerd per bedrijf">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V7l7-4 7 4v14M9 21v-4h6v4M8 10h.01M14 10h.01M8 14h.01M14 14h.01"/></svg>
+          </button>
+          <button data-weergave="vestigingen" title="Elke vestiging apart" aria-label="Elke vestiging apart">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="10" r="2.5"/><path d="M12 21s7-6.3 7-11a7 7 0 1 0-14 0c0 4.7 7 11 7 11Z"/></svg>
+          </button>
+        </div>
+      </div>
+      <ul class="resultaten" id="resultaten"></ul>
+    </div>
+  </div>
+
+  <footer class="zijbalk-voet">
+    <span class="demo-pil" title="Namen, BTW-nummers en cijfers zijn verzonnen; plaatsen zijn echt.">demo-data</span>
+    <a href="#" id="overData">Over deze kaart</a>
+  </footer>
+</aside>
+
+<!-- ============ Kaart ============ -->
+<main class="kaartvlak">
+  <div id="kaart" role="application" aria-label="Kaart van België met bedrijfsvestigingen"></div>
+
+  <!-- Bovenbalk -->
+  <div class="topbar">
+    <button class="filtersknop" id="filtersKnop" aria-expanded="false" aria-controls="zijbalk">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
+      Filters <span class="badge" id="filterBadge" hidden>0</span>
+    </button>
+
+    <div class="zoekkaart">
+      <label class="veld compact">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input type="search" id="zoekKaart" placeholder="Zoek een bedrijf of stad…" autocomplete="off" aria-label="Zoek een bedrijf of stad">
+      </label>
+      <ul class="suggesties" id="suggesties" hidden></ul>
+    </div>
+
+    <div class="topbar-rechts">
+      <div class="segment" role="group" aria-label="Kaartlagen" title="Markers, clusters of dichtheid">
+        <button data-laag="markers" class="actief">Markers</button>
+        <button data-laag="clusters">Clusters</button>
+        <button data-laag="heat">Dichtheid</button>
+      </div>
+      <label class="stijlkeuze" title="Achtergrondkaart">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3V6Z"/><path d="M9 3v15M15 6v15"/></svg>
+        <select id="kaartstijl" aria-label="Achtergrondkaart">
+          <option value="licht">Licht</option>
+          <option value="standaard">Standaard</option>
+          <option value="voyager">Voyager</option>
+        </select>
+      </label>
+      <button class="icoonknop" id="resetKnop" title="Terug naar België" aria-label="Terug naar België">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Statistieken -->
+  <section class="statistieken" id="statistieken" aria-label="Kerncijfers">
+    <div class="stat"><span class="label">Bedrijven</span><strong id="statBedrijven">–</strong></div>
+    <div class="stat"><span class="label">Vestigingen in beeld</span><strong id="statVestigingen">–</strong></div>
+    <div class="stat"><span class="label">Werknemers</span><strong id="statWerknemers">–</strong></div>
+    <div class="stat"><span class="label">Grootste sector</span><strong id="statSector">–</strong></div>
+  </section>
+
+  <!-- Detailpaneel -->
+  <section class="detailpaneel" id="detailpaneel" hidden aria-live="polite">
+    <button class="sluit-detail" id="sluitDetail" aria-label="Sluit detailpaneel">✕</button>
+    <div id="detailInhoud"></div>
+  </section>
+
+  <!-- Legenda -->
+  <div class="legenda-kaart" id="legendaKaart" hidden>
+    <h3>Sector</h3>
+    <ul id="legendaLijst"></ul>
+  </div>
+</main>
+
+<!-- ============ Over-dialoog ============ -->
+<dialog id="overDialoog" class="dialoog">
+  <h2>Over deze kaart</h2>
+  <p>
+    Deze kaart toont <strong>70 Belgische bedrijven</strong> met samen
+    <strong>242 vestigingen</strong>, verspreid over de 11 provincies en het
+    Brussels Hoofdstedelijk Gewest.
+  </p>
+  <h3>Demo-dataset</h3>
+  <p>
+    Bedrijfsnamen, BTW-nummers, werknemersaantallen en omzet zijn <em>verzonnen</em>
+    en dienen enkel als voorbeeld. De plaatsen, postcodes en coördinaten zijn echt,
+    zodat de spreiding over België realistisch is.
+  </p>
+  <h3>Eigen data gebruiken</h3>
+  <p>
+    Zet je export in <code>data/bedrijven.csv</code> (kolommen zoals
+    <code>naam, straat, postcode, stad, provincie, lat, lon, sector, werknemers</code>)
+    en voer <code>python3 scripts/bouw_data.py</code> uit. Engelse kolomnamen en
+    puntkomma-gescheiden bestanden worden automatisch herkend.
+  </p>
+  <h3>Kaartlagen</h3>
+  <p>
+    <strong>Markers</strong> toont elke vestiging, <strong>Clusters</strong> groepeert
+    dicht bij elkaar liggende vestigingen, <strong>Dichtheid</strong> toont een
+    heatmap van de concentratie.
+  </p>
+  <p class="klein">
+    Kaarttegels: © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>-bijdragers ·
+    Kaartbibliotheek: Leaflet (BSD-2) · Grenzen: eigen vereenvoudigde provinciegrenzen.
+  </p>
+  <form method="dialog"><button class="primair">Sluiten</button></form>
+</dialog>
+
+<script src="vendor/leaflet/leaflet.js"></script>
+<script src="vendor/leaflet.markercluster/leaflet.markercluster.js"></script>
+<script src="vendor/leaflet.heat/leaflet-heat.js"></script>
+<script src="kaart.js"></script>
 </body>
 </html>
