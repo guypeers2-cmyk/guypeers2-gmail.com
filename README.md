@@ -152,6 +152,14 @@ persona's zijn inwisselbaar.**
 
 ---
 
+## Dossiers
+
+| Dossier | Wat |
+|---------|-----|
+| [docs/stella-on-tour/](docs/stella-on-tour/00-groeiplan-30-dagen.md) | Groei- en contentplan voor het YouTube-kanaal *Stella on Tour* (nulmeting, 30-dagenkalender, kanaalteksten, koerscijfers) |
+
+---
+
 ## Status
 
 - [x] Agentenregister (18 agenten, register van de Baas als bron)
