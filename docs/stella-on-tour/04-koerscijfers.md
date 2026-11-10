@@ -91,14 +91,25 @@ Doel: niet op gevoel sturen. Eén tabel per week, één beslissing per week.
 
 ## Eindafweging op 9 december
 
-| | Minimum | Stretch | Behaald |
-|---|---|---|---|
-| Abonnees | 60 | 100 | |
-| Views totaal | 20.000 | 30.000 | |
-| Long-form online | 4 | 4 | |
-| Beste Short | 2.500 | 5.000 | |
-| Beste long-form | 1.000 | 2.500 | |
-| Abonnees per 1.000 views | 8 | 15 | |
+Plan op **basis**, hoop op **realistisch**, en herken **stretch** als het komt (dan meteen drie video's in dat format).
+
+| | Basis | Realistisch | Stretch | Behaald |
+|---|---|---|---|---|
+| Abonnees | 55–70 | 70–90 | 120+ | |
+| Views totaal | 18.000–24.000 | 25.000–35.000 | 45.000+ | |
+| Beste Short | 2.000 | 3.500 | 10.000+ | |
+| Beste long-form | 700 | 1.200 | 2.500 | |
+| Abonnees per 1.000 views | 8 | 12 | 18 | |
+
+### Tussentijds beslismoment — 24 november (dag 14)
+
+| Criterium | Drempel | Waarde |
+|---|---|---|
+| Mediaan views, laatste 5 Shorts | ≥ 1.500 | |
+| Abonnees per 1.000 views | ≥ 8 | |
+| Long-form 1: gemiddelde kijkduur | ≥ 2 min | |
+
+**0 van 3 gehaald?** Stop tijdelijk met de long-form-reeks, ga zes weken full Shorts met de sterkste pijler, en herstart long-form vanaf 100 abonnees. **1 van 3?** verander één variabele (taal óf onderwerp). **2 of 3?** doorgaan zoals gepland.
 
 ### Beslisregels (uit het groeiplan)
 

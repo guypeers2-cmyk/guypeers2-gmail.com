@@ -5,6 +5,8 @@
 **Planperiode:** 10 november t/m 9 december 2026 (4 weken + eindreview)
 **Doel:** van "leuke clips" naar een kanaal met een herkenbaar format, een reden om te abonneren en meetbare groei.
 
+> **Herzien na evaluatie (10 nov):** het volume is teruggeschroefd naar één wandeling per week, de taalstrategie is een beslissing geworden in plaats van een aanname, de doelen zijn scenario's, en er is een beslismoment op dag 14. Zie [05-evaluatie-en-verbeteringen.md](05-evaluatie-en-verbeteringen.md). Scripts: [06](06-scripts-longform.md). Batch en distributie: [07](07-distributie-en-batch.md).
+
 > Dit plan is gebaseerd op de publieke cijfers van het kanaal op 10 november 2026 (zie [01-nulmeting.md](01-nulmeting.md)).
 > Cijfers uit YouTube Studio (impressies, CTR, kijkduur) ken jij beter dan ik — die gebruik je bij de wekelijkse review.
 
@@ -46,7 +48,10 @@ Concreet:
 - **3 Shorts per week** (di / do / za, 18:00) — één idee per clip, eerste seconde meteen in de actie.
 - **1 long-form per week** (zo, 10:00, 6–10 min) — een vraag die iemand echt intikt in de zoekbalk, met hoofdstukken.
 - **Alles wat korter is dan 60 seconden en verticaal is, gaat naar Shorts.** Nooit meer een 11-secondenclip als gewone video.
-- **Elke Short is een voordeur naar één long-form** (related video koppelen in Studio).
+- **Elke Short staat op zichzelf**; de link naar de long-form is bonus, geen voorwaarde (en related video's op Shorts vereisen geavanceerde functies).
+- **Eén wandeling per week = 1 long-form + 3 Shorts + 3 Reels/TikToks.** Zo blijft het 3 uur per week, niet 10. Zie [07-distributie-en-batch.md](07-distributie-en-batch.md).
+
+**Minimum viable week.** Lukt het niet, dan is dit nog steeds een geldige week: **1 long-form óf 1 Short + 1 community-post.** Een kanaal stopt niet van een rustige week; het stopt van drie weken niets.
 
 ---
 
@@ -64,7 +69,9 @@ Niet "kattenvideo's" (te breed, miljoenen concurrenten), maar **wandelen met je 
 
 De verhouding: **/ 50 % pijler 3, 30 % pijler 1, 20 % pijler 2** in Shorts — en omgekeerd in long-form (vooral pijler 1 en 2, want daar zoeken mensen op).
 
-**Taal:** Nederlands gesproken in long-form (daar zoek je op: "wandelen met je kat"), **Engelse tekst op het scherm in Shorts** (die feed is internationaal en je huidige Engels getitelde Shorts deden het niet slechter). Eén taal per video, consequent — geen mengelmoes in dezelfde video.
+**Taal — voorlopige keuze, definitief na week 2.** Werkend voorstel: Nederlands in long-form (daar zoek je op: "wandelen met je kat"), Engelse on-screen tekst in Shorts (die feed is internationaal). Maar dit is een **aanname**, geen bewezen feit.
+
+**Beslismoment week 2 (17–23 nov):** kijk in Studio → Publiek → *Land* en *Taal*. Komt **> 50 %** van je kijkers van buiten België/Nederland, dan gaan de long-forms Engels (of tweetalig met Engelse ondertitels) en laat je het Nederlands vallen. Komt het grootste deel uit België/Nederland, dan blijven de long-forms Nederlands en gaan de Engelse titels in Shorts eruit. Eén keer beslissen, daarna niet meer twijfelen.
 
 ---
 
@@ -144,7 +151,9 @@ Geen logo, geen "hoi allemaal", geen uitleg. De eerste frame is de actie: kat di
 
 **Opbouw (15–35 sec):** haakje (0–2 s) → gebeurtenis (2–15 s) → payoff/weetje (15–30 s) → lus of CTA (laatste 2 s).
 
-**Eisen:** 9:16, 1 idee, harde ondertitels (Engels, 2 regels max), geen muziek die de kat overstemt. De clip moet ook zonder geluid werken.
+**Eisen:** 9:16, 1 idee, **20–35 seconden** (je huidige clips zijn 10–11 s: te kort om een verhaal te vertellen, net lang genoeg om te tellen), harde ondertitels (2 regels max), geen muziek die de kat overstemt. De clip moet ook zonder geluid werken.
+
+**Signatuur:** elk shot hetzelfde lettertype, dezelfde tekstkleur en dezelfde eerste seconde (de leiband die klikt, het harnas dat aanspant). Herkenning is goedkoper dan bereik — zie [07 §6](07-distributie-en-batch.md#6-signatuur-waarom-mensen-je-herkennen-in-de-feed).
 
 ### 6b. Long-form — de titel doet het zoekwerk
 
@@ -249,6 +258,8 @@ Volledige takenlijst per upload: [03-contentkalender.csv](03-contentkalender.csv
 | **Lokale groepen** | wandelgroepen, katten- en stadsgroepen (alleen waar promo mag) | eerste 100 abonnees komen bijna altijd van buiten YouTube |
 | **Reacties** | elk uur na upload antwoorden | gesprek = vertoningen |
 
+**Vast weekquotum** (anders gebeurt het niet): 3 Reels · 3 TikToks · 5 groepsberichten · 5 outreach-berichten · 2 community-posts. Teksten, etiquette en tracker: [07-distributie-en-batch.md](07-distributie-en-batch.md).
+
 **Community-post-voorbeelden** staan in [02-kanaalteksten.md](02-kanaalteksten.md).
 
 ---
@@ -281,26 +292,23 @@ Vul in: [04-koerscijfers.md](04-koerscijfers.md).
 
 ### Beslisregels (geen discussie, gewoon doen)
 
-- **Short met < 60 % uitkijkpercentage** → volgende keer korter (15–20 s) en een harder eerste beeld.
+- **Short met < 60 % uitkijkpercentage** → volgende keer korter (20–25 s) en een harder eerste beeld.
 - **Long-form met < 2 min gemiddelde kijkduur** → de eerste 30 seconden waren te traag; knip de inleiding weg.
 - **Minder dan 10 abonnees per 1.000 views** → er is geen reden om te abonneren: voeg een vaste reeksbelofte + eindscherm toe.
 - **Een format doet 3× beter dan de rest** → maak er drie van, deze maand nog.
 - **Een video doet het slecht maar het onderwerp is goed** → opnieuw maken met een andere titel/thumbnail, niet laten liggen.
 
-### Doelen op 9 december
+### Doelen op 9 december — als scenario's, niet als één getal
 
-| | Minimum | Stretch |
-|---|---|---|
-| Abonnees | 60 | 100 |
-| Views (totaal kanaal) | 20.000 | 30.000 |
-| Long-form video's online | 4 | 4 |
-| Beste Short | 2.500 views | 5.000 views |
-| Beste long-form | 1.000 views | 2.500 views |
-| Abonnees per 1.000 views | 8 | 15 |
+| | Basis (plan hierop) | Realistisch | Stretch (één Short slaat aan) |
+|---|---|---|---|
+| Abonnees | 55–70 | 70–90 | 120+ |
+| Views totaal | 18.000–24.000 | 25.000–35.000 | 45.000+ |
+| Beste Short | 2.000 | 3.500 | 10.000+ |
+| Beste long-form | 700 | 1.200 | 2.500 |
+| Abonnees per 1.000 views | 8 | 12 | 18 |
 
-> Als het minimum niet gehaald wordt, is dat geen mislukking: bij een kanaal van vier weken zegt de *trend* meer dan het absolute getal. Kijk naar week 3 vs. week 1.
-
----
+**Beslismoment dag 14 (24 november).** Drie criteria: mediaan Shorts ≥ 1.500 views · ≥ 8 abonnees per 1.000 views · long-form 1 gemiddeld ≥ 2 minuten bekeken. Haal je er twee niet, verander dan **één** variabele (taal óf onderwerp), niet alles. Haal je er nul, stop dan tijdelijk met de long-form-reeks en ga zes weken full Shorts. Volledige uitwerking: [05 §6](05-evaluatie-en-verbeteringen.md#6-herziene-doelen-en-het-beslismoment-op-dag-14).
 
 ## 11. Welzijn en regels (dit is je geloofwaardigheid)
 
@@ -311,10 +319,13 @@ Dit onderdeel is niet optioneel: het is precies wat je onderscheidt van kattenvi
 - **Korte sessies.** 5–20 minuten is normaal; uren wandelen is voor de meeste katten te veel.
 - **Weer en weg:** geen asfalt in de zon (pootjes), geen vorst, geen onweer. Neem water mee.
 - **Gezondheid:** vaccins, ontworming, vlooien en teken (België: teken van maart tot november). Bij twijfel: dierenarts.
-- **Natuurgebieden:** veel Vlaamse en Waalse reservaten verbieden gezelschapsdieren of verplichten een leiband. Check per gebied de toegankelijkheidsregels en vermeld ze in je video — dat is meteen bruikbare inhoud.
+- **Natuurgebieden:** regels verschillen per gewest, per beheerder en per jaar. Check ze per gebied, op de dag van opname, en noem je bron in de beschrijving ("regels van [beheerder], nagekeken op [datum]"). Zeg nooit "het mag hier" zonder dat je het hebt nagevraagd.
 - **Horeca en winkels:** altijd vragen. Vraag het in beeld; de reactie is je content.
 - **Mensen:** laat niemand Stella aanraken zonder te vragen. Zet in je video hoe je dat vriendelijk doet.
-- **Openbaar vervoer:** kat in een reismand of aan de leiband, afhankelijk van de vervoerder — check de regels voor je filmt.
+- **Openbaar vervoer:** de voorwaarden verschillen per vervoerder (en veranderen). Check ze voor je filmt en vermeld de bron.
+- **Privacy van omstanders:** vraag toestemming voor je iemand herkenbaar in beeld brengt, blur gezichten van kinderen, en vraag de uitbater altijd eerst. Zie [07 §5](07-distributie-en-batch.md#5-privacy-toestemming-en-rechten).
+
+> Dit zijn richtlijnen, geen wettelijk advies. Bij twijfel: dierenarts of de beheerder van het gebied.
 
 ---
 
@@ -337,3 +348,6 @@ Dit onderdeel is niet optioneel: het is precies wat je onderscheidt van kattenvi
 | [02-kanaalteksten.md](02-kanaalteksten.md) | copy-paste: beschrijving, trailer, playlists, posts, reacties |
 | [03-contentkalender.csv](03-contentkalender.csv) | de 16 uploads + 8 community-momenten, importeerbaar in Sheets/Excel |
 | [04-koerscijfers.md](04-koerscijfers.md) | wekelijks invulschema + beslisregels |
+| [05-evaluatie-en-verbeteringen.md](05-evaluatie-en-verbeteringen.md) | kritische evaluatie van dit plan + prioriteiten en herziene doelen |
+| [06-scripts-longform.md](06-scripts-longform.md) | beat sheets voor de vier long-forms (hook, timing, shots, B-roll) |
+| [07-distributie-en-batch.md](07-distributie-en-batch.md) | 1 wandeling → 5 assets, week van 3 uur, zoekvalidatie, outreach, privacy |

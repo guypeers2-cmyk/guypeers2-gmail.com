@@ -33,7 +33,7 @@ python3 cli.py
 # Alle 18 knelpuntscenario's achter elkaar
 python3 cli.py --demo
 
-# Testbatterij (30 tests)
+# Testbatterij (38 tests)
 python3 -m unittest discover -s tests -v
 ```
 
@@ -124,7 +124,7 @@ gids/
 web/                # console: index.html + styles.css + app.js
 serve.py            # stdlib webserver (statisch + JSON-API + /api/statistieken)
 cli.py              # interactieve terminal + --demo
-tests/              # 37 tests: zwijg-protocol, routing, Ja/Nee, leerlog
+tests/              # 38 tests: zwijg-protocol, routing, Ja/Nee, leerlog
 data/               # runtime: kwaliteitslog (niet in git)
 ```
 
@@ -156,7 +156,7 @@ persona's zijn inwisselbaar.**
 
 | Dossier | Wat |
 |---------|-----|
-| [docs/stella-on-tour/](docs/stella-on-tour/00-groeiplan-30-dagen.md) | Groei- en contentplan voor het YouTube-kanaal *Stella on Tour* (nulmeting, 30-dagenkalender, kanaalteksten, koerscijfers) |
+| [docs/stella-on-tour/](docs/stella-on-tour/00-groeiplan-30-dagen.md) | Groei- en contentplan voor het YouTube-kanaal *Stella on Tour* — nulmeting, 30-dagenkalender, kanaalteksten, koerscijfers, lange-video-scripts, batch/distributie en een kritische evaluatie |
 
 ---
 
@@ -166,7 +166,7 @@ persona's zijn inwisselbaar.**
 - [x] Hoofdrouter met zwijg-protocol en transparant router-log
 - [x] Ja/Nee-goedkeuringsprotocol met revisie-cyclus
 - [x] Privacy-harde-trigger met maskering
-- [x] Webconsole + CLI + 37 tests (alle groen)
+- [x] Webconsole + CLI + 38 tests (alle groen)
 - [x] Kwaliteits- & Feedback-Agent: privacyveilige leerlog + statistiekdashboard + `/api/statistieken` (v1.1)
 - [x] Sessiepersistentie: gesprek overleeft een pagina-verversing (localStorage + sessie-id)
 - [ ] LLM-laag voor persona's (plug-in-punt klaar)
