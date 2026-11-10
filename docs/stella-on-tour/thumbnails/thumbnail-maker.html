@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stella on Tour — thumbnail-maker (1280×720)</title>
+<style>
+  :root{
+    --bg:#0f0e0c; --panel:#18160f; --line:#2a271f; --text:#f2ede2;
+    --muted:#a89f8c; --accent:#e8b33a; --accent-2:#f4c95d;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+       font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  header{padding:18px 22px;border-bottom:1px solid var(--line);display:flex;
+         gap:14px;align-items:baseline;flex-wrap:wrap}
+  header h1{font-size:17px;margin:0;letter-spacing:.2px}
+  header p{margin:0;color:var(--muted);font-size:13px}
+  .wrap{display:grid;grid-template-columns:320px 1fr;gap:0;min-height:calc(100vh - 62px)}
+  @media (max-width:900px){.wrap{grid-template-columns:1fr}}
+  aside{border-right:1px solid var(--line);padding:18px;display:flex;
+        flex-direction:column;gap:16px;background:var(--panel)}
+  main{padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0}
+  label{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.08em;
+         color:var(--muted);margin-bottom:6px}
+  input[type=text],select{width:100%;background:#0d0c0a;border:1px solid var(--line);
+    color:var(--text);border-radius:8px;padding:9px 10px;font-size:14px}
+  input[type=range]{width:100%;accent-color:var(--accent)}
+  input[type=color]{width:100%;height:38px;background:none;border:1px solid var(--line);
+    border-radius:8px;padding:2px}
+  .row{display:flex;gap:8px}
+  button{background:#221f18;color:var(--text);border:1px solid var(--line);
+    border-radius:9px;padding:10px 12px;font-size:14px;cursor:pointer}
+  button:hover{border-color:#4a4433}
+  button.primary{background:var(--accent);color:#1a1508;border-color:var(--accent);
+    font-weight:700}
+  button.primary:hover{background:var(--accent-2)}
+  .hint{font-size:12px;color:var(--muted);margin:0}
+  .canvasbox{position:relative;background:#000;border:1px solid var(--line);
+    border-radius:12px;overflow:hidden;line-height:0}
+  canvas{display:block;width:100%;height:auto;cursor:grab;touch-action:none}
+  canvas.dragging{cursor:grabbing}
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .badge{font-size:12px;color:var(--muted);border:1px solid var(--line);
+    border-radius:999px;padding:5px 10px}
+  .sep{height:1px;background:var(--line);margin:2px 0}
+  .drop{border:1px dashed #4a4433;border-radius:10px;padding:14px;text-align:center;
+    color:var(--muted);font-size:13px}
+  .drop.over{border-color:var(--accent);color:var(--accent)}
+  code{background:#0d0c0a;border:1px solid var(--line);border-radius:6px;
+      padding:1px 5px;font-size:12px}
+</style>
+</head>
+<body>
+<header>
+  <h1>🐈 Stella on Tour — thumbnail-maker</h1>
+  <p>1280×720 · werkt volledig offline in je browser · niets wordt geüpload</p>
+</header>
+
+<div class="wrap">
+  <aside>
+    <div>
+      <label>1. Foto</label>
+      <div class="drop" id="drop">
+        Sleep een foto hierheen<br>of <strong>klik om te kiezen</strong>
+        <input type="file" id="file" accept="image/*" hidden>
+      </div>
+      <p class="hint" style="margin-top:6px">Sleep de foto in het beeld om te verschuiven.</p>
+    </div>
+
+    <div>
+      <label for="layout">2. Lay-out</label>
+      <select id="layout">
+        <option value="A">A — Close-up (leibandles, persoonlijk)</option>
+        <option value="B">B — Landschap (plekken, steden)</option>
+        <option value="C">C — Contrast (lijstjes, fouten, mythes)</option>
+      </select>
+    </div>
+
+    <div>
+      <label for="big">3. Groot woord (max. 18 tekens)</label>
+      <input type="text" id="big" maxlength="18" value="15 WANDELINGEN">
+      <label for="small" style="margin-top:10px">4. Kleine regel (max. 34 tekens)</label>
+      <input type="text" id="small" maxlength="34" value="wat ik leerde">
+    </div>
+
+    <div>
+      <label for="color">5. Accentkleur</label>
+      <input type="color" id="color" value="#e8b33a">
+    </div>
+
+    <div>
+      <label for="zoom">6. Foto groter / kleiner</label>
+      <input type="range" id="zoom" min="0.6" max="2.5" step="0.01" value="1">
+    </div>
+
+    <div class="sep"></div>
+
+    <div class="row">
+      <button class="primary" id="download" style="flex:1">Download PNG</button>
+      <button id="reset" title="Herstel alles">↺</button>
+    </div>
+    <p class="hint">Bestandsnaam: <code>thumbnail-1280x720.png</code>. Upload in Studio bij <em>Details → Thumbnail</em>.</p>
+
+    <div class="sep"></div>
+    <p class="hint"><strong>Regels die je niet breekt:</strong><br>
+      · max. 4 woorden in het groot<br>
+      · leesbaar op 120 px breed<br>
+      · geen kleine letters, geen logo<br>
+      · gezicht of ogen in beeld<br>
+      · nooit twee keer dezelfde lay-out naast elkaar</p>
+  </aside>
+
+  <main>
+    <div class="canvasbox">
+      <canvas id="c" width="1280" height="720"></canvas>
+    </div>
+    <div class="toolbar">
+      <span class="badge">1280 × 720 px</span>
+      <span class="badge">klik op de kaders = veilige zone tonen</span>
+      <button id="safe" style="padding:7px 10px;font-size:13px">Veilige zone</button>
+    </div>
+    <p class="hint">De gele stippellijn rechtsonder is waar YouTube de duur toont — houd daar tekst weg. De veilige zone voor de titel in de feed is de volledige afbeelding; tekst hoort dus nooit in de buitenste rand.</p>
+  </main>
+</div>
+
+<script>
+(() => {
+  const c = document.getElementById('c');
+  const ctx = c.getContext('2d');
+  const W = c.width, H = c.height;
+
+  const state = {
+    img: null,
+    layout: 'A',
+    big: '15 WANDELINGEN',
+    small: 'wat ik leerde',
+    color: '#e8b33a',
+    zoom: 1,
+    dx: 0,
+    dy: 0,
+    safe: false,
+    dragging: false,
+    lastX: 0,
+    lastY: 0
+  };
+
+  const FONT = '"Inter","Helvetica Neue",Arial,"DejaVu Sans",system-ui,sans-serif';
+
+  /* ---------- hulpjes ---------- */
+
+  function drawPhoto(area, dim) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(area.x, area.y, area.w, area.h);
+    ctx.clip();
+
+    if (!state.img) {
+      ctx.fillStyle = '#1d1a14';
+      ctx.fillRect(area.x, area.y, area.w, area.h);
+      ctx.fillStyle = '#6d6553';
+      ctx.font = `600 ${Math.round(area.h * 0.05)}px ${FONT}`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('JOUW FOTO VAN STELLA', area.x + area.w / 2, area.y + area.h / 2 - 10);
+      ctx.font = `400 ${Math.round(area.h * 0.032)}px ${FONT}`;
+      ctx.fillText('sleep een foto in het linkerpaneel', area.x + area.w / 2, area.y + area.h / 2 + 26);
+    } else {
+      const iw = state.img.naturalWidth, ih = state.img.naturalHeight;
+      const s = Math.max(area.w / iw, area.h / ih) * state.zoom;
+      const dw = iw * s, dh = ih * s;
+      const x = area.x + (area.w - dw) / 2 + state.dx;
+      const y = area.y + (area.h - dh) / 2 + state.dy;
+      ctx.drawImage(state.img, x, y, dw, dh);
+    }
+
+    if (dim) {
+      ctx.fillStyle = dim;
+      ctx.fillRect(area.x, area.y, area.w, area.h);
+    }
+    ctx.restore();
+  }
+
+  function wrap(text, maxWidth, size) {
+    ctx.font = `900 ${size}px ${FONT}`;
+    const words = text.toUpperCase().split(/\s+/);
+    const lines = [];
+    let line = '';
+    for (const w of words) {
+      const test = line ? line + ' ' + w : w;
+      if (ctx.measureText(test).width > maxWidth && line) {
+        lines.push(line);
+        line = w;
+      } else {
+        line = test;
+      }
+    }
+    if (line) lines.push(line);
+    return lines;
+  }
+
+  function fit(text, maxWidth, maxLines, start, min) {
+    let size = start;
+    while (size > min) {
+      const lines = wrap(text, maxWidth, size);
+      if (lines.length <= maxLines &&
+          lines.every(l => ctx.measureText(l).width <= maxWidth)) {
+        return { size, lines };
+      }
+      size -= 6;
+    }
+    return { size: min, lines: wrap(text, maxWidth, min).slice(0, maxLines) };
+  }
+
+  function outlineText(text, x, y, size, align, fill, stroke) {
+    ctx.font = `900 ${size}px ${FONT}`;
+    ctx.textAlign = align || 'left';
+    ctx.textBaseline = 'alphabetic';
+    if (stroke) {
+      ctx.lineWidth = Math.max(6, size * 0.10);
+      ctx.strokeStyle = stroke;
+      ctx.lineJoin = 'round';
+      ctx.strokeText(text, x, y);
+    }
+    ctx.fillStyle = fill;
+    ctx.fillText(text, x, y);
+  }
+
+  function safeZone() {
+    if (!state.safe) return;
+    ctx.save();
+    ctx.setLineDash([10, 8]);
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = 'rgba(232,179,58,.9)';
+    ctx.strokeRect(W - 190, H - 78, 170, 58);
+    ctx.strokeRect(40, 40, W - 80, H - 80);
+    ctx.restore();
+  }
+
+  function brandMark() {
+    // kleine signatuur, altijd op dezelfde plek
+    ctx.save();
+    ctx.font = `700 26px ${FONT}`;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'alphabetic';
+    ctx.fillStyle = 'rgba(255,255,255,.82)';
+    ctx.fillText('STELLA ON TOUR', 48, H - 40);
+    ctx.restore();
+  }
+
+  /* ---------- lay-outs ---------- */
+
+  function layoutA() {
+    // donker paneel links, foto rechts
+    ctx.fillStyle = '#14110c';
+    ctx.fillRect(0, 0, W, H);
+
+    drawPhoto({ x: 470, y: 0, w: W - 470, h: H });
+    // zachte overgang
+    const g = ctx.createLinearGradient(430, 0, 560, 0);
+    g.addColorStop(0, '#14110c');
+    g.addColorStop(1, 'rgba(20,17,12,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(430, 0, 150, H);
+
+    const maxW = 400;
+    const f = fit(state.big, maxW, 3, 132, 54);
+    ctx.save();
+    ctx.textBaseline = 'alphabetic';
+    let y = H / 2 - (f.lines.length - 1) * f.size * 0.58 - 10;
+    for (const line of f.lines) {
+      outlineText(line, 56, y, f.size, 'left', '#ffffff');
+      y += f.size * 1.06;
+    }
+    ctx.restore();
+
+    // accentbalk
+    ctx.fillStyle = state.color;
+    ctx.fillRect(56, y + 6, 96, 10);
+
+    outlineText(state.small.toUpperCase(), 56, y + 66, 30, 'left', state.color);
+    brandMark();
+  }
+
+  function layoutB() {
+    drawPhoto({ x: 0, y: 0, w: W, h: H });
+
+    // onderkant donkerder maken
+    const g = ctx.createLinearGradient(0, H * 0.35, 0, H);
+    g.addColorStop(0, 'rgba(0,0,0,0)');
+    g.addColorStop(0.55, 'rgba(0,0,0,.45)');
+    g.addColorStop(1, 'rgba(0,0,0,.86)');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+
+    const maxW = W - 140;
+    const f = fit(state.big, maxW, 2, 150, 64);
+    let y = H - 150;
+    // van onder naar boven tekenen
+    const lines = f.lines.slice().reverse();
+    ctx.save();
+    for (const line of lines) {
+      outlineText(line, 70, y, f.size, 'left', '#ffffff', 'rgba(0,0,0,.55)');
+      y -= f.size * 1.02;
+    }
+    ctx.restore();
+
+    ctx.fillStyle = state.color;
+    ctx.fillRect(70, y + 8, Math.min(260, ctx.measureText(state.small).width), 8);
+    outlineText(state.small.toUpperCase(), 70, y - 18, 30, 'left', state.color, 'rgba(0,0,0,.5)');
+    brandMark();
+  }
+
+  function layoutC() {
+    drawPhoto({ x: 0, y: 0, w: W, h: H }, 'rgba(0,0,0,.35)');
+
+    // blok links
+    ctx.fillStyle = state.color;
+    ctx.fillRect(0, 0, 620, H);
+
+    const maxW = 520;
+    const f = fit(state.big, maxW, 3, 148, 60);
+    let y = H / 2 - (f.lines.length - 1) * f.size * 0.54;
+    for (const line of f.lines) {
+      outlineText(line, 56, y, f.size, 'left', '#17130a');
+      y += f.size * 1.02;
+    }
+
+    ctx.fillStyle = '#17130a';
+    ctx.fillRect(56, y + 8, 110, 9);
+    outlineText(state.small.toUpperCase(), 56, y + 66, 30, 'left', '#17130a');
+
+    // dunne rand zodat het blok niet "lekt"
+    ctx.fillStyle = 'rgba(0,0,0,.25)';
+    ctx.fillRect(620, 0, 8, H);
+    brandMark();
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    if (state.layout === 'A') layoutA();
+    else if (state.layout === 'B') layoutB();
+    else layoutC();
+    safeZone();
+  }
+
+  /* ---------- bediening ---------- */
+
+  const fileInput = document.getElementById('file');
+  const drop = document.getElementById('drop');
+
+  function loadFile(file) {
+    if (!file || !file.type.startsWith('image/')) return;
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      state.img = img;
+      state.dx = 0; state.dy = 0; state.zoom = 1;
+      document.getElementById('zoom').value = 1;
+      draw();
+      URL.revokeObjectURL(url);
+    };
+    img.src = url;
+  }
+
+  drop.addEventListener('click', () => fileInput.click());
+  drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('over'); });
+  drop.addEventListener('dragleave', () => drop.classList.remove('over'));
+  drop.addEventListener('drop', e => {
+    e.preventDefault(); drop.classList.remove('over');
+    if (e.dataTransfer.files[0]) loadFile(e.dataTransfer.files[0]);
+  });
+  fileInput.addEventListener('change', e => loadFile(e.target.files[0]));
+
+  document.getElementById('layout').addEventListener('change', e => {
+    state.layout = e.target.value;
+    state.dx = 0; state.dy = 0;
+    draw();
+  });
+  document.getElementById('big').addEventListener('input', e => {
+    state.big = e.target.value || ' ';
+    draw();
+  });
+  document.getElementById('small').addEventListener('input', e => {
+    state.small = e.target.value;
+    draw();
+  });
+  document.getElementById('color').addEventListener('input', e => {
+    state.color = e.target.value;
+    draw();
+  });
+  document.getElementById('zoom').addEventListener('input', e => {
+    state.zoom = parseFloat(e.target.value);
+    draw();
+  });
+  document.getElementById('safe').addEventListener('click', () => {
+    state.safe = !state.safe;
+    draw();
+  });
+
+  document.getElementById('reset').addEventListener('click', () => {
+    state.img = null; state.dx = 0; state.dy = 0;
+    state.zoom = 1; state.layout = 'A'; state.safe = false;
+    state.big = '15 WANDELINGEN'; state.small = 'wat ik leerde';
+    state.color = '#e8b33a';
+    document.getElementById('layout').value = 'A';
+    document.getElementById('big').value = state.big;
+    document.getElementById('small').value = state.small;
+    document.getElementById('color').value = state.color;
+    document.getElementById('zoom').value = 1;
+    draw();
+  });
+
+  // slepen = foto verschuiven
+  function pos(e) {
+    const r = c.getBoundingClientRect();
+    return {
+      x: (e.clientX - r.left) * (W / r.width),
+      y: (e.clientY - r.top) * (H / r.height)
+    };
+  }
+  c.addEventListener('pointerdown', e => {
+    state.dragging = true;
+    c.classList.add('dragging');
+    c.setPointerCapture(e.pointerId);
+    const p = pos(e);
+    state.lastX = p.x; state.lastY = p.y;
+  });
+  c.addEventListener('pointermove', e => {
+    if (!state.dragging) return;
+    const p = pos(e);
+    state.dx += p.x - state.lastX;
+    state.dy += p.y - state.lastY;
+    state.lastX = p.x; state.lastY = p.y;
+    draw();
+  });
+  c.addEventListener('pointerup', e => {
+    state.dragging = false;
+    c.classList.remove('dragging');
+    try { c.releasePointerCapture(e.pointerId); } catch (_) {}
+  });
+
+  document.getElementById('download').addEventListener('click', () => {
+    c.toBlob(blob => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'thumbnail-1280x720.png';
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    }, 'image/png');
+  });
+
+  // voorbeeld laden bij openen
+  draw();
+})();
+</script>
+</body>
+</html>

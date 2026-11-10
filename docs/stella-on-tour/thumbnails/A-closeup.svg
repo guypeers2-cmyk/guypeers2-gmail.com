@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720">
+  <title>Stella on Tour — thumbnail A (close-up)</title>
+  <desc>Vervang de fotokader rechts door je eigen foto. Tekst blijft bewerkbaar.</desc>
+  <rect width="1280" height="720" fill="#14110c"/>
+  <g id="foto">
+    <rect x="470" y="0" width="810" height="720" fill="#1d1a14"/>
+    <rect x="486" y="16" width="778" height="688" fill="none" stroke="#4a4433" stroke-width="3" stroke-dasharray="12 10"/>
+    <text x="875" y="340" fill="#6d6553" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="700" text-anchor="middle">JOUW FOTO VAN STELLA</text>
+    <text x="875" y="384" fill="#6d6553" font-family="Arial, Helvetica, sans-serif" font-size="22" text-anchor="middle">staand beeld · kat in close-up met harnas</text>
+    <image x="470" y="0" width="810" height="720" preserveAspectRatio="xMidYMid slice" href="stella.jpg" opacity="0"/>
+  </g>
+  <text x="56" y="250" fill="#ffffff" font-family="Arial Black, Arial, Helvetica, sans-serif" font-size="118" font-weight="900">15</text>
+  <text x="56" y="368" fill="#ffffff" font-family="Arial Black, Arial, Helvetica, sans-serif" font-size="118" font-weight="900">WANDELINGEN</text>
+  <rect x="56" y="404" width="96" height="10" fill="#e8b33a"/>
+  <text x="56" y="470" fill="#e8b33a" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="700" letter-spacing="1">WAT IK LEERDE</text>
+  <text x="56" y="680" fill="#ffffff" fill-opacity=".82" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="700">STELLA ON TOUR</text>
+</svg>

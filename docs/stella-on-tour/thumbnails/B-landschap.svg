@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720">
+  <title>Stella on Tour — thumbnail B (landschap)</title>
+  <desc>Volledige foto als achtergrond; tekst onderaan over een donkere verlooplaag.</desc>
+  <defs>
+    <linearGradient id="dark" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="35%" stop-color="#000000" stop-opacity="0"/>
+      <stop offset="60%" stop-color="#000000" stop-opacity=".45"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity=".88"/>
+    </linearGradient>
+  </defs>
+  <g id="foto">
+    <rect width="1280" height="720" fill="#1d1a14"/>
+    <rect x="16" y="16" width="1248" height="688" fill="none" stroke="#4a4433" stroke-width="3" stroke-dasharray="12 10"/>
+    <text x="640" y="330" fill="#6d6553" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="700" text-anchor="middle">JOUW FOTO VAN STELLA</text>
+    <text x="640" y="374" fill="#6d6553" font-family="Arial, Helvetica, sans-serif" font-size="22" text-anchor="middle">landschap · kat klein in breed beeld</text>
+    <image x="0" y="0" width="1280" height="720" preserveAspectRatio="xMidYMid slice" href="stella.jpg" opacity="0"/>
+  </g>
+  <rect width="1280" height="720" fill="url(#dark)"/>
+  <text x="70" y="470" fill="#e8b33a" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="700" letter-spacing="1">GENT · MAG DIT?</text>
+  <rect x="70" y="492" width="260" height="8" fill="#e8b33a"/>
+  <text x="70" y="600" fill="#ffffff" font-family="Arial Black, Arial, Helvetica, sans-serif" font-size="104" font-weight="900">WANDELEN</text>
+  <text x="70" y="692" fill="#ffffff" font-family="Arial Black, Arial, Helvetica, sans-serif" font-size="104" font-weight="900">MET EEN KAT</text>
+  <text x="1210" y="692" fill="#ffffff" fill-opacity=".75" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" text-anchor="end">STELLA ON TOUR</text>
+</svg>

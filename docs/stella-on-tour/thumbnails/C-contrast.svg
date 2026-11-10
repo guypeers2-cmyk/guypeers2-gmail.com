@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720">
+  <title>Stella on Tour — thumbnail C (contrast)</title>
+  <desc>Gekleurde blok links met groot woord, foto rechts. Voor lijstjes en mythes.</desc>
+  <g id="foto">
+    <rect width="1280" height="720" fill="#1d1a14"/>
+    <rect x="632" y="16" width="632" height="688" fill="none" stroke="#4a4433" stroke-width="3" stroke-dasharray="12 10"/>
+    <text x="948" y="340" fill="#6d6553" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="700" text-anchor="middle">JOUW FOTO</text>
+    <text x="948" y="382" fill="#6d6553" font-family="Arial, Helvetica, sans-serif" font-size="21" text-anchor="middle">kat + plek of detail</text>
+    <image x="620" y="0" width="660" height="720" preserveAspectRatio="xMidYMid slice" href="stella.jpg" opacity="0"/>
+  </g>
+  <rect width="620" height="720" fill="#e8b33a"/>
+  <text x="56" y="260" fill="#17130a" font-family="Arial Black, Arial, Helvetica, sans-serif" font-size="150" font-weight="900">5</text>
+  <text x="56" y="392" fill="#17130a" font-family="Arial Black, Arial, Helvetica, sans-serif" font-size="96" font-weight="900">PLEKKEN</text>
+  <text x="56" y="472" fill="#17130a" font-family="Arial Black, Arial, Helvetica, sans-serif" font-size="96" font-weight="900">IN BELGIË</text>
+  <rect x="56" y="500" width="110" height="9" fill="#17130a"/>
+  <text x="56" y="556" fill="#17130a" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="700" letter-spacing="1">EN 3 WAAR HET NIET MAG</text>
+  <text x="56" y="680" fill="#17130a" fill-opacity=".8" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700">STELLA ON TOUR</text>
+</svg>
