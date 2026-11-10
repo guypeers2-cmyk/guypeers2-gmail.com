@@ -4,6 +4,8 @@
 **Wat dit is:** elk veld dat je in Studio per video tegenkomt, met de waarde die je moet invullen — voor de 15 bestaande uploads én voor de 17 geplande video's uit de kalender.
 **Hoe je het gebruikt:** §1 stel je één keer in (kanaalbreed). §2 is de checklist die je bij *elke* upload afvinkt. §3 en §4 zijn de bestaande video's. §5 zijn de geplande.
 
+> **Alles in één keer aanpassen?** Dat kan niet met een uploadbestand in Studio. Wel met [bulk-update/](bulk-update/README.md): een lokaal script dat deze 15 video's via de YouTube API bijwerkt.
+>
 > Instellingen veranderen niets aan de video zelf. Je kunt niets stukmaken door een titel of beschrijving aan te passen — je kunt wel een video verliezen door hem te verwijderen. Dus: **nooit verwijderen, altijd privé.**
 
 ---

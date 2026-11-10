@@ -1,0 +1,272 @@
+{
+  "_uitleg": "Alle instellingen voor de 15 bestaande video's van @StellaonTour. Vul eerst 'placeholders' in. Daarna: python3 update_videos.py --validate && python3 update_videos.py --dry-run",
+  "placeholders": {
+    "INSTAGRAM_URL": "",
+    "LONG1_URL": "",
+    "LONG2_URL": ""
+  },
+  "required_placeholders": [
+    "INSTAGRAM_URL"
+  ],
+  "playlists": [
+    "Start hier",
+    "Kat op stap in België",
+    "Leibandles — stap voor stap",
+    "Grappige momenten",
+    "Kattenwelzijn"
+  ],
+  "videos": [
+    {
+      "id": "_dRI6LEy8_E",
+      "huidige_titel": "High and Dry … best place even in the pub 🤣",
+      "views": "1,4K",
+      "title": "Mijn kat kiest de warmste plek: de kroeg",
+      "description": [
+        "Ze loopt mee naar binnen alsof ze er woont. 🐈",
+        "Onze regel: altijd eerst vragen, en ze blijft aan de leiband.",
+        "",
+        "🐈 Stella wandelt 4× per week. Elke zondag een nieuwe video.",
+        "📷 Instagram: {{INSTAGRAM_URL}}",
+        "",
+        "#adventurecat #wandelenmetjekat #catonleash"
+      ],
+      "tags": [
+        "kat in de kroeg",
+        "kat mee op restaurant",
+        "wandelen met je kat",
+        "adventure cat",
+        "kat leiband",
+        "België"
+      ],
+      "playlist": "Kat op stap in België"
+    },
+    {
+      "id": "ufj49gb4vHg",
+      "huidige_titel": "we go as friends … we leave as friends. Problems are solved tomorrow",
+      "views": "1,2K",
+      "title": "Ze liepen samen. Ze eindigden als vrienden.",
+      "description": [
+        "Sommige ontmoetingen hoef je niet te plannen. 🐈",
+        "",
+        "🐈 Stella wandelt 4× per week. Elke zondag een nieuwe video.",
+        "📷 Instagram: {{INSTAGRAM_URL}}",
+        "",
+        "#adventurecat #wandelenmetjekat #catonleash"
+      ],
+      "tags": [
+        "kat ontmoet kat",
+        "katten op straat",
+        "wandelen met je kat",
+        "adventure cat",
+        "kat leiband"
+      ],
+      "playlist": "Grappige momenten",
+      "_let_op": "beschrijving is een voorstel — pas de eerste zin aan naar wat er echt gebeurt"
+    },
+    {
+      "id": "nExSPkVtu8E",
+      "huidige_titel": "Good night !",
+      "views": "1,2K",
+      "title": "Welterusten van de mooiste kat van België",
+      "description": [
+        "Na een lange wandeling is dit het enige dat ze nog wil: slapen. 🐈",
+        "",
+        "🐈 Stella wandelt 4× per week. Elke zondag een nieuwe video.",
+        "📷 Instagram: {{INSTAGRAM_URL}}",
+        "",
+        "#adventurecat #wandelenmetjekat #catonleash"
+      ],
+      "tags": [
+        "kat slaapt",
+        "moe kat",
+        "wandelen met je kat",
+        "kat leiband",
+        "schattige kat"
+      ],
+      "playlist": "Grappige momenten"
+    },
+    {
+      "id": "bYvD7lX3A1U",
+      "huidige_titel": "The best way to get your cat attention is to ignore her/him",
+      "views": "1,2K",
+      "title": "Zo krijg je de aandacht van je kat (tip: negeer haar)",
+      "description": [
+        "Werkt elke keer. Ze komt vanzelf — en dat is precies het punt. 🐈",
+        "Meer tips: {{LONG2_URL}}",
+        "",
+        "🐈 Stella wandelt 4× per week. Elke zondag een nieuwe video.",
+        "📷 Instagram: {{INSTAGRAM_URL}}",
+        "",
+        "#adventurecat #wandelenmetjekat #catonleash"
+      ],
+      "tags": [
+        "katten gedrag",
+        "kat aandacht",
+        "kat negeren",
+        "wandelen met je kat",
+        "kattentips"
+      ],
+      "playlist": "Leibandles — stap voor stap"
+    },
+    {
+      "id": "wylKCn54r2s",
+      "huidige_titel": "WhatsApp Video 2026 10 12 at 18 28 47",
+      "views": "1,1K",
+      "title": "Dag 1: onze eerste wandeling samen",
+      "description": [
+        "De eerste keer buiten met harnas en leiband. Ze bleef lang in de deuropening staan — en dan toch. 🐈",
+        "",
+        "🐈 Stella wandelt 4× per week. Elke zondag een nieuwe video.",
+        "📷 Instagram: {{INSTAGRAM_URL}}",
+        "",
+        "#adventurecat #wandelenmetjekat #catonleash"
+      ],
+      "tags": [
+        "eerste wandeling kat",
+        "kat harnas",
+        "kat leiband",
+        "wandelen met je kat",
+        "adventure cat"
+      ],
+      "playlist": "Start hier"
+    },
+    {
+      "id": "l3Y5QbhFOok",
+      "huidige_titel": "7 november 2026",
+      "views": "1,1K",
+      "title": "Ze ruikt de zee van ver",
+      "description": [
+        "Water, wind en één dappere kat. 🐈",
+        "",
+        "🐈 Stella wandelt 4× per week. Elke zondag een nieuwe video.",
+        "📷 Instagram: {{INSTAGRAM_URL}}",
+        "",
+        "#adventurecat #wandelenmetjekat #catonleash"
+      ],
+      "tags": [
+        "kat strand",
+        "kat zee",
+        "wandelen met je kat",
+        "adventure cat",
+        "kat België"
+      ],
+      "playlist": "Kat op stap in België",
+      "_let_op": "pas de eerste zin aan naar wat er echt gebeurt"
+    },
+    {
+      "id": "cgdszqBWbn0",
+      "huidige_titel": "14 oktober 2026",
+      "views": "1,0K",
+      "title": "Zo loopt een kat door een stad",
+      "description": [
+        "Kasseien, verkeer, mensen — en zij loopt gewoon door. 🐈",
+        "",
+        "🐈 Stella wandelt 4× per week. Elke zondag een nieuwe video.",
+        "📷 Instagram: {{INSTAGRAM_URL}}",
+        "",
+        "#adventurecat #wandelenmetjekat #catonleash"
+      ],
+      "tags": [
+        "kat in de stad",
+        "kat wandelt",
+        "wandelen met je kat",
+        "kat leiband",
+        "stad België"
+      ],
+      "playlist": "Kat op stap in België"
+    },
+    {
+      "id": "naD_ncLd2wo",
+      "huidige_titel": "13 oktober 2026",
+      "views": "280",
+      "title": "Ze stopte bij elke voordeur",
+      "description": [
+        "Een nieuwe straat is voor een kat één groot geurenboek. 🐈",
+        "",
+        "🐈 Stella wandelt 4× per week. Elke zondag een nieuwe video.",
+        "📷 Instagram: {{INSTAGRAM_URL}}",
+        "",
+        "#adventurecat #wandelenmetjekat #catonleash"
+      ],
+      "tags": [
+        "kat ruikt",
+        "kattenneus",
+        "wandelen met je kat",
+        "kat leiband",
+        "kattengedrag"
+      ],
+      "playlist": "Kat op stap in België"
+    },
+    {
+      "id": "t4CFpRPnLBs",
+      "huidige_titel": "13 oktober 2026",
+      "views": "57",
+      "title": "Ze wou naar huis — en dat mag",
+      "description": [
+        "Te veel prikkels, dus we draaien om. Wie met een kat wandelt, stopt wanneer zij stopt. 🐈",
+        "",
+        "🐈 Stella wandelt 4× per week. Elke zondag een nieuwe video.",
+        "📷 Instagram: {{INSTAGRAM_URL}}",
+        "",
+        "#adventurecat #wandelenmetjekat #catonleash"
+      ],
+      "tags": [
+        "kat stress",
+        "kattenwelzijn",
+        "wandelen met je kat",
+        "kat leiband",
+        "kat bang"
+      ],
+      "playlist": "Kattenwelzijn"
+    },
+    {
+      "id": "ScQUZaoArcg",
+      "huidige_titel": "10 november 2026",
+      "views": "4",
+      "description": [
+        "🐈 Stella wandelt 4× per week. Elke zondag een nieuwe video.",
+        "📷 Instagram: {{INSTAGRAM_URL}}",
+        "",
+        "#adventurecat #wandelenmetjekat #catonleash"
+      ],
+      "tags": [
+        "wandelen met je kat",
+        "kat leiband",
+        "adventure cat"
+      ],
+      "playlist": "Kat op stap in België",
+      "_let_op": "te recent — kies zelf een titel na het kijken (nu bewust leeg gelaten)"
+    },
+    {
+      "id": "YouRt_buKog",
+      "huidige_titel": "25 oktober 2026 (11 seconden)",
+      "views": "6",
+      "privacy": "private",
+      "_let_op": "11-secondenclip in de video-tab: op privé zetten, niet verwijderen"
+    },
+    {
+      "id": "YzrOX9S3kUI",
+      "huidige_titel": "9 november 2026 (10 seconden)",
+      "views": "0",
+      "privacy": "private"
+    },
+    {
+      "id": "G0AmEXcMPnY",
+      "huidige_titel": "10 november 2026 (11 seconden)",
+      "views": "0",
+      "privacy": "private"
+    },
+    {
+      "id": "Wdgb1qQpiIs",
+      "huidige_titel": "10 november 2026 (11 seconden)",
+      "views": "0",
+      "privacy": "private"
+    },
+    {
+      "id": "t3Ib8bwH2bM",
+      "huidige_titel": "10 november 2026 (11 seconden)",
+      "views": "0",
+      "privacy": "private"
+    }
+  ]
+}
