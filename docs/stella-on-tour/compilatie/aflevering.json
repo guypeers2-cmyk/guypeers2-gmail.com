@@ -1,0 +1,174 @@
+{
+  "titel": "Ginger Cat Daily Dose #01",
+  "fps": 30,
+  "stem": {
+    "lead": 0.6,
+    "tail": 0.9
+  },
+  "scenes": [
+    {
+      "type": "kaart",
+      "bestand": "kaarten/intro-16x9.png",
+      "duur": 3.0,
+      "audio": null
+    },
+    {
+      "type": "foto",
+      "crop": [
+        0.0,
+        0.02,
+        1.0,
+        0.8
+      ],
+      "caption": "Zeven uur. Ze staat klaar.",
+      "audio": "stemmen/01-zeven-uur.mp3",
+      "crop_9x16": [
+        0.27,
+        0.0,
+        0.69,
+        1.0
+      ]
+    },
+    {
+      "type": "foto",
+      "crop": [
+        0.18,
+        0.0,
+        0.72,
+        0.62
+      ],
+      "caption": "Deze kroeg is van haar.",
+      "audio": "stemmen/02-kroeg.mp3",
+      "crop_9x16": [
+        0.33,
+        0.02,
+        0.63,
+        0.72
+      ]
+    },
+    {
+      "type": "foto",
+      "crop": [
+        0.0,
+        0.2,
+        1.0,
+        1.0
+      ],
+      "caption": "Ze wacht op groen.",
+      "audio": "stemmen/03-zebrapad.mp3",
+      "crop_9x16": [
+        0.2,
+        0.3,
+        0.58,
+        1.0
+      ]
+    },
+    {
+      "type": "foto",
+      "crop": [
+        0.3,
+        0.1,
+        0.8,
+        0.85
+      ],
+      "caption": "Ze kiest haar eigen vrienden.",
+      "audio": "stemmen/04-vrienden.mp3",
+      "crop_9x16": [
+        0.36,
+        0.34,
+        0.64,
+        0.92
+      ]
+    },
+    {
+      "type": "foto",
+      "crop": [
+        0.0,
+        0.0,
+        1.0,
+        0.75
+      ],
+      "caption": "Natte tegels? Absoluut niet.",
+      "audio": "stemmen/05-tegels.mp3",
+      "crop_9x16": [
+        0.18,
+        0.0,
+        0.66,
+        0.88
+      ]
+    },
+    {
+      "type": "foto",
+      "crop": [
+        0.1,
+        0.0,
+        0.9,
+        0.78
+      ],
+      "caption": "Twintig minuten. Geen minuut meer.",
+      "audio": "stemmen/06-twintig-minuten.mp3",
+      "crop_9x16": [
+        0.28,
+        0.08,
+        0.72,
+        0.95
+      ]
+    },
+    {
+      "type": "foto",
+      "crop": [
+        0.0,
+        0.02,
+        1.0,
+        0.8
+      ],
+      "caption": "Dag 1 buiten.",
+      "audio": "stemmen/07-dag-een.mp3",
+      "crop_9x16": [
+        0.27,
+        0.0,
+        0.69,
+        1.0
+      ]
+    },
+    {
+      "type": "foto",
+      "crop": [
+        0.3,
+        0.1,
+        0.8,
+        0.85
+      ],
+      "caption": "De zee, voor het eerst.",
+      "audio": "stemmen/08-zee.mp3",
+      "crop_9x16": [
+        0.33,
+        0.02,
+        0.63,
+        0.72
+      ]
+    },
+    {
+      "type": "foto",
+      "crop": [
+        0.18,
+        0.0,
+        0.72,
+        0.62
+      ],
+      "caption": "Batterij leeg. Niet storen.",
+      "audio": "stemmen/09-slaap.mp3",
+      "crop_9x16": [
+        0.2,
+        0.3,
+        0.58,
+        1.0
+      ]
+    },
+    {
+      "type": "kaart",
+      "bestand": "kaarten/outro-16x9.png",
+      "audio": "stemmen/10-outro.mp3"
+    }
+  ]
+}

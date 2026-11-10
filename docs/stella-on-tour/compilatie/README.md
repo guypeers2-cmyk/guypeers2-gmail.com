@@ -8,14 +8,19 @@ Deze map bouwt de compilatie uit **je eigen clips**: kaarten, ondertitels, volgo
 |---|---|---|
 | `ginger-cat-daily-dose-01-teaser-9x16.mp4` | verticale teaser (1080 × 1920) — voor Shorts/Reels/TikTok | 27 s |
 | `ginger-cat-daily-dose-01-teaser-16x9.mp4` | liggende teaser (1920 × 1080) — voor je kanaaltrailer | 27 s |
-| `storyboard-daily-dose-01-16x9.mp4` | **bewegend storyboard** van de volledige aflevering (1920 × 1080) | 1 m 31 s |
-| `storyboard-daily-dose-01-9x16.mp4` | hetzelfde, verticaal (1080 × 1920) — voor Shorts | 1 m 31 s |
+| `ginger-cat-daily-dose-01.mp4` | **de aflevering** — 1920 × 1080, met Nederlandse voice-over en ondertitels | 1 m 14 s |
+| `ginger-cat-daily-dose-01-short.mp4` | dezelfde aflevering, verticaal (1080 × 1920) — voor Shorts | 1 m 14 s |
+| `ginger-cat-daily-dose-01-nl.srt` | Nederlandse ondertitels van de aflevering, met dezelfde timing | — |
 
-Het **storyboard** is de hele aflevering zoals ze *zou* zijn: introkaart, twaalf segmenten
-met hun ondertitel en een langzame zoom op de foto, slotkaart. Het is tegelijk een
-**repetitie** (zo voelt de timing, zo staan de ondertitels) en een **placeholder voor de
-montage**: zodra je `clips/` vult, rendert `maak_compilatie.py` dezelfde volgorde met echt
-beeld. Er zit nog geen geluid in.
+De **aflevering** is compleet: introkaart, negen momenten met ondertitel, slotkaart, en
+een ingesproken tekst die per scène meebeweegt (de scène duurt precies zo lang als de zin).
+Alleen het beeld is nog een langzame zoom op de foto van Stella — zodra je `clips/` vult,
+maakt `maak_compilatie.py` dezelfde volgorde met echt beeld.
+
+**De stem is een voorbeeldstem.** Het is een gesynthetiseerde Nederlandse stem, geen echte
+opname: bruikbaar om de video af te maken en te testen, maar voor je kanaal wil je je eigen
+stem. De tekst staat regel per regel in [`stemmen/script.md`](stemmen/script.md) — neem die
+op met dezelfde bestandsnamen en render opnieuw; de rest gaat vanzelf.
 
 Gemaakt met `maak_teaser.py` uit de foto van Stella en de drie kaarten: zes tekstmomenten
 ("This is Stella.", "She is not a house cat.", "She walks. On a leash.", "On her terms.",
@@ -42,7 +47,10 @@ onder (25 % volume), of neem 20 seconden commentaar op.
 | `kaarten/thumbnail-ginger-cat-daily-dose.png` | thumbnail 1280 × 720 voor de upload |
 | `maak_kaarten.py` | maakt die kaarten opnieuw (andere tekst, ander nummer) |
 | `maak_teaser.py` | rendert de teaser hierboven (foto + kaarten + bewegende tekst) |
-| `maak_storyboard.py` | rendert het bewegende storyboard van alle 12 segmenten (foto + kaarten + ondertitels) |
+| `maak_storyboard.py` | rendert een stil bewegend storyboard van alle 12 segmenten (zonder stem) |
+| `maak_aflevering.py` | rendert de aflevering mét stem: scènelengte volgt de audio, daarna mix en mux |
+| `aflevering.json` | de scènes van de aflevering: uitsnede, ondertitel en audiobestand per scène |
+| `stemmen/` | de ingesproken zinnen (`01-…mp3` … `10-…mp3`) + `script.md` met de volledige tekst |
 
 ---
 
@@ -67,10 +75,29 @@ Een compilatie van **andermans** kattenclips is precies wat je kanaal in de prob
   - Linux: `sudo apt install ffmpeg`
 - Python 3.9+ (het script gebruikt alleen de standaardbibliotheek)
 
+## 1a. De aflevering renderen (met stem)
+
+```bash
+cd docs/stella-on-tour/compilatie
+
+python3 maak_aflevering.py --dry-run      # toont de scènes en hun duur, maakt niets
+python3 maak_aflevering.py                # 16:9  → ginger-cat-daily-dose-01.mp4
+python3 maak_aflevering.py --formaat 9:16 # 9:16  → ginger-cat-daily-dose-01-short.mp4
+python3 maak_aflevering.py --muziek muziek.mp3   # optioneel muziekbed op 10 %
+```
+
+**Hoe het werkt:** `aflevering.json` beschrijft elke scène (`kaart` of `foto` met een
+uitsnede), de ondertitel en het audiobestand. Het script meet de duur van elke zin en maakt
+de scène `0,6 s + zin + 0,9 s` lang, rendert elke scène apart (dezelfde reden als bij het
+storyboard: één grote filtergraph loopt stuk), plakt het beeld aan elkaar, legt de stemmen op
+de juiste offsets, normaliseert naar −16 LUFS en muxet tot slot beeld en geluid.
+
+Een volledige render duurt ongeveer twee minuten per formaat.
+
 ## 1b. Het storyboard renderen (zonder clips)
 
-Heb je nog geen beeldmateriaal, dan kun je de aflevering al wél zien — als bewegend
-storyboard op basis van de foto van Stella:
+Zonder stem, en zonder clips: hetzelfde verhaal als een stille repetitie op basis van de
+foto van Stella (handig om alleen de timing te beoordelen):
 
 ```bash
 cd docs/stella-on-tour/compilatie

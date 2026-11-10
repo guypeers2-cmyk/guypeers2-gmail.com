@@ -22,19 +22,23 @@
 
 | Bestand | Wat | Duur |
 |---|---|---|
-| [`compilatie/storyboard-daily-dose-01-16x9.mp4`](compilatie/storyboard-daily-dose-01-16x9.mp4) | het volledige storyboard, liggend (1920 × 1080) | 1 m 31 s |
-| [`compilatie/storyboard-daily-dose-01-9x16.mp4`](compilatie/storyboard-daily-dose-01-9x16.mp4) | hetzelfde, verticaal (1080 × 1920) | 1 m 31 s |
-| [`compilatie/ginger-cat-daily-dose-01-teaser-9x16.mp4`](compilatie/ginger-cat-daily-dose-01-teaser-9x16.mp4) | teaser, verticaal | 27 s |
+| [`compilatie/ginger-cat-daily-dose-01.mp4`](compilatie/ginger-cat-daily-dose-01.mp4) | **de aflevering**, liggend (1920 × 1080), met Nederlandse voice-over | 1 m 14 s |
+| [`compilatie/ginger-cat-daily-dose-01-short.mp4`](compilatie/ginger-cat-daily-dose-01-short.mp4) | dezelfde aflevering, verticaal (1080 × 1920) | 1 m 14 s |
 | [`compilatie/ginger-cat-daily-dose-01-teaser-16x9.mp4`](compilatie/ginger-cat-daily-dose-01-teaser-16x9.mp4) | teaser, liggend | 27 s |
+| [`compilatie/ginger-cat-daily-dose-01-teaser-9x16.mp4`](compilatie/ginger-cat-daily-dose-01-teaser-9x16.mp4) | teaser, verticaal | 27 s |
 
-Het storyboard volgt **exact de volgorde en de ondertitels uit §2**: introkaart, twaalf
-segmenten, slotkaart. Alleen het beeld is nog een langzame zoom op de foto van Stella in
-plaats van je clips. Gebruik het om te beslissen of de timing klopt en om de ondertitels te
-lezen vóór je gaat monteren — niet als eindproduct.
+De aflevering volgt de volgorde uit §2 — maar in **negen momenten in plaats van twaalf**, en
+met een ingesproken tekst in plaats van losse tekstkaartjes. Reden: met een stem mag er per
+moment één zin staan; twaalf stemmen na elkaar wordt een lijst in plaats van een verhaal. De
+drie momenten die zijn samengevoegd (vrienden + honden, tegels + bakkerij, dag 1 + bankje)
+zitten in dezelfde zin. De ondertitels zijn nu Nederlands, want de long-form is Nederlands.
 
-Zodra `compilatie/clips/` gevuld is, maakt `maak_compilatie.py` dezelfde film met echt
-beeld (en met geluid, als je dat wil). Het storyboard is dus de repetitie, niet de
-voorstelling.
+Alleen het **beeld** is nog een langzame zoom op de foto van Stella. Zodra
+`compilatie/clips/` gevuld is, maakt `maak_compilatie.py` dezelfde film met echt beeld.
+
+**De stem is een voorbeeldstem** (gesynthetiseerd, geen echte opname). De volledige tekst
+staat in [`compilatie/stemmen/script.md`](compilatie/stemmen/script.md); neem die zelf op en
+render opnieuw — het script past de scènelengtes automatisch aan je tempo aan.
 
 ---
 
@@ -120,6 +124,11 @@ zelf wanneer het genoeg is.
 Bron en welzijn: ik check de regels per plek en stop wanneer zij stopt.
 Geen enkel moment in deze video is geforceerd.
 ```
+
+> **Let op bij de 74 s-versie:** de hoofdstukken hierboven horen bij de montage met clips
+> (94 s). YouTube eist minstens 10 seconden per hoofdstuk, en de segmenten van de korte
+> versie zijn ± 7 s — daar werken hoofdstukken dus niet. Laat de `⏱ Hoofdstukken`-alinea
+> weg zolang je de 74 s-versie uploadt.
 
 ---
 
