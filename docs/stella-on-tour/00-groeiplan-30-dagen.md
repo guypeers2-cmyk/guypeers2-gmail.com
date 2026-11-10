@@ -353,5 +353,7 @@ Dit onderdeel is niet optioneel: het is precies wat je onderscheidt van kattenvi
 | [07-distributie-en-batch.md](07-distributie-en-batch.md) | 1 wandeling → 5 assets, week van 3 uur, zoekvalidatie, outreach, privacy |
 | [08-studio-invullijst.md](08-studio-invullijst.md) | klik-voor-klik wat je in YouTube Studio invult (35 min) |
 | [09-video-instellingen.md](09-video-instellingen.md) | alle Studio-velden per video, voor de 15 bestaande én de 17 geplande uploads |
+| [10-dramecs-analyse.md](10-dramecs-analyse.md) | analyse van een 659K-kattenkanaal + 15 filmbare scenario's voor Stella |
+| [11-scenario-bank.csv](11-scenario-bank.csv) | dezelfde 15 scenario's als productielijst |
 | [bulk-update/](bulk-update/README.md) | script dat alle titels, beschrijvingen, tags, playlists en zichtbaarheid in één keer aanpast via de YouTube API |
 | [thumbnails/](thumbnails/README.md) | drie kant-en-klare thumbnails (1280 × 720) + maker + SVG-sjablonen |
