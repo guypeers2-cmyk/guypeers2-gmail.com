@@ -1,0 +1,102 @@
+{
+  "_uitleg": "De volgorde, duur en ondertitels van de compilatie. Zet je eigen clips in de map 'clips' met deze bestandsnamen (of pas 'bestand' aan). 'start' en 'duur' zijn in seconden.",
+  "titel": "Ginger Cat Daily Dose #01",
+  "formaat": "16:9",
+  "fps": 30,
+  "clips": "clips",
+  "taal_ondertitel": "en",
+  "muziek": null,
+  "uitvoer": "ginger-cat-daily-dose-01.mp4",
+  "kaarten": {
+    "intro": "kaarten/intro-16x9.png",
+    "intro_duur": 2.5,
+    "outro": "kaarten/outro-16x9.png",
+    "outro_duur": 3.5
+  },
+  "segmenten": [
+    {
+      "bestand": "01-deur.mp4",
+      "start": 0,
+      "duur": 5,
+      "caption_en": "7 AM. She is ready.",
+      "caption_nl": "7 uur. Ze staat klaar."
+    },
+    {
+      "bestand": "05-kroeg.mp4",
+      "start": 0,
+      "duur": 9,
+      "caption_en": "She owns this pub now.",
+      "caption_nl": "Deze kroeg is van haar."
+    },
+    {
+      "bestand": "04-zebrapad.mp4",
+      "start": 2,
+      "duur": 7,
+      "caption_en": "She waits for the green light.",
+      "caption_nl": "Ze wacht op groen."
+    },
+    {
+      "bestand": "06-vrienden.mp4",
+      "start": 1,
+      "duur": 8,
+      "caption_en": "She picks her own friends.",
+      "caption_nl": "Ze kiest haar eigen vrienden."
+    },
+    {
+      "bestand": "07-honden.mp4",
+      "start": 0,
+      "duur": 7,
+      "caption_en": "Rated 2 out of 10.",
+      "caption_nl": "Een 2 op 10."
+    },
+    {
+      "bestand": "08-regen.mp4",
+      "start": 0,
+      "duur": 7,
+      "caption_en": "Wet pavement? Absolutely not.",
+      "caption_nl": "Natte tegels? Absoluut niet."
+    },
+    {
+      "bestand": "09-bakkerij.mp4",
+      "start": 0,
+      "duur": 8,
+      "caption_en": "She found the bakery.",
+      "caption_nl": "Ze heeft de bakkerij gevonden."
+    },
+    {
+      "bestand": "10-limiet.mp4",
+      "start": 0,
+      "duur": 7,
+      "caption_en": "Twenty minutes. Not one more.",
+      "caption_nl": "Twintig minuten. Geen minuut meer."
+    },
+    {
+      "bestand": "03-eerste-straat.mp4",
+      "start": 0,
+      "duur": 8,
+      "caption_en": "Day 1 outside.",
+      "caption_nl": "Dag 1 buiten."
+    },
+    {
+      "bestand": "11-bankje.mp4",
+      "start": 0,
+      "duur": 6,
+      "caption_en": "Her bench. Not yours.",
+      "caption_nl": "Haar bankje. Niet het jouwe."
+    },
+    {
+      "bestand": "13-zee.mp4",
+      "start": 0,
+      "duur": 10,
+      "caption_en": "First time at the sea.",
+      "caption_nl": "De zee, voor het eerst."
+    },
+    {
+      "bestand": "12-slaap.mp4",
+      "start": 0,
+      "duur": 6,
+      "caption_en": "Full battery. 0%.",
+      "caption_nl": "Volle batterij. 0%."
+    }
+  ]
+}
