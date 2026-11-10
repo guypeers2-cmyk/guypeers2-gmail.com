@@ -5,6 +5,7 @@
 **Werk van boven naar beneden.** Alles wat je moet typen staat in een grijze codeblok: klik, plak, klaar.
 
 > **Wat dit niet doet:** het aanpassen van je kanaal. Dat kan alleen jij, in YouTube Studio. Dit is de invullijst, niet de handeling.
+> **Per video (titel, beschrijving, tags, playlist, publiek, ondertitels):** zie [09-video-instellingen.md](09-video-instellingen.md).
 
 ---
 
