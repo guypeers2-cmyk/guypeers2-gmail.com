@@ -150,7 +150,7 @@ def build(cfg: dict, limit: int | None, dry: bool) -> int:
             txt.parent.mkdir(exist_ok=True)
             txt.write_text(cap, encoding="utf-8")
             size = int(w * 0.045)
-            chain += (f",drawtext=fontfile='{font_path()}':textfile='{txt}':"
+            chain += (f",drawtext=fontfile='{font_path()}':textfile='{txt}':expansion=none:"
                       f"fontcolor=white:fontsize={size}:line_spacing=6:"
                       f"box=1:boxcolor=black@0.55:boxborderw={int(size * 0.45)}:"
                       f"x=(w-text_w)/2:y=h-{int(h * 0.16)}")

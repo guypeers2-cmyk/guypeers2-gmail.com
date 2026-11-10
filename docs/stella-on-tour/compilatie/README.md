@@ -6,8 +6,16 @@ Deze map bouwt de compilatie uit **je eigen clips**: kaarten, ondertitels, volgo
 
 | Bestand | Wat | Duur |
 |---|---|---|
-| `ginger-cat-daily-dose-01-teaser-9x16.mp4` | verticale versie (1080 × 1920) — voor Shorts/Reels/TikTok | 27 s |
-| `ginger-cat-daily-dose-01-teaser-16x9.mp4` | liggende versie (1920 × 1080) — voor je kanaaltrailer | 27 s |
+| `ginger-cat-daily-dose-01-teaser-9x16.mp4` | verticale teaser (1080 × 1920) — voor Shorts/Reels/TikTok | 27 s |
+| `ginger-cat-daily-dose-01-teaser-16x9.mp4` | liggende teaser (1920 × 1080) — voor je kanaaltrailer | 27 s |
+| `storyboard-daily-dose-01-16x9.mp4` | **bewegend storyboard** van de volledige aflevering (1920 × 1080) | 1 m 31 s |
+| `storyboard-daily-dose-01-9x16.mp4` | hetzelfde, verticaal (1080 × 1920) — voor Shorts | 1 m 31 s |
+
+Het **storyboard** is de hele aflevering zoals ze *zou* zijn: introkaart, twaalf segmenten
+met hun ondertitel en een langzame zoom op de foto, slotkaart. Het is tegelijk een
+**repetitie** (zo voelt de timing, zo staan de ondertitels) en een **placeholder voor de
+montage**: zodra je `clips/` vult, rendert `maak_compilatie.py` dezelfde volgorde met echt
+beeld. Er zit nog geen geluid in.
 
 Gemaakt met `maak_teaser.py` uit de foto van Stella en de drie kaarten: zes tekstmomenten
 ("This is Stella.", "She is not a house cat.", "She walks. On a leash.", "On her terms.",
@@ -34,6 +42,7 @@ onder (25 % volume), of neem 20 seconden commentaar op.
 | `kaarten/thumbnail-ginger-cat-daily-dose.png` | thumbnail 1280 × 720 voor de upload |
 | `maak_kaarten.py` | maakt die kaarten opnieuw (andere tekst, ander nummer) |
 | `maak_teaser.py` | rendert de teaser hierboven (foto + kaarten + bewegende tekst) |
+| `maak_storyboard.py` | rendert het bewegende storyboard van alle 12 segmenten (foto + kaarten + ondertitels) |
 
 ---
 
@@ -57,6 +66,33 @@ Een compilatie van **andermans** kattenclips is precies wat je kanaal in de prob
   - Windows: `winget install Gyan.FFmpeg`
   - Linux: `sudo apt install ffmpeg`
 - Python 3.9+ (het script gebruikt alleen de standaardbibliotheek)
+
+## 1b. Het storyboard renderen (zonder clips)
+
+Heb je nog geen beeldmateriaal, dan kun je de aflevering al wél zien — als bewegend
+storyboard op basis van de foto van Stella:
+
+```bash
+cd docs/stella-on-tour/compilatie
+
+python3 maak_storyboard.py --dry-run            # enkel tonen wat er zou gebeuren
+python3 maak_storyboard.py --limit 3            # eerste 3 segmenten, snel testen
+python3 maak_storyboard.py                      # volledig, 16:9  → storyboard-daily-dose-01-16x9.mp4
+python3 maak_storyboard.py --formaat 9:16       # volledig, 9:16  → storyboard-daily-dose-01-9x16.mp4
+python3 maak_storyboard.py --taal nl            # Nederlandse ondertitels i.p.v. Engels
+```
+
+Opties: `--limit N` (alleen de eerste N segmenten), `--formaat 16:9|9:16`, `--taal en|nl`,
+`--uitvoer bestandsnaam.mp4`.
+
+**Hoe het werkt:** elk segment wordt apart gerenderd (`zoompan` op een uitsnede van de
+foto + ingebrande ondertitel) naar `.tmp-storyboard/`, daarna aan elkaar geplakt met de
+`concat`-demuxer. Dat is bewust: één grote `filter_complex` met twaalf `zoompan`-inputs
+loopt stuk (exit 234, "Invalid argument"), per scène renderen niet. Een volledige render
+duurt ongeveer drie minuten per formaat.
+
+Het storyboard is **stil**. Wil je het toch als video gebruiken: zet er in Studio een
+nummer uit de YouTube Audio Library onder.
 
 ## 2. Clips klaarzetten
 
@@ -166,4 +202,7 @@ Zet per inzending een `clips/<naam>-bron.txt` met: handle, datum toestemming, li
 | `Geef 'duur' op voor …` | ffprobe ontbreekt en er staat geen `duur` in de json | `duur` invullen |
 | Video is zwart of heeft balken | verkeerde verhouding | kies `16:9` of `9:16`, niet iets ertussenin |
 | Ondertitels vallen buiten beeld | te lange tekst | max. 2 regels, ~40 tekens per regel |
+| `Error while filtering: Invalid argument` (exit 234) | te veel `zoompan`-inputs in één filtergraph | laat het script per scène renderen (zoals `maak_storyboard.py`), of verlaag `--limit` |
+| `Stray %` of tekst valt weg bij `drawtext` | `%` of `'` in de ondertitel | gebruik `expansion=none` (staat al in de scripts) |
+| Ondertitel raakt de rand of zit onder de Shorts-knoppen | te lange tekst / te laag geplaatst | het script verkleint de letters automatisch en houdt 30 % onderaan vrij in 9:16 |
 | Render duurt lang | 4K-bronmateriaal | eerst verkleinen: `ffmpeg -i in.mp4 -vf scale=1920:-2 -c:v libx264 -crf 20 klein.mp4` |

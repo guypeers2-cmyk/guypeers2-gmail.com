@@ -354,7 +354,7 @@ Dit onderdeel is niet optioneel: het is precies wat je onderscheidt van kattenvi
 | [08-studio-invullijst.md](08-studio-invullijst.md) | klik-voor-klik wat je in YouTube Studio invult (35 min) |
 | [09-video-instellingen.md](09-video-instellingen.md) | alle Studio-velden per video, voor de 15 bestaande én de 17 geplande uploads |
 | [12-compilatie-ginger-cats.md](12-compilatie-ginger-cats.md) | het compilatieconcept "Ginger Cat Daily Dose #01": opbouw, ondertitels, titels, beschrijving |
-| [compilatie/](compilatie/README.md) | **twee kant-en-klare video's** (27 s, 9:16 + 16:9), kaarten, thumbnail en ffmpeg-scripts |
+| [compilatie/](compilatie/README.md) | **vier kant-en-klare video's**: 2 teasers (27 s) + 2 storyboards (1 m 31 s, 9:16 + 16:9), kaarten, thumbnail en ffmpeg-scripts |
 | [10-dramecs-analyse.md](10-dramecs-analyse.md) | analyse van een 659K-kattenkanaal + 15 filmbare scenario's voor Stella |
 | [11-scenario-bank.csv](11-scenario-bank.csv) | dezelfde 15 scenario's als productielijst |
 | [bulk-update/](bulk-update/README.md) | script dat alle titels, beschrijvingen, tags, playlists en zichtbaarheid in één keer aanpast via de YouTube API |

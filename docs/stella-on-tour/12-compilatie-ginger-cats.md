@@ -18,6 +18,26 @@
 
 ---
 
+## 1b. Wat er al ligt (afspeelbaar, nog zonder clips)
+
+| Bestand | Wat | Duur |
+|---|---|---|
+| [`compilatie/storyboard-daily-dose-01-16x9.mp4`](compilatie/storyboard-daily-dose-01-16x9.mp4) | het volledige storyboard, liggend (1920 × 1080) | 1 m 31 s |
+| [`compilatie/storyboard-daily-dose-01-9x16.mp4`](compilatie/storyboard-daily-dose-01-9x16.mp4) | hetzelfde, verticaal (1080 × 1920) | 1 m 31 s |
+| [`compilatie/ginger-cat-daily-dose-01-teaser-9x16.mp4`](compilatie/ginger-cat-daily-dose-01-teaser-9x16.mp4) | teaser, verticaal | 27 s |
+| [`compilatie/ginger-cat-daily-dose-01-teaser-16x9.mp4`](compilatie/ginger-cat-daily-dose-01-teaser-16x9.mp4) | teaser, liggend | 27 s |
+
+Het storyboard volgt **exact de volgorde en de ondertitels uit §2**: introkaart, twaalf
+segmenten, slotkaart. Alleen het beeld is nog een langzame zoom op de foto van Stella in
+plaats van je clips. Gebruik het om te beslissen of de timing klopt en om de ondertitels te
+lezen vóór je gaat monteren — niet als eindproduct.
+
+Zodra `compilatie/clips/` gevuld is, maakt `maak_compilatie.py` dezelfde film met echt
+beeld (en met geluid, als je dat wil). Het storyboard is dus de repetitie, niet de
+voorstelling.
+
+---
+
 ## 2. De opbouw (94 seconden)
 
 De volgorde is niet willekeurig: **eerst het grappigste moment**, dan afwisselen, dan één emotioneel moment, en eindigen met een knipoog.
@@ -36,7 +56,7 @@ De volgorde is niet willekeurig: **eerst het grappigste moment**, dan afwisselen
 | 9 | Dag 1, de eerste straat | *Day 1 outside.* | 8 s | de origin: waar het begon |
 | 10 | Haar bankje | *Her bench. Not yours.* | 6 s | routine = personage |
 | 11 | De zee, voor het eerst | *First time at the sea.* | 10 s | **één emotioneel moment**, vlak voor het einde |
-| 12 | Ze valt rechtop in slaap | *Full battery. 0%.* | 6 s | de knop: moe, voldaan, klaar |
+| 12 | Ze valt rechtop in slaap | *Battery: 0%. Do not disturb.* | 6 s | de knop: moe, voldaan, klaar |
 | — | **Slotkaart** | TOT DE VOLGENDE WANDELING | 3,5 s | reeksbelofte |
 
 **Total: ± 94 seconden.** Kort genoeg om uit te kijken, lang genoeg om een verhaal te hebben.
@@ -90,7 +110,7 @@ zelf wanneer het genoeg is.
 01:16 Dag 1 buiten
 01:27 Haar bankje
 01:34 De zee, voor het eerst
-01:44 Volle batterij, 0%
+01:44 Batterij leeg, niet storen
 
 🐈 Stella wandelt 4× per week. Elke zondag een nieuwe video.
 📷 Instagram: [jouw link]

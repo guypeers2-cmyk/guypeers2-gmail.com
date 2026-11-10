@@ -126,7 +126,7 @@ def build(formaat: str, uitvoer: str, dry: bool) -> int:
             f"x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':"
             f"d={frames}:s={W}x{H}:fps={fps},"
             f"trim=duration={dur},setpts=PTS-STARTPTS,setsar=1,"
-            f"drawtext=fontfile='{fonte}':textfile='{txt}':fontcolor=white:fontsize={size}:"
+            f"drawtext=fontfile='{fonte}':textfile='{txt}':expansion=none:fontcolor=white:fontsize={size}:"
             f"line_spacing=8:box=1:boxcolor=black@0.5:boxborderw={int(size*0.5)}:"
             f"x=(w-text_w)/2:y=h-{int(H*0.20)}"
             f"[v{n}]")
