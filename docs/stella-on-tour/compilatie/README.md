@@ -2,6 +2,27 @@
 
 Deze map bouwt de compilatie uit **je eigen clips**: kaarten, ondertitels, volgorde en een kant-en-klaar ffmpeg-commando. De inhoud en het verhaal staan in [12-compilatie-ginger-cats.md](../12-compilatie-ginger-cats.md).
 
+## 🎬 De video's die er al zijn
+
+| Bestand | Wat | Duur |
+|---|---|---|
+| `ginger-cat-daily-dose-01-teaser-9x16.mp4` | verticale versie (1080 × 1920) — voor Shorts/Reels/TikTok | 27 s |
+| `ginger-cat-daily-dose-01-teaser-16x9.mp4` | liggende versie (1920 × 1080) — voor je kanaaltrailer | 27 s |
+
+Gemaakt met `maak_teaser.py` uit de foto van Stella en de drie kaarten: zes tekstmomenten
+("This is Stella.", "She is not a house cat.", "She walks. On a leash.", "On her terms.",
+"Every Sunday. A new route.", "Ginger Cat Daily Dose #01") met een langzame zoom op
+verschillende delen van de foto.
+
+**Let op:** dit zijn **teasers**, geen compilatie van clips — daarvoor is beeldmateriaal
+nodig dat dit project niet heeft. Ze zijn wel meteen bruikbaar: de 16:9-versie is je
+kanaaltrailer voor nieuwe bezoekers, de 9:16-versie is je eerste verticale video.
+
+**Stil, en dat is expres.** Zet er in Studio een nummer uit de YouTube Audio Library
+onder (25 % volume), of neem 20 seconden commentaar op.
+
+---
+
 **Wat je hier krijgt**
 
 | Bestand | Wat |
@@ -12,6 +33,7 @@ Deze map bouwt de compilatie uit **je eigen clips**: kaarten, ondertitels, volgo
 | `kaarten/outro-16x9.png` · `outro-9x16.png` | afsluitkaart |
 | `kaarten/thumbnail-ginger-cat-daily-dose.png` | thumbnail 1280 × 720 voor de upload |
 | `maak_kaarten.py` | maakt die kaarten opnieuw (andere tekst, ander nummer) |
+| `maak_teaser.py` | rendert de teaser hierboven (foto + kaarten + bewegende tekst) |
 
 ---
 
