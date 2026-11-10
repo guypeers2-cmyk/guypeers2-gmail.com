@@ -352,4 +352,4 @@ Dit onderdeel is niet optioneel: het is precies wat je onderscheidt van kattenvi
 | [06-scripts-longform.md](06-scripts-longform.md) | beat sheets voor de vier long-forms (hook, timing, shots, B-roll) |
 | [07-distributie-en-batch.md](07-distributie-en-batch.md) | 1 wandeling → 5 assets, week van 3 uur, zoekvalidatie, outreach, privacy |
 | [08-studio-invullijst.md](08-studio-invullijst.md) | klik-voor-klik wat je in YouTube Studio invult (35 min) |
-| [thumbnails/thumbnail-maker.html](thumbnails/thumbnail-maker.html) | thumbnail maken in je browser: foto slepen, tekst typen, PNG downloaden |
+| [thumbnails/](thumbnails/README.md) | drie kant-en-klare thumbnails (1280 × 720) + maker + SVG-sjablonen |
