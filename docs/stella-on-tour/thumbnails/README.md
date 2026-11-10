@@ -1,12 +1,14 @@
 # 🖼️ Thumbnails — drie varianten met jouw foto
 
-Gemaakt met de foto die je aanleverde (419 × 339 px). Klaar voor gebruik: **1280 × 720**, PNG.
+Gemaakt met de foto die je aanleverde (4032 × 3024 px — ruim voldoende). Klaar voor gebruik: **1280 × 720**, PNG, onder de 2 MB-limiet van YouTube.
 
 | Bestand | Voor welke video | Tekst |
 |---|---|---|
 | [voorbeelden/thumbnail-A-15-wandelingen.png](voorbeelden/thumbnail-A-15-wandelingen.png) | Long 1 — "15 wandelingen" | 15 / WANDELINGEN / wat ik leerde |
 | [voorbeelden/thumbnail-B-7-dagen-leibandles.png](voorbeelden/thumbnail-B-7-dagen-leibandles.png) | Long 2 — de leibandles | 7 / DAGEN / leibandles, zonder stress |
 | [voorbeelden/thumbnail-C-mijn-kat-wandelt.png](voorbeelden/thumbnail-C-mijn-kat-wandelt.png) | kanaaltrailer / kanaalbreed | MIJN KAT / WANDELT / elke zondag een nieuwe route |
+
+Variant **C** is de volledige-foto-versie (16:9, tekst onderaan over een donker verloop). Varianten **A** en **B** zetten de kop in een kader, omdat dat op klein formaat net iets strakker leest.
 
 ## Waarom deze drie
 
@@ -16,7 +18,7 @@ Gemaakt met de foto die je aanleverde (419 × 339 px). Klaar voor gebruik: **128
 
 ## Twee dingen die je moet weten
 
-**1. De foto is te klein voor full-bleed.** 419 px breed wordt op 1280 px ongeveer 3× opgeschaald. Ik heb hem daarom in een kader geplaatst en licht verscherpt — dat gaat goed, maar het blijft soft. **Lever een origineel van minstens 1920 × 1080 aan** (of een staande foto van ~1500 px hoog); dan wordt het haarscherp en kan de foto het volledige beeld vullen.
+**1. De resolutie is nu in orde.** 4032 × 3024 geeft haarscherpe thumbnails, ook op tv-formaat. Ik heb de foto licht gecorrigeerd (kleur, contrast, verscherping) en de uitsnede op de kop gelegd, zodat de deurklink en de muur rechts wegvallen.
 
 **2. Deze foto is binnen genomen.** Voor een kanaal over *wandelen* werkt een foto met harnas, buiten, in daglicht vele malen beter — ook omdat kijkers op de thumbnail al zien dat het geen gewone kattenvideo is. De beste thumbnailfoto's:
 
